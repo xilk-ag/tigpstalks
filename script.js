@@ -50,12 +50,28 @@ const db = window.firebase.firestore();
 
 // Firestore CRUD for posts
 async function fetchPostsFromFirestore() {
-  const postsCol = db.collection("posts");
-  // Remove orderBy for debugging
-  const postSnapshot = await postsCol.get();
-  const postsArr = postSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  console.log('Fetched posts from Firestore:', postsArr);
-  return postsArr;
+  try {
+    console.log('Starting fetchPostsFromFirestore...');
+    const postsCol = db.collection("posts");
+    console.log('Posts collection reference:', postsCol);
+    
+    const postSnapshot = await postsCol.get();
+    console.log('Post snapshot:', postSnapshot);
+    console.log('Snapshot empty:', postSnapshot.empty);
+    console.log('Snapshot size:', postSnapshot.size);
+    
+    const postsArr = postSnapshot.docs.map(doc => {
+      const data = doc.data();
+      console.log('Document ID:', doc.id, 'Data:', data);
+      return { id: doc.id, ...data };
+    });
+    
+    console.log('Final posts array:', postsArr);
+    return postsArr;
+  } catch (error) {
+    console.error('Error in fetchPostsFromFirestore:', error);
+    return [];
+  }
 }
 async function savePostToFirestore(post) {
   await db.collection("posts").add(post);
@@ -86,6 +102,8 @@ async function initializeAppData() {
     posts = await fetchPostsFromFirestore();
     console.log('Posts loaded from Firestore:', posts.length, posts);
     renderPosts();
+    addDebugPanel(); // Add debug panel
+    
     // Load user profile if logged in
     const user = localStorage.getItem('tigpsUser');
     if (user) {
@@ -1556,4 +1574,28 @@ function renderDashboardPosts() {
     `;
     dashboardPostsList.appendChild(div);
   });
+} 
+
+// Add debug panel to homepage
+function addDebugPanel() {
+  const postsFeed = document.getElementById('postsFeed');
+  if (postsFeed) {
+    const debugDiv = document.createElement('div');
+    debugDiv.style.cssText = 'background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc; font-family: monospace; font-size: 12px;';
+    debugDiv.innerHTML = `
+      <strong>DEBUG INFO:</strong><br>
+      Posts array length: ${posts ? posts.length : 'undefined'}<br>
+      Posts array: ${JSON.stringify(posts, null, 2)}<br>
+      <button onclick="refreshPosts()" style="margin-top: 5px;">Refresh Posts</button>
+    `;
+    postsFeed.appendChild(debugDiv);
+  }
+}
+
+// Function to manually refresh posts
+async function refreshPosts() {
+  console.log('Manual refresh triggered...');
+  posts = await fetchPostsFromFirestore();
+  renderPosts();
+  addDebugPanel();
 } 
