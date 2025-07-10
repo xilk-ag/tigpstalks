@@ -301,12 +301,17 @@ async function saveProfileToFirestore(profile) {
 }
 // Firestore CRUD for comments
 async function fetchCommentsFromFirestore(postId) {
-  const commentsCol = db.collection("posts").doc(postId).collection("comments");
-  const commentSnapshot = await commentsCol.orderBy("timestamp", "asc").get();
-  return commentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  try {
+    const commentsCol = window.firebase.firestore().collection("posts").doc(postId).collection("comments");
+    const commentSnapshot = await commentsCol.orderBy("timestamp", "asc").get();
+    return commentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    return [];
+  }
 }
 async function saveCommentToFirestore(postId, comment) {
-  await db.collection("posts").doc(postId).collection("comments").add(comment);
+  await window.firebase.firestore().collection("posts").doc(postId).collection("comments").add(comment);
 }
 
 // Initialize app with Firestore
@@ -969,16 +974,16 @@ async function toggleLike(postId) {
       return;
     }
     
-    const postRef = db.collection('posts').doc(postId.toString());
-    const postDoc = await postRef.get();
-    
-    if (!postDoc.exists) {
-      console.error('Post not found:', postId);
+    // Find the post in the local posts array first
+    const postIndex = posts.findIndex(p => p.id === postId || p.id === postId.toString());
+    if (postIndex === -1) {
+      console.error('Post not found in local array:', postId);
+      console.log('Available posts:', posts.map(p => ({ id: p.id, type: typeof p.id })));
       showNotification('Post not found.', 'error');
       return;
     }
     
-    let post = postDoc.data();
+    let post = posts[postIndex];
     if (!post.likes) post.likes = 0;
     if (!post.likedBy) post.likedBy = [];
     
@@ -997,10 +1002,19 @@ async function toggleLike(postId) {
       showNotification('Post liked!', 'success');
     }
     
-    await postRef.update({ likes: post.likes, likedBy: post.likedBy });
+    // Update the post in Firestore
+    try {
+      const postRef = window.firebase.firestore().collection('posts').doc(post.id.toString());
+      await postRef.update({ likes: post.likes, likedBy: post.likedBy });
+    } catch (firestoreError) {
+      console.error('Error updating Firestore:', firestoreError);
+      // Continue with local update even if Firestore fails
+    }
     
-    // Refresh posts to show updated like count
-    posts = await fetchPostsFromFirestore();
+    // Update local posts array
+    posts[postIndex] = post;
+    
+    // Re-render posts to show updated like count
     renderPosts();
     
   } catch (e) {
@@ -1013,10 +1027,13 @@ async function toggleLike(postId) {
 async function showComments(postId) {
   currentPostId = postId;
   try {
+    console.log('Loading comments for post:', postId);
     const comments = await fetchCommentsFromFirestore(postId.toString());
+    console.log('Comments loaded:', comments);
     renderComments(comments);
     document.getElementById('commentsModal').style.display = 'block';
   } catch (e) {
+    console.error('Error loading comments:', e);
     showNotification('Failed to load comments.', 'error');
   }
 }
@@ -1096,6 +1113,9 @@ window.closeGifSearchModal = closeGifSearchModal;
 window.closeGifSearch = closeGifSearch;
 window.searchGifs = searchGifs;
 window.selectGifFromSearch = selectGifFromSearch;
+window.toggleLike = toggleLike;
+window.showComments = showComments;
+window.addComment = addComment;
 
 document.addEventListener('DOMContentLoaded', function() {
     const gifInput = document.getElementById('gifSearchInput');
