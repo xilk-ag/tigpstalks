@@ -115,7 +115,30 @@ async function initializeAppData() {
     console.log('Initializing app with Firestore...');
     posts = await fetchPostsFromFirestore();
     console.log('Posts loaded from Firestore:', posts.length, posts);
+    
+    // If no posts exist, create a test post
+    if (posts.length === 0) {
+      console.log('No posts found, creating test post...');
+      const testPost = {
+        content: "Welcome to TIGPS Social! This is a test post to get things started. 🎉",
+        author: "TIGPS Team",
+        username: "tigps_team",
+        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face",
+        isAnonymous: false,
+        media: null,
+        timestamp: new Date().toISOString(),
+        likes: 5,
+        comments: [],
+        isLiked: false,
+        tags: ["welcome", "test"]
+      };
+      await savePostToFirestore(testPost);
+      posts = await fetchPostsFromFirestore();
+      console.log('Test post created, posts now:', posts.length);
+    }
+    
     renderPosts();
+    
     // Load user profile if logged in
     const user = localStorage.getItem('tigpsUser');
     if (user) {
@@ -142,7 +165,7 @@ addPost = async function(content, isAnonymous, media) {
     author: user.displayName,
     username: user.username,
     avatar: user.avatar,
-    isAnonymous: isAnonymous ? 1 : 0,
+    isAnonymous: isAnonymous,
     media,
     timestamp,
     likes: 0,
@@ -254,8 +277,7 @@ const settingsModal = document.getElementById('settingsModal');
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', async function() {
-    await initializeGoogleDrive();
-    renderPosts();
+    await initializeAppData();
     setupEventListeners();
     updateProfileDisplay();
     showEmptyStateIfNeeded();
