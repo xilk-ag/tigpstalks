@@ -355,12 +355,13 @@ function createPostFromModal() {
 // Add new post
 async function addPost(content, isAnonymous, media) {
     const tags = extractTags(content);
+    const user = getCurrentUserForPost(isAnonymous);
     const post = {
         id: nextPostId++,
         content: content,
-        author: isAnonymous ? 'Anonymous' : currentUser.displayName,
-        username: isAnonymous ? 'anonymous' : currentUser.username,
-        avatar: isAnonymous ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=48&h=48&fit=crop&crop=face' : currentUser.avatar,
+        author: user.displayName,
+        username: user.username,
+        avatar: user.avatar,
         timestamp: new Date(),
         likes: 0,
         comments: [],
@@ -1127,9 +1128,80 @@ function updateDriveStatus() {
     }
 }
 
-function logout() {
-    showNotification('Logout feature coming soon!', 'info');
+// --- Simple Username Login Logic ---
+function showLoginModal() {
+    document.getElementById('loginModal').style.display = 'block';
+    document.querySelector('.app').style.display = 'none';
 }
+function hideLoginModal() {
+    document.getElementById('loginModal').style.display = 'none';
+    document.querySelector('.app').style.display = '';
+}
+function loginUser() {
+    const displayName = document.getElementById('loginDisplayName').value.trim();
+    const username = document.getElementById('loginUsername').value.trim();
+    if (!displayName || !username) {
+        showNotification('Please enter both display name and username.', 'error');
+        return;
+    }
+    const avatar = currentUser.avatar; // Use default avatar
+    const bio = currentUser.bio || '';
+    const location = currentUser.location || '';
+    const user = { displayName, username, avatar, bio, location };
+    localStorage.setItem('tigpsUser', JSON.stringify(user));
+    currentUser = { ...currentUser, ...user };
+    updateProfileDisplay();
+    hideLoginModal();
+    showNotification('Logged in as ' + displayName, 'success');
+}
+function checkLogin() {
+    const user = localStorage.getItem('tigpsUser');
+    if (user) {
+        currentUser = { ...currentUser, ...JSON.parse(user) };
+        updateProfileDisplay();
+        hideLoginModal();
+    } else {
+        showLoginModal();
+    }
+}
+function logout() {
+    localStorage.removeItem('tigpsUser');
+    showLoginModal();
+    showNotification('Logged out.', 'info');
+}
+// Call checkLogin on DOMContentLoaded
+const oldDOMContentLoaded = document.onreadystatechange;
+document.addEventListener('DOMContentLoaded', function() {
+    checkLogin();
+    if (typeof oldDOMContentLoaded === 'function') oldDOMContentLoaded();
+});
+// Update post/profile creation to use currentUser
+function getCurrentUserForPost(isAnonymous) {
+    if (isAnonymous) {
+        return {
+            displayName: 'Anonymous',
+            username: 'anonymous',
+            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=48&h=48&fit=crop&crop=face',
+        };
+    }
+    return {
+        displayName: currentUser.displayName,
+        username: currentUser.username,
+        avatar: currentUser.avatar,
+    };
+}
+// Patch addPost to use getCurrentUserForPost
+const originalAddPost = addPost;
+addPost = async function(content, isAnonymous, media) {
+    const user = getCurrentUserForPost(isAnonymous);
+    return originalAddPost.call(this, content, isAnonymous, media, user);
+};
+// Patch saveProfile to update localStorage
+const originalSaveProfile = saveProfile;
+saveProfile = async function() {
+    await originalSaveProfile.apply(this, arguments);
+    localStorage.setItem('tigpsUser', JSON.stringify(currentUser));
+};
 
 // Utility functions
 function getTimeAgo(date) {

@@ -9,6 +9,7 @@
     <script src="https://apis.google.com/js/api.js"></script>
 </head>
 <body>
+    <div class="stars"></div>
     <div class="stars-container">
         <div class="stars"></div>
         <div class="twinkling"></div>
@@ -19,7 +20,7 @@
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1 class="logo" style="background:none;-webkit-text-fill-color:#fff;color:#fff;font-size:1.5rem;font-weight:700;filter:none;">TIGPS</h1>
+                <h1 class="logo" style="font-size:2rem;font-weight:900;letter-spacing:0.04em;color:#fff;text-shadow:0 0 8px #a259ff99;">TIGPS</h1>
                 <div class="header-actions">
                     <button class="btn-plus" onclick="openPostModal()" aria-label="New Post">
                         <span style="font-size:1.7rem;line-height:1;">+</span>
@@ -355,5 +356,48 @@
 window.TIGPS_GOOGLE_CLIENT_ID = '159469583555-5lsk05m18trjfu6fhvg6gnh8gighvk15.apps.googleusercontent.com';
 </script>
     <script src="script.js"></script>
+    <script>
+// Starfield: white, subtle, animated
+(function() {
+  const starCount = 70;
+  const stars = document.querySelector('.stars');
+  for (let i = 0; i < starCount; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.top = Math.random() * 100 + 'vh';
+    star.style.left = Math.random() * 100 + 'vw';
+    star.style.opacity = 0.5 + Math.random() * 0.5;
+    star.style.width = star.style.height = (1 + Math.random() * 2) + 'px';
+    star.style.animationDelay = (Math.random() * 2.5) + 's';
+    star.style.animationDuration = (2 + Math.random() * 2) + 's, ' + (15 + Math.random() * 10) + 's';
+    stars.appendChild(star);
+  }
+})();
+</script>
+    <!-- Login Modal (Simple Username) -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content profile-modal">
+            <div class="modal-header">
+                <h2>Login</h2>
+            </div>
+            <div class="modal-body">
+                <div class="profile-edit-section">
+                    <div class="profile-fields">
+                        <div class="input-group">
+                            <label>Display Name</label>
+                            <input type="text" id="loginDisplayName" placeholder="Your display name">
+                        </div>
+                        <div class="input-group">
+                            <label>Username (@username)</label>
+                            <input type="text" id="loginUsername" placeholder="username">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-primary" onclick="loginUser()">Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 
