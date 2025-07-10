@@ -84,56 +84,104 @@ async function initGoogleAuth() {
     }
 }
 
-// Initialize Firebase (compat)
-const firebaseConfig = {
-  apiKey: "AIzaSyBMTZlitQGyqNx3LO0cNiITBpBHMec8rN8",
-  authDomain: "xilk-tigps.firebaseapp.com",
-  projectId: "xilk-tigps",
-  storageBucket: "xilk-tigps.firebasestorage.app",
-  messagingSenderId: "242470054512",
-  appId: "1:242470054512:web:ee2a87d593d8e3a48aa2b5",
-  measurementId: "G-SW6DE3T95T"
-};
-if (!window.firebase.apps.length) {
-  window.firebase.initializeApp(firebaseConfig);
+// Initialize Firebase (compat) with proper loading check
+let db = null;
+
+function initializeFirebase() {
+  if (typeof window.firebase === 'undefined') {
+    console.error('Firebase SDK not loaded');
+    showNotification('Firebase SDK not loaded. Please refresh the page.', 'error');
+    return false;
+  }
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyBMTZlitQGyqNx3LO0cNiITBpBHMec8rN8",
+    authDomain: "xilk-tigps.firebaseapp.com",
+    projectId: "xilk-tigps",
+    storageBucket: "xilk-tigps.firebasestorage.app",
+    messagingSenderId: "242470054512",
+    appId: "1:242470054512:web:ee2a87d593d8e3a48aa2b5",
+    measurementId: "G-SW6DE3T95T"
+  };
+  
+  try {
+    if (!window.firebase.apps.length) {
+      window.firebase.initializeApp(firebaseConfig);
+    }
+    db = window.firebase.firestore();
+    console.log('Firebase initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
+    showNotification('Failed to initialize Firebase: ' + error.message, 'error');
+    return false;
+  }
 }
-const db = window.firebase.firestore();
 
 // Fetch posts from Firestore
 async function fetchPostsFromFirestore() {
+  if (!db) {
+    throw new Error('Firestore not initialized');
+  }
   const postsCol = db.collection("posts");
   const postSnapshot = await postsCol.orderBy("timestamp", "desc").get();
   return postSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
+
 // Save post to Firestore
 async function savePostToFirestore(post) {
+  if (!db) {
+    throw new Error('Firestore not initialized');
+  }
   await db.collection("posts").add(post);
 }
+
 // Fetch user profile from Firestore
 async function fetchProfileFromFirestore(username) {
+  if (!db) {
+    throw new Error('Firestore not initialized');
+  }
   const profileRef = db.collection("profiles").doc(username);
   const profileSnap = await profileRef.get();
   return profileSnap.exists ? profileSnap.data() : null;
 }
+
 // Save user profile to Firestore
 async function saveProfileToFirestore(profile) {
+  if (!db) {
+    throw new Error('Firestore not initialized');
+  }
   await db.collection("profiles").doc(profile.username).set(profile);
 }
+
 // Fetch comments for a post from Firestore
 async function fetchCommentsFromFirestore(postId) {
+  if (!db) {
+    throw new Error('Firestore not initialized');
+  }
   const commentsCol = db.collection("posts").doc(postId).collection("comments");
   const commentSnapshot = await commentsCol.orderBy("timestamp", "asc").get();
   return commentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
+
 // Save comment to Firestore
 async function saveCommentToFirestore(postId, comment) {
+  if (!db) {
+    throw new Error('Firestore not initialized');
+  }
   await db.collection("posts").doc(postId).collection("comments").add(comment);
 }
 
-// On app load, fetch posts and profile from Firestore
+// Enhanced Firestore initialization with better error handling
 async function initializeAppData() {
   try {
     console.log('Initializing Firestore data...');
+    
+    // Initialize Firebase first
+    if (!initializeFirebase()) {
+      throw new Error('Firebase initialization failed');
+    }
+    
     posts = await fetchPostsFromFirestore();
     console.log('Posts loaded from Firestore:', posts.length);
     renderPosts();
