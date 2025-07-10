@@ -1831,6 +1831,29 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('profileMenu').classList.remove('show');
         }
     });
+
+    // Debug/Test Firestore button
+    const debugBtn = document.getElementById('debugFirestoreBtn');
+    if (debugBtn) {
+        debugBtn.addEventListener('click', async function() {
+            try {
+                console.log('DEBUG: Fetching posts from Firestore...');
+                const postsCol = db.collection("posts");
+                const postSnapshot = await postsCol.orderBy("timestamp", "desc").get();
+                if (postSnapshot.empty) {
+                    console.log('DEBUG: No posts found in Firestore.');
+                    alert('No posts found in Firestore.');
+                } else {
+                    const postsArr = postSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    console.log('DEBUG: Posts fetched:', postsArr);
+                    alert('Fetched ' + postsArr.length + ' posts from Firestore. Check the console for details.');
+                }
+            } catch (err) {
+                console.error('DEBUG: Error fetching posts from Firestore:', err);
+                alert('Error fetching posts from Firestore: ' + err.message);
+            }
+        });
+    }
 }); 
 
 // Account Dashboard Modal logic
