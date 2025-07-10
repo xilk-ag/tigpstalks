@@ -133,8 +133,11 @@ async function saveCommentToFirestore(postId, comment) {
 // On app load, fetch posts and profile from Firestore
 async function initializeAppData() {
   try {
+    console.log('Initializing Firestore data...');
     posts = await fetchPostsFromFirestore();
+    console.log('Posts loaded from Firestore:', posts.length);
     renderPosts();
+    
     // Load user profile if logged in
     const user = localStorage.getItem('tigpsUser');
     if (user) {
@@ -145,8 +148,10 @@ async function initializeAppData() {
         updateProfileDisplay();
       }
     }
+    console.log('Firestore initialization complete');
   } catch (e) {
-    showNotification('Failed to load data from Firestore.', 'error');
+    console.error('Firestore initialization error:', e);
+    showNotification('Failed to load data from Firestore. Error: ' + e.message, 'error');
   }
 }
 // Patch addPost to use Firestore
@@ -928,34 +933,57 @@ function removeMedia(previewId) {
 
 // Profile management
 function toggleProfileMenu() {
-    const menu = document.getElementById('profileMenu');
-    const userMenu = document.querySelector('.user-menu');
-    if (menu.style.display === 'block') {
-      menu.style.display = 'none';
-      userMenu.classList.remove('active');
-    } else {
-      menu.style.display = 'block';
-      userMenu.classList.add('active');
-    }
+  const menu = document.getElementById('profileMenu');
+  const userMenu = document.querySelector('.user-menu');
+  const hamburgerMenu = document.querySelector('.hamburger-menu');
+  
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+    userMenu.classList.remove('active');
+    hamburgerMenu.classList.remove('active');
+  } else {
+    menu.style.display = 'block';
+    userMenu.classList.add('active');
+    hamburgerMenu.classList.add('active');
+  }
 }
 
+// Close menu when clicking outside
+window.addEventListener('click', function(e) {
+  const menu = document.getElementById('profileMenu');
+  const userMenu = document.querySelector('.user-menu');
+  const hamburgerMenu = document.querySelector('.hamburger-menu');
+  
+  if (!userMenu.contains(e.target) && !hamburgerMenu.contains(e.target)) {
+    menu.style.display = 'none';
+    userMenu.classList.remove('active');
+    hamburgerMenu.classList.remove('active');
+  }
+});
+
 function openProfileModal() {
-    const displayNameInput = document.getElementById('profileDisplayName');
-    const usernameInput = document.getElementById('profileUsername');
-    const bioInput = document.getElementById('profileBio');
-    const locationInput = document.getElementById('profileLocation');
-    const profilePic = document.getElementById('profileEditPic');
-    if (!displayNameInput || !usernameInput || !bioInput || !locationInput || !profilePic) {
-        showNotification('Profile modal error: missing fields.', 'error');
-        return;
-    }
-    displayNameInput.value = currentUser.displayName || '';
-    usernameInput.value = currentUser.username || '';
-    bioInput.value = currentUser.bio || '';
-    locationInput.value = currentUser.location || '';
-    profilePic.src = currentUser.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face';
+  const displayNameInput = document.getElementById('profileDisplayName');
+  const usernameInput = document.getElementById('profileUsername');
+  const bioInput = document.getElementById('profileBio');
+  const locationInput = document.getElementById('profileLocation');
+  const profilePic = document.getElementById('profileEditPic');
+  
+  if (!displayNameInput || !usernameInput || !bioInput || !locationInput || !profilePic) {
+    showNotification('Profile modal error: missing fields.', 'error');
+    return;
+  }
+  
+  displayNameInput.value = currentUser.displayName || '';
+  usernameInput.value = currentUser.username || '';
+  bioInput.value = currentUser.bio || '';
+  locationInput.value = currentUser.location || '';
+  profilePic.src = currentUser.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face';
+  
+  const profileModal = document.getElementById('profileModal');
+  if (profileModal) {
     profileModal.style.display = 'block';
     document.body.style.overflow = 'hidden';
+  }
 }
 
 function closeProfileModal() {
@@ -1001,14 +1029,13 @@ function updateProfileDisplay() {
 
 // Admin functions
 function openAdminModal() {
+  const adminModal = document.getElementById('adminModal');
+  if (adminModal) {
     adminModal.style.display = 'block';
     document.body.style.overflow = 'hidden';
-    
-    // Reset admin state
-    isAdminLoggedIn = false;
-    document.getElementById('adminLoginSection').style.display = 'block';
-    document.getElementById('adminDashboardSection').style.display = 'none';
-    document.getElementById('adminPassword').value = '';
+    updateAdminStats();
+    updateAdminDriveStatus();
+  }
 }
 
 function closeAdminModal() {
@@ -1206,9 +1233,11 @@ function closeCommentsModal() {
 }
 
 function openSettingsModal() {
+  const settingsModal = document.getElementById('settingsModal');
+  if (settingsModal) {
     settingsModal.style.display = 'block';
     document.body.style.overflow = 'hidden';
-    updateDriveStatus();
+  }
 }
 
 function closeSettingsModal() {
@@ -1345,9 +1374,17 @@ function checkLogin() {
     }
 }
 function logout() {
-    localStorage.removeItem('tigpsUser');
-    showLoginModal();
-    showNotification('Logged out.', 'info');
+  localStorage.removeItem('tigpsUser');
+  currentUser = {
+    id: 1,
+    displayName: "Alex Chen",
+    username: "alexchen",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face",
+    bio: "Computer Science student at TIGPS. Love coding and coffee! ☕",
+    location: "TIGPS Campus"
+  };
+  updateProfileDisplay();
+  showNotification('Logged out successfully!', 'success');
 }
 // Call checkLogin on DOMContentLoaded
 const oldDOMContentLoaded = document.onreadystatechange;

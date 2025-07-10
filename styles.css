@@ -1427,10 +1427,25 @@ body::before {
     height: 20px;
 } 
 
+/* Hamburger menu on the left */
+.hamburger-menu {
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.hamburger-menu:hover {
+  background: rgba(162, 89, 255, 0.1);
+}
+
+.hamburger-menu.active {
+  background: rgba(162, 89, 255, 0.2);
+}
+
 /* Hamburger menu icon */
 .hamburger-icon {
   cursor: pointer;
-  margin-left: 0.5rem;
   vertical-align: middle;
 }
 
@@ -1447,9 +1462,11 @@ body::before {
   z-index: 1001;
   padding: 0.5rem 0;
 }
+
 .user-menu:hover .profile-menu, .user-menu.active .profile-menu {
   display: block;
 }
+
 .profile-menu-item {
   padding: 0.75rem 1.5rem;
   cursor: pointer;
@@ -1460,6 +1477,7 @@ body::before {
   gap: 0.7em;
   transition: background 0.15s;
 }
+
 .profile-menu-item:hover {
   background: #f3f0fa;
   color: #a259ff;
