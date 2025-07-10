@@ -724,6 +724,12 @@ function createPostElement(post, index) {
                 }
                 <div class="post-time">${timeAgo}</div>
             </div>
+            <div class="post-menu">
+                <button class="post-menu-btn" onclick="togglePostMenu('${safePost.id}')">⋯</button>
+                <div class="post-menu-dropdown" id="post-menu-${safePost.id}">
+                    ${isAdminLoggedIn ? `<div class="post-menu-item" onclick="deletePost('${safePost.id}')">🗑️ Delete Post</div>` : ''}
+                </div>
+            </div>
         </div>
         <div class="post-content">${formatContent(safePost.content)}</div>
         ${mediaHtml}
@@ -2113,7 +2119,8 @@ window.selectModalGif = selectModalGif;
 window.removeSelectedGif = removeSelectedGif;
 window.removeModalSelectedGif = removeModalSelectedGif;
 window.openModalGifSearch = openModalGifSearch;
-window.openGifModal = openGifModal; 
+window.openGifModal = openGifModal;
+window.togglePostMenu = togglePostMenu; 
 
 // GIF Search Feature - Variables already declared above
 let selectedGif = null;
@@ -2365,16 +2372,45 @@ function escapeHtml(text) {
 let postsLoaded = false;
 let loadingOverlayTimeout = null;
 
+// Post menu functionality
+function togglePostMenu(postId) {
+    const menuId = `post-menu-${postId}`;
+    const menu = document.getElementById(menuId);
+    
+    // Close all other menus first
+    const allMenus = document.querySelectorAll('.post-menu-dropdown');
+    allMenus.forEach(m => {
+        if (m.id !== menuId) {
+            m.classList.remove('show');
+        }
+    });
+    
+    // Toggle current menu
+    if (menu) {
+        menu.classList.toggle('show');
+    }
+}
+
+// Close post menus when clicking outside
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.post-menu')) {
+        const allMenus = document.querySelectorAll('.post-menu-dropdown');
+        allMenus.forEach(menu => {
+            menu.classList.remove('show');
+        });
+    }
+});
+
 function hideLoadingOverlay() {
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) overlay.classList.add('hide');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Start 3s timer
+    // Start 1s timer
     loadingOverlayTimeout = setTimeout(() => {
         if (postsLoaded) hideLoadingOverlay();
-    }, 3000);
+    }, 1000);
 });
 
 // Patch initializeAppData to hide overlay after posts load
