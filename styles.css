@@ -226,6 +226,7 @@ body::before {
     width: 67.5px; /* 54px * 1.25 = 67.5px */
     height: 67.5px; /* 54px * 1.25 = 67.5px */
     object-fit: contain;
+    border-radius: 0;
 }
 
 /* Header buttons */
@@ -1995,6 +1996,8 @@ body::before {
     margin: 2rem auto 1rem auto;
     height: 80px;
     width: auto;
+    border-radius: 0;
+    object-fit: contain;
 }
 .sidebar-header {
     padding: 1.5rem 0 0.5rem 0;

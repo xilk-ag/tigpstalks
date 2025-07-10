@@ -1,6 +1,11 @@
 // Tenor API Configuration
-const TENOR_API_KEY = 'AIzaSyBMTZlitQGyqNx3LO0cNiITBpBHMec8rN8'; // Using the same key for Tenor
+const TENOR_API_KEY = 'AIzaSyBMTZlitQGyqNx3LO0cNiITBpBHMec8rN8'; // Tenor API key
 const TENOR_BASE_URL = 'https://tenor.googleapis.com/v2';
+
+// GIF search variables
+let gifSearchResults = [];
+let gifSearchTimeout = null;
+let gifSearchTarget = 'main'; // 'main' or 'modal'
 
 // User Profile Data
 let currentUser = {
@@ -221,11 +226,7 @@ function openMail() {
 }
 
 // GIF Search Modal Logic
-let gifSearchTimeout = null;
-let gifSearchResults = [];
-let gifSearchTarget = null; // 'main' or 'modal'
-
-// GIF Search Feature - Variables already declared above
+// Variables already declared at the top
 
 // --- Google Drive Integration for Admin ---
 let googleAuthInstance = null;
@@ -780,7 +781,10 @@ function createPost() {
         document.getElementById('anonymousPost').checked = false;
         selectedMedia = null;
         selectedGif = null;
-        updateMediaPreview(document.getElementById('postMediaPreview'), null);
+        const postMediaPreview = document.getElementById('postMediaPreview');
+        if (postMediaPreview) {
+            postMediaPreview.innerHTML = '';
+        }
     }).catch((error) => {
         console.error('Error in createPost:', error);
         showNotification('Failed to create post. Please try again.', 'error');
@@ -802,7 +806,10 @@ function createPostFromModal() {
         document.getElementById('modalAnonymousPost').checked = false;
         modalSelectedMedia = null;
         modalSelectedGif = null;
-        updateMediaPreview(document.getElementById('modalPostMediaPreview'), null);
+        const modalPostMediaPreview = document.getElementById('modalPostMediaPreview');
+        if (modalPostMediaPreview) {
+            modalPostMediaPreview.innerHTML = '';
+        }
     }).catch((error) => {
         showNotification('Failed to create post. Please try again.', 'error');
     });
@@ -1064,10 +1071,10 @@ function searchTag(tag) {
 // GIF Search Modal Logic
 function openGifSearchModal(target = 'main') {
     gifSearchTarget = target;
-    document.getElementById('gifSearchModal').style.display = 'block';
+    document.getElementById('gifSearchModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
     document.getElementById('gifSearchInput').value = '';
-    document.getElementById('gifResultsGrid').innerHTML = '';
+    document.getElementById('gifResults').innerHTML = '<div class="gif-loading">Search for GIFs to get started!</div>';
     document.getElementById('gifSearchInput').focus();
 }
 
@@ -1078,6 +1085,18 @@ function closeGifSearchModal() {
     gifSearchTarget = null;
 }
 
+// Alias for compatibility
+function closeGifSearch() {
+    closeGifSearchModal();
+}
+
+// Make functions globally available
+window.openGifSearchModal = openGifSearchModal;
+window.closeGifSearchModal = closeGifSearchModal;
+window.closeGifSearch = closeGifSearch;
+window.searchGifs = searchGifs;
+window.selectGifFromSearch = selectGifFromSearch;
+
 document.addEventListener('DOMContentLoaded', function() {
     const gifInput = document.getElementById('gifSearchInput');
     if (gifInput) {
@@ -1085,59 +1104,97 @@ document.addEventListener('DOMContentLoaded', function() {
             if (gifSearchTimeout) clearTimeout(gifSearchTimeout);
             const query = e.target.value.trim();
             if (query.length < 2) {
-                document.getElementById('gifResultsGrid').innerHTML = '';
+                document.getElementById('gifResults').innerHTML = '<div class="gif-loading">Search for GIFs to get started!</div>';
                 return;
             }
-            gifSearchTimeout = setTimeout(() => searchGiphy(query), 400);
+            gifSearchTimeout = setTimeout(() => searchTenorGifs(query), 400);
         });
     }
 });
 
-async function searchGiphy(query) {
-    const apiKey = 'dc6zaTOxFJmzC'; // Public beta key
-    const url = `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(query)}&api_key=${apiKey}&limit=24&rating=pg`;
-    document.getElementById('gifResultsGrid').innerHTML = '<div style="grid-column: 1/-1; text-align:center;">Searching...</div>';
+// Tenor GIF Search Functions
+async function searchTenorGifs(query) {
+    const resultsContainer = document.getElementById('gifResults');
+    resultsContainer.innerHTML = '<div class="gif-loading">Searching...</div>';
+    
     try {
-        const res = await fetch(url);
-        const data = await res.json();
-        gifSearchResults = data.data;
-        renderGifResults();
-    } catch (e) {
-        document.getElementById('gifResultsGrid').innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:#ff6b6b;">Failed to load GIFs.</div>';
+        const response = await fetch(`${TENOR_BASE_URL}/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=20&media_filter=gif`);
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+            gifSearchResults = data.results;
+            displayGifResults(data.results);
+        } else {
+            resultsContainer.innerHTML = '<div class="gif-loading">No GIFs found. Try a different search term!</div>';
+        }
+    } catch (error) {
+        console.error('Error searching Tenor GIFs:', error);
+        resultsContainer.innerHTML = '<div class="gif-loading">Error loading GIFs. Please try again.</div>';
     }
 }
 
-function renderGifResults() {
-    const grid = document.getElementById('gifResultsGrid');
-    if (!gifSearchResults.length) {
-        grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center;">No GIFs found.</div>';
-        return;
-    }
-    grid.innerHTML = gifSearchResults.map(gif =>
-        `<img src="${gif.images.fixed_width.url}" alt="GIF" style="width:100%;border-radius:12px;cursor:pointer;box-shadow:0 2px 8px #0006;transition:box-shadow 0.2s;" onclick="selectGifForPost('${gif.images.original.url.replace(/'/g, '\'')}', event)">`
-    ).join('');
+function displayGifResults(gifs) {
+    const resultsContainer = document.getElementById('gifResults');
+    resultsContainer.innerHTML = '';
+    
+    gifs.forEach(gif => {
+        const gifItem = document.createElement('div');
+        gifItem.className = 'gif-item';
+        
+        // Use Tenor's media format
+        const mediaUrl = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url;
+        const previewUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
+        
+        gifItem.innerHTML = `
+            <img src="${previewUrl}" 
+                 alt="${gif.title || 'GIF'}" 
+                 data-original="${mediaUrl}"
+                 data-preview="${previewUrl}"
+                 onclick="selectGifFromSearch('${gif.id}')">
+        `;
+        
+        resultsContainer.appendChild(gifItem);
+    });
 }
 
-function selectGifForPost(gifUrl, event) {
-    // Find the GIF object from gifSearchResults
-    const gifObj = gifSearchResults.find(gif => gif.images.original.url === gifUrl);
-    if (!gifObj) {
+function selectGifFromSearch(gifId) {
+    const gif = gifSearchResults.find(g => g.id === gifId);
+    if (!gif) {
         showNotification('GIF not found.', 'error');
-        closeGifSearchModal();
         return;
     }
+    
+    // Use Tenor's media format
+    const mediaUrl = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url;
+    const previewUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
+    
     const gifData = {
-        url: gifObj.images.original.url,
-        preview: gifObj.images.fixed_width.url,
-        title: gifObj.title || 'GIF'
+        url: mediaUrl,
+        preview: previewUrl,
+        title: gif.title || 'GIF',
+        id: gif.id
     };
+    
     if (gifSearchTarget === 'main') {
         selectedGif = gifData;
-        updateMediaPreview(postMediaPreview, gifData.preview);
+        const postMediaPreview = document.getElementById('postMediaPreview');
+        postMediaPreview.innerHTML = `
+            <div class="selected-gif">
+                <img src="${selectedGif.preview}" alt="${selectedGif.title}">
+                <button class="remove-gif-btn" onclick="removeSelectedGif()">×</button>
+            </div>
+        `;
     } else if (gifSearchTarget === 'modal') {
         modalSelectedGif = gifData;
-        updateMediaPreview(modalPostMediaPreview, gifData.preview);
+        const modalPostMediaPreview = document.getElementById('modalPostMediaPreview');
+        modalPostMediaPreview.innerHTML = `
+            <div class="selected-gif">
+                <img src="${modalSelectedGif.preview}" alt="${modalSelectedGif.title}">
+                <button class="remove-gif-btn" onclick="removeModalSelectedGif()">×</button>
+            </div>
+        `;
     }
+    
     closeGifSearchModal();
 }
 
@@ -2362,28 +2419,8 @@ function searchGifs(event = null) {
     
     // Debounce search
     gifSearchTimeout = setTimeout(() => {
-        performGifSearch(query);
+        searchTenorGifs(query);
     }, 300);
-}
-
-// Perform actual GIF search
-async function performGifSearch(query) {
-    const resultsContainer = document.getElementById('gifResults');
-    resultsContainer.innerHTML = '<div class="gif-loading">Searching...</div>';
-    
-    try {
-        const response = await fetch(`${TENOR_BASE_URL}/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=20&media_filter=gif`);
-        const data = await response.json();
-        
-        if (data.results && data.results.length > 0) {
-            displayGifResults(data.results);
-        } else {
-            resultsContainer.innerHTML = '<div class="gif-loading">No GIFs found. Try a different search term!</div>';
-        }
-    } catch (error) {
-        console.error('Error searching GIFs:', error);
-        resultsContainer.innerHTML = '<div class="gif-loading">Error loading GIFs. Please try again.</div>';
-    }
 }
 
 // Display GIF search results
@@ -2487,41 +2524,7 @@ function openModalGifSearch() {
     gifSearchTarget = 'modal';
 }
 
-// Update createPost function to include GIF support
-function createPost() {
-    const postInput = document.getElementById('postInput');
-    const content = postInput.value.trim();
-    const isAnonymous = document.getElementById('anonymousPost').checked;
-    
-    console.log('createPost called with:', {
-        content: content,
-        isAnonymous: isAnonymous,
-        selectedMedia: selectedMedia ? 'has media' : 'no media',
-        selectedGif: selectedGif ? 'has gif' : 'no gif',
-        mediaType: selectedMedia ? typeof selectedMedia : 'none'
-    });
-    
-    if (!content && !selectedMedia && !selectedGif) {
-        showNotification('Please enter some content or add media for your post!', 'error');
-        return;
-    }
-    
-    console.log('Creating post with content:', content, 'isAnonymous:', isAnonymous, 'media:', selectedMedia, 'gif:', selectedGif);
-    
-    // Use the async addPost function with GIF support
-    addPost(content, isAnonymous, selectedMedia, selectedGif).then(() => {
-        console.log('Post created successfully, clearing form...');
-        postInput.value = '';
-        postInput.style.height = 'auto';
-        document.getElementById('anonymousPost').checked = false;
-        selectedMedia = null;
-        selectedGif = null;
-        updateMediaPreview(document.getElementById('postMediaPreview'), null);
-    }).catch((error) => {
-        console.error('Error in createPost:', error);
-        showNotification('Failed to create post. Please try again.', 'error');
-    });
-}
+
 
 // Add event listeners for post content changes
 document.addEventListener('DOMContentLoaded', function() {
