@@ -731,128 +731,77 @@ function formatContent(content) {
     return content.replace(/#(\w+)/g, '<span class="post-tag" onclick="searchTag(\'$1\')">#$1</span>');
 }
 
-// Toggle like on post
+// --- Like Functionality ---
 async function toggleLike(postId) {
-    const post = posts.find(p => p.id === postId);
-    if (post) {
-        post.isLiked = !post.isLiked;
-        post.likes += post.isLiked ? 1 : -1;
-        renderPosts();
-        
-        // Add heart animation
-        const likeBtn = document.querySelector(`[onclick="toggleLike(${postId})"]`);
-        if (likeBtn) {
-            likeBtn.style.transform = 'scale(1.3)';
-            setTimeout(() => {
-                likeBtn.style.transform = 'scale(1)';
-            }, 200);
-        }
-        
-        // Save to Google Drive if admin is logged in
-        if (isAdminLoggedIn && googleDriveManager) {
-            await googleDriveManager.savePosts(posts);
-        }
-    }
-}
-
-// Show comments modal
-function showComments(postId) {
-    currentPostId = postId;
-    const post = posts.find(p => p.id === postId);
-    if (post) {
-        renderComments(post.comments);
-        commentsModal.style.display = 'block';
-        commentInput.focus();
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-// Render comments
-function renderComments(comments) {
-    commentsList.innerHTML = '';
-    
-    if (comments.length === 0) {
-        commentsList.innerHTML = '<div class="empty-state"><p>No comments yet. Be the first to comment!</p></div>';
-        return;
-    }
-    
-    comments.forEach(comment => {
-        const commentElement = createCommentElement(comment);
-        commentsList.appendChild(commentElement);
-    });
-}
-
-// Create comment element
-function createCommentElement(comment) {
-    const commentDiv = document.createElement('div');
-    commentDiv.className = 'comment';
-    
-    const timeAgo = getTimeAgo(comment.timestamp);
-    
-    commentDiv.innerHTML = `
-        <img src="${comment.avatar}" alt="${comment.author}" class="comment-avatar">
-        <div class="comment-content">
-            <div class="comment-header">
-                <span class="comment-author">${comment.author}</span>
-                <span class="comment-username">@${comment.username}</span>
-                <span class="comment-time">${timeAgo}</span>
-            </div>
-            <div class="comment-text">${comment.content}</div>
-        </div>
-    `;
-    
-    return commentDiv;
-}
-
-// Add comment
-async function addComment() {
-    const content = commentInput.value.trim();
-    
-    if (!content) {
-        showNotification('Please enter a comment!', 'error');
-        return;
-    }
-    
-    const post = posts.find(p => p.id === currentPostId);
-    if (post) {
-        const comment = {
-            id: nextCommentId++,
-            author: currentUser.displayName,
-            username: currentUser.username,
-            avatar: currentUser.avatar,
-            content: content,
-            timestamp: new Date()
-        };
-        
-        post.comments.push(comment);
-        renderComments(post.comments);
-        commentInput.value = '';
-        
-        // Save to Google Drive if admin is logged in
-        if (isAdminLoggedIn && googleDriveManager) {
-            await googleDriveManager.savePosts(posts);
-            updateAdminStats();
-        }
-        
-        showNotification('Comment added!', 'success');
-    }
-}
-
-// Share post
-function sharePost(postId) {
-    const post = posts.find(p => p.id === postId);
-    if (post && navigator.share) {
-        navigator.share({
-            title: 'TIGPS Social',
-            text: post.content,
-            url: window.location.href
-        });
+  try {
+    const postRef = db.collection('posts').doc(postId.toString());
+    const postDoc = await postRef.get();
+    if (!postDoc.exists) return;
+    let post = postDoc.data();
+    if (!post.likes) post.likes = 0;
+    if (!post.likedBy) post.likedBy = [];
+    const user = currentUser.username || 'anonymous';
+    if (post.likedBy.includes(user)) {
+      post.likes -= 1;
+      post.likedBy = post.likedBy.filter(u => u !== user);
     } else {
-        // Fallback: copy to clipboard
-        navigator.clipboard.writeText(post.content).then(() => {
-            showNotification('Post copied to clipboard!', 'success');
-        });
+      post.likes += 1;
+      post.likedBy.push(user);
     }
+    await postRef.update({ likes: post.likes, likedBy: post.likedBy });
+    posts = await fetchPostsFromFirestore();
+    renderPosts();
+  } catch (e) {
+    showNotification('Failed to like post.', 'error');
+  }
+}
+
+// --- Comment Functionality ---
+async function showComments(postId) {
+  currentPostId = postId;
+  try {
+    const comments = await fetchCommentsFromFirestore(postId.toString());
+    renderComments(comments);
+    document.getElementById('commentsModal').style.display = 'block';
+  } catch (e) {
+    showNotification('Failed to load comments.', 'error');
+  }
+}
+
+async function addComment() {
+  const content = commentInput.value.trim();
+  if (!content) return;
+  const user = getCurrentUserForPost(false);
+  const comment = {
+    author: user.displayName,
+    username: user.username,
+    avatar: user.avatar,
+    content,
+    timestamp: new Date().toISOString()
+  };
+  try {
+    await saveCommentToFirestore(currentPostId.toString(), comment);
+    const comments = await fetchCommentsFromFirestore(currentPostId.toString());
+    renderComments(comments);
+    commentInput.value = '';
+  } catch (e) {
+    showNotification('Failed to add comment.', 'error');
+  }
+}
+
+// --- Share Functionality ---
+function sharePost(postId) {
+  const url = window.location.origin + '/?post=' + postId;
+  if (navigator.share) {
+    navigator.share({
+      title: 'Check out this post on TIGPS Social!',
+      url
+    });
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      showNotification('Post link copied to clipboard!', 'success');
+    });
+  }
 }
 
 // Search by tag
@@ -1956,4 +1905,143 @@ async function deletePost(postId) {
             }
         }
     }
+} 
+
+// --- Instagram-style Profile Modal Logic ---
+function openProfileModal() {
+  const modal = document.getElementById('profileModal');
+  if (!modal) return;
+  // Load current user info
+  document.getElementById('profilePicLarge').src = currentUser.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face';
+  document.getElementById('profileNameInput').value = currentUser.displayName || '';
+  document.getElementById('profileUsernameInput').value = currentUser.username || '';
+  document.getElementById('profileBioInput').value = currentUser.bio || '';
+  // Load user's posts
+  renderProfilePosts();
+  modal.style.display = 'flex';
+}
+
+function closeProfileModal() {
+  const modal = document.getElementById('profileModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function triggerProfilePicUpload() {
+  document.getElementById('profilePicUpload').click();
+}
+
+function handleProfilePicUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('profilePicLarge').src = e.target.result;
+    currentUser.avatar = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveProfile() {
+  currentUser.displayName = document.getElementById('profileNameInput').value.trim();
+  currentUser.username = document.getElementById('profileUsernameInput').value.trim();
+  currentUser.bio = document.getElementById('profileBioInput').value.trim();
+  currentUser.avatar = document.getElementById('profilePicLarge').src;
+  // Save to Firestore
+  db.collection('profiles').doc(currentUser.username).set({
+    displayName: currentUser.displayName,
+    username: currentUser.username,
+    bio: currentUser.bio,
+    avatar: currentUser.avatar
+  }).then(() => {
+    showNotification('Profile updated!', 'success');
+    closeProfileModal();
+    updateProfileDisplay && updateProfileDisplay();
+  }).catch(err => {
+    showNotification('Error saving profile: ' + err.message, 'error');
+  });
+}
+
+function renderProfilePosts() {
+  const list = document.getElementById('profilePostsList');
+  if (!list) return;
+  list.innerHTML = '';
+  const userPosts = posts.filter(p => p.username === currentUser.username);
+  if (userPosts.length === 0) {
+    list.innerHTML = '<div style="color:#888;text-align:center;">No posts yet.</div>';
+    return;
+  }
+  userPosts.forEach(post => {
+    const div = document.createElement('div');
+    div.className = 'profile-post-item';
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <div style="flex:1;">
+          <div style="font-weight:600;">${post.content.substring(0, 40)}${post.content.length > 40 ? '...' : ''}</div>
+          <div style="font-size:0.85em;color:#888;">${new Date(post.timestamp).toLocaleString()}</div>
+        </div>
+        <button onclick="deleteProfilePost('${post.id}')" style="background:#ff4444;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;">Delete</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function deleteProfilePost(postId) {
+  if (!confirm('Delete this post?')) return;
+  db.collection('posts').doc(postId).delete().then(() => {
+    showNotification('Post deleted!', 'success');
+    // Remove from local posts array and re-render
+    posts = posts.filter(p => p.id !== postId);
+    renderProfilePosts();
+    renderPosts && renderPosts();
+  }).catch(err => {
+    showNotification('Error deleting post: ' + err.message, 'error');
+  });
+}
+
+// Add to global for menu
+window.openProfileModal = openProfileModal;
+window.closeProfileModal = closeProfileModal;
+window.triggerProfilePicUpload = triggerProfilePicUpload;
+window.handleProfilePicUpload = handleProfilePicUpload;
+window.saveProfile = saveProfile;
+window.deleteProfilePost = deleteProfilePost; 
+
+// --- Post Cooldown Logic ---
+let postCooldownActive = false;
+
+function startPostCooldown() {
+  postCooldownActive = true;
+  const postBtn = document.getElementById('postBtn');
+  if (postBtn) postBtn.disabled = true;
+  const modalPostBtn = document.getElementById('modalPostBtn');
+  if (modalPostBtn) modalPostBtn.disabled = true;
+  setTimeout(() => {
+    postCooldownActive = false;
+    if (postBtn) postBtn.disabled = false;
+    if (modalPostBtn) modalPostBtn.disabled = false;
+  }, 15000);
+}
+
+// Patch createPost and createPostFromModal to use cooldown
+const originalCreatePost = createPost;
+createPost = function() {
+  if (postCooldownActive) {
+    showNotification('Please wait before posting again.', 'error');
+    return;
+  }
+  originalCreatePost();
+  startPostCooldown();
+}
+
+if (typeof createPostFromModal === 'function') {
+  const originalCreatePostFromModal = createPostFromModal;
+  createPostFromModal = function() {
+    if (postCooldownActive) {
+      showNotification('Please wait before posting again.', 'error');
+      return;
+    }
+    originalCreatePostFromModal();
+    startPostCooldown();
+  }
 } 
