@@ -55,7 +55,7 @@ async function fetchPostsFromFirestore() {
     const postsCol = db.collection("posts");
     console.log('Posts collection reference:', postsCol);
     
-    const postSnapshot = await postsCol.get();
+    const postSnapshot = await postsCol.orderBy("timestamp", "desc").get();
     console.log('Post snapshot:', postSnapshot);
     console.log('Snapshot empty:', postSnapshot.empty);
     console.log('Snapshot size:', postSnapshot.size);
@@ -80,7 +80,7 @@ async function fetchPostsFromFirestore() {
       };
     });
     
-    console.log('Final posts array:', postsArr);
+    console.log('Final posts array (sorted by date):', postsArr);
     return postsArr;
   } catch (error) {
     console.error('Error in fetchPostsFromFirestore:', error);
@@ -162,7 +162,13 @@ addPost = async function(content, isAnonymous, media) {
   const timestamp = new Date().toISOString();
   const tags = extractTags(content);
   
-  console.log('Creating post with media:', media, 'type:', typeof media);
+  console.log('addPost called with:', {
+    content: content,
+    isAnonymous: isAnonymous,
+    media: media ? 'has media' : 'no media',
+    mediaType: typeof media,
+    mediaLength: media ? media.length : 0
+  });
   
   const post = {
     content,
@@ -178,16 +184,22 @@ addPost = async function(content, isAnonymous, media) {
     tags: tags
   };
   
-  console.log('Post object to save:', post);
+  console.log('Post object to save:', {
+    ...post,
+    media: post.media ? 'data URL present' : 'no media'
+  });
   
   try {
+    console.log('Saving post to Firestore...');
     await savePostToFirestore(post);
+    console.log('Post saved to Firestore, fetching updated posts...');
     posts = await fetchPostsFromFirestore();
+    console.log('Posts fetched, rendering...');
     renderPosts();
     showNotification('Post created!', 'success');
   } catch (e) {
     console.error('Error creating post:', e);
-    showNotification('Failed to create post.', 'error');
+    showNotification('Failed to create post: ' + e.message, 'error');
   }
 };
 
@@ -516,6 +528,13 @@ function createPost() {
     const content = postInput.value.trim();
     const isAnonymous = anonymousPost.checked;
     
+    console.log('createPost called with:', {
+        content: content,
+        isAnonymous: isAnonymous,
+        selectedMedia: selectedMedia ? 'has media' : 'no media',
+        mediaType: selectedMedia ? typeof selectedMedia : 'none'
+    });
+    
     if (!content) {
         showNotification('Please enter some content for your post!', 'error');
         return;
@@ -525,6 +544,7 @@ function createPost() {
     
     // Use the async addPost function
     addPost(content, isAnonymous, selectedMedia).then(() => {
+        console.log('Post created successfully, clearing form...');
         postInput.value = '';
         postInput.style.height = 'auto';
         anonymousPost.checked = false;
@@ -890,18 +910,44 @@ function triggerImageUpload() {
 
 function handleImageUpload(event) {
     const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
+    console.log('File selected:', file);
+    
+    if (!file) {
+        showNotification('No file selected.', 'error');
+        return;
+    }
+    
+    if (!file.type.startsWith('image/')) {
+        showNotification('Please select a valid image file.', 'error');
+        return;
+    }
+    
+    // Check file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('Image is too large (max 5MB).', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
             // This is for the main post input (not modal)
             selectedMedia = e.target.result;
+            console.log('Image uploaded for main post, selectedMedia set to:', selectedMedia ? 'data URL' : 'null');
             updateMediaPreview(postMediaPreview, selectedMedia);
-            console.log('Image uploaded for main post:', selectedMedia);
-        };
-        reader.readAsDataURL(file);
-    } else {
-        showNotification('Please select a valid image file.', 'error');
-    }
+            showNotification('Image attached successfully!', 'success');
+        } catch (error) {
+            console.error('Error processing image:', error);
+            showNotification('Error processing image.', 'error');
+        }
+    };
+    
+    reader.onerror = function() {
+        console.error('Error reading file:', reader.error);
+        showNotification('Error reading image file.', 'error');
+    };
+    
+    reader.readAsDataURL(file);
 }
 
 // For modal post creator, add GIF button logic
@@ -961,20 +1007,37 @@ function handleProfilePicUpload(event) {
 }
 
 function updateMediaPreview(previewElement, media) {
+    console.log('updateMediaPreview called with:', {
+        previewElement: previewElement ? previewElement.id : 'null',
+        media: media ? 'has media' : 'no media',
+        mediaType: typeof media
+    });
+    
+    if (!previewElement) {
+        console.error('Preview element not found');
+        return;
+    }
+    
     if (media) {
-        previewElement.innerHTML = `
-            <div class="media-preview">
-                ${media.includes('data:video') ? 
-                    `<video src="${media}" controls></video>` : 
-                    `<img src="${media}" alt="Preview">`
-                }
-                <button class="remove-media-btn" onclick="removeMedia('${previewElement.id}')">×</button>
-            </div>
-        `;
-        previewElement.classList.add('has-media');
+        try {
+            previewElement.innerHTML = `
+                <div class="media-preview">
+                    ${media.includes('data:video') ? 
+                        `<video src="${media}" controls></video>` : 
+                        `<img src="${media}" alt="Preview" style="max-width: 100%; max-height: 200px;">`
+                    }
+                    <button class="remove-media-btn" onclick="removeMedia('${previewElement.id}')">×</button>
+                </div>
+            `;
+            previewElement.classList.add('has-media');
+            console.log('Media preview updated successfully');
+        } catch (error) {
+            console.error('Error updating media preview:', error);
+        }
     } else {
         previewElement.innerHTML = '';
         previewElement.classList.remove('has-media');
+        console.log('Media preview cleared');
     }
 }
 
