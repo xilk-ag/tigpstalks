@@ -1098,16 +1098,41 @@ function toggleProfileMenu() {
   }
 }
 
+// Hamburger menu management
+function toggleHamburgerMenu() {
+  const sidebar = document.getElementById('sidebarMenu');
+  const overlay = document.getElementById('sidebarOverlay');
+  const hamburgerMenu = document.getElementById('hamburgerMenu');
+  
+  if (sidebar.classList.contains('open')) {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+    hamburgerMenu.classList.remove('active');
+  } else {
+    sidebar.classList.add('open');
+    overlay.classList.add('show');
+    hamburgerMenu.classList.add('active');
+  }
+}
+
 // Close menu when clicking outside
 window.addEventListener('click', function(e) {
   const menu = document.getElementById('profileMenu');
   const userMenu = document.querySelector('.user-menu');
   const hamburgerMenu = document.querySelector('.hamburger-menu');
+  const sidebar = document.getElementById('sidebarMenu');
+  const sidebarHamburger = document.getElementById('hamburgerMenu');
   
+  // Close profile menu if clicking outside
   if (!userMenu.contains(e.target) && !hamburgerMenu.contains(e.target)) {
     menu.style.display = 'none';
     userMenu.classList.remove('active');
     hamburgerMenu.classList.remove('active');
+  }
+  
+  // Close sidebar if clicking outside (but not on the hamburger menu itself)
+  if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !sidebarHamburger.contains(e.target)) {
+    toggleHamburgerMenu();
   }
 });
 

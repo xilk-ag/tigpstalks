@@ -24,7 +24,7 @@
             <div class="header-content" style="display:flex;align-items:center;justify-content:space-between;">
                 <div style="display:flex;align-items:center;gap:1.5rem;">
                     <!-- Hamburger menu (three lines only) on the left -->
-                    <div class="hamburger-menu" onclick="toggleProfileMenu()">
+                    <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleHamburgerMenu()">
                         <span class="hamburger-icon" style="display:inline-block;width:28px;height:28px;vertical-align:middle;">
                           <svg width="28" height="28" viewBox="0 0 28 28"><rect y="5" width="28" height="3" rx="1.5" fill="#a259ff"/><rect y="12.5" width="28" height="3" rx="1.5" fill="#a259ff"/><rect y="20" width="28" height="3" rx="1.5" fill="#a259ff"/></svg>
                         </span>
@@ -72,6 +72,40 @@
                 </div>
             </div>
         </header>
+
+        <!-- Sidebar Menu (for hamburger menu) -->
+        <div class="sidebar-menu" id="sidebarMenu">
+            <div class="sidebar-header">
+                <h3>Menu</h3>
+                <button class="close-sidebar-btn" onclick="toggleHamburgerMenu()">×</button>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-item" onclick="openAccountDashboard(event)">
+                    <span>👤</span> My Account
+                </div>
+                <div class="sidebar-item" onclick="openProfileModal()">
+                    <span>✏️</span> Edit Profile
+                </div>
+                <div class="sidebar-item" onclick="openSettingsModal()">
+                    <span>⚙️</span> Settings
+                </div>
+                <div class="sidebar-item" onclick="openAdminModal()">
+                    <span>🔐</span> Admin Panel
+                </div>
+                <div class="sidebar-item" onclick="window.open('privacy-policy.html', '_blank')">
+                    <span>🔒</span> Privacy Policy
+                </div>
+                <div class="sidebar-item" onclick="window.open('terms-conditions.html', '_blank')">
+                    <span>📋</span> Terms & Conditions
+                </div>
+                <div class="sidebar-item" onclick="logout()">
+                    <span>🚪</span> Logout
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleHamburgerMenu()"></div>
 
         <!-- Main Content -->
         <main class="main-content">
