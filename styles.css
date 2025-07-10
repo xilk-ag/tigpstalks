@@ -274,12 +274,13 @@ body::before {
 
 /* Post creator */
 .post-creator {
-    background: rgba(36, 40, 60, 0.85);
-    border: 1.5px solid #00fff7a0;
-    box-shadow: 0 4px 32px #00fff733, 0 0 8px #a259ff33;
+    background: rgba(36, 40, 60, 0.15);
+    border: 1.5px solid rgba(0, 255, 247, 0.3);
+    box-shadow: 0 4px 32px rgba(0, 255, 247, 0.2), 0 0 8px rgba(162, 89, 255, 0.2);
     border-radius: 20px;
     padding: 1.5rem;
     transition: box-shadow 0.3s, border 0.3s, transform 0.2s;
+    backdrop-filter: blur(10px);
 }
 
 .post-input-container {
