@@ -1426,3 +1426,130 @@ body::before {
     width: 20px;
     height: 20px;
 } 
+
+/* Hamburger menu icon */
+.hamburger-icon {
+  cursor: pointer;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+/* Profile menu (dropdown) */
+.profile-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 60px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  min-width: 200px;
+  z-index: 1001;
+  padding: 0.5rem 0;
+}
+.user-menu:hover .profile-menu, .user-menu.active .profile-menu {
+  display: block;
+}
+.profile-menu-item {
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  transition: background 0.15s;
+}
+.profile-menu-item:hover {
+  background: #f3f0fa;
+  color: #a259ff;
+}
+
+/* Account Dashboard Modal */
+#accountDashboardModal .modal-content.profile-modal {
+  max-width: 540px;
+  padding: 2rem 2.5rem;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+#accountDashboardModal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 1.5rem;
+}
+#accountDashboardModal .modal-header h2 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+#accountDashboardModal .close-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #a259ff;
+  cursor: pointer;
+}
+.profile-edit-section {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+.profile-pic-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+.profile-pic-large {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #a259ff;
+}
+.change-pic-btn {
+  background: #f3f0fa;
+  color: #a259ff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-top: 0.3rem;
+}
+.profile-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.input-group label {
+  font-size: 0.95rem;
+  color: #888;
+  margin-bottom: 0.2rem;
+  display: block;
+}
+.input-group input, .input-group textarea {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #faf9fd;
+  resize: none;
+}
+#dashboardPostsList .post {
+  background: #faf9fd;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.7rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+#dashboardPostsList .empty-state {
+  text-align: center;
+  color: #aaa;
+  padding: 1.5rem 0;
+} 

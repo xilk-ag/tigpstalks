@@ -277,7 +277,7 @@ async function initializeGoogleDrive() {
                 nextCommentId = Math.max(...posts.flatMap(p => p.comments.map(c => c.id))) + 1;
             } else {
                 // Load sample data if no saved posts
-                loadSampleData();
+                // loadSampleData(); // Removed sample data loading
             }
             
             // Load user profile from Google Drive
@@ -297,13 +297,13 @@ async function initializeGoogleDrive() {
             
             showNotification('Google Drive integration ready!', 'success');
         } else {
-            showNotification('Google Drive not available. Using local storage.', 'warning');
-            loadSampleData();
+            // showNotification('Google Drive not available. Using local storage.', 'warning'); // Removed Google Drive error popup
+            // loadSampleData(); // Removed sample data loading
         }
     } catch (error) {
         console.error('Error initializing Google Drive:', error);
-        showNotification('Failed to initialize Google Drive. Using local storage.', 'warning');
-        loadSampleData();
+        // showNotification('Failed to initialize Google Drive. Using local storage.', 'warning'); // Removed Google Drive error popup
+        // loadSampleData(); // Removed sample data loading
     }
 }
 
@@ -929,7 +929,14 @@ function removeMedia(previewId) {
 // Profile management
 function toggleProfileMenu() {
     const menu = document.getElementById('profileMenu');
-    menu.classList.toggle('show');
+    const userMenu = document.querySelector('.user-menu');
+    if (menu.style.display === 'block') {
+      menu.style.display = 'none';
+      userMenu.classList.remove('active');
+    } else {
+      menu.style.display = 'block';
+      userMenu.classList.add('active');
+    }
 }
 
 function openProfileModal() {
@@ -1456,3 +1463,73 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 }); 
+
+// Account Dashboard Modal logic
+function openAccountDashboard(event) {
+  event?.stopPropagation();
+  // Fill fields with current user info
+  document.getElementById('dashboardProfilePic').src = currentUser.avatar || '';
+  document.getElementById('dashboardDisplayName').value = currentUser.displayName || '';
+  document.getElementById('dashboardUsername').value = currentUser.username || '';
+  document.getElementById('dashboardBio').value = currentUser.bio || '';
+  document.getElementById('dashboardLocation').value = currentUser.location || '';
+  // List user's own posts
+  renderDashboardPosts();
+  document.getElementById('accountDashboardModal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+function closeAccountDashboard() {
+  document.getElementById('accountDashboardModal').style.display = 'none';
+  document.body.style.overflow = 'auto';
+}
+function triggerDashboardProfilePicUpload() {
+  document.getElementById('dashboardProfilePicUpload').click();
+}
+function handleDashboardProfilePicUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('dashboardProfilePic').src = e.target.result;
+    currentUser.avatar = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+async function saveDashboardProfile() {
+  const displayName = document.getElementById('dashboardDisplayName').value.trim();
+  const username = document.getElementById('dashboardUsername').value.trim();
+  const bio = document.getElementById('dashboardBio').value.trim();
+  const location = document.getElementById('dashboardLocation').value.trim();
+  const avatar = document.getElementById('dashboardProfilePic').src;
+  const profile = { displayName, username, bio, location, avatar };
+  try {
+    await saveProfileToFirestore({ ...profile, username });
+    currentUser = { ...currentUser, ...profile };
+    localStorage.setItem('tigpsUser', JSON.stringify(currentUser));
+    updateProfileDisplay();
+    closeAccountDashboard();
+    showNotification('Profile saved!', 'success');
+  } catch (e) {
+    showNotification('Failed to save profile.', 'error');
+  }
+}
+function renderDashboardPosts() {
+  const dashboardPostsList = document.getElementById('dashboardPostsList');
+  if (!dashboardPostsList) return;
+  const userPosts = posts.filter(p => p.username === currentUser.username);
+  if (userPosts.length === 0) {
+    dashboardPostsList.innerHTML = '<div class="empty-state"><p>No posts yet.</p></div>';
+    return;
+  }
+  dashboardPostsList.innerHTML = '';
+  userPosts.forEach(post => {
+    const div = document.createElement('div');
+    div.className = 'post';
+    div.style.marginBottom = '1rem';
+    div.innerHTML = `
+      <div class="post-content">${formatContent(post.content)}</div>
+      <div class="post-time" style="font-size:0.85rem;color:#aaa;">${post.timestamp ? new Date(post.timestamp).toLocaleString() : ''}</div>
+    `;
+    dashboardPostsList.appendChild(div);
+  });
+} 

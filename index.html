@@ -35,11 +35,18 @@
                     <button class="btn-plus" onclick="openPostModal()" aria-label="New Post">
                         <span style="font-size:1.7rem;line-height:1;">+</span>
                     </button>
+                    <!-- Hamburger menu for profile actions -->
                     <div class="user-menu" onclick="toggleProfileMenu()">
                         <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Profile" class="profile-pic" id="headerProfilePic">
+                        <span class="hamburger-icon" style="display:inline-block;width:28px;height:28px;vertical-align:middle;margin-left:-10px;">
+                          <svg width="28" height="28" viewBox="0 0 28 28"><rect y="5" width="28" height="3" rx="1.5" fill="#a259ff"/><rect y="12.5" width="28" height="3" rx="1.5" fill="#a259ff"/><rect y="20" width="28" height="3" rx="1.5" fill="#a259ff"/></svg>
+                        </span>
                         <div class="profile-menu" id="profileMenu">
+                            <div class="profile-menu-item" onclick="openAccountDashboard(event)">
+                                <span>👤</span> Account
+                            </div>
                             <div class="profile-menu-item" onclick="openProfileModal()">
-                                <span>👤</span> Edit Profile
+                                <span>✏️</span> Edit Profile
                             </div>
                             <div class="profile-menu-item" onclick="openSettingsModal()">
                                 <span>⚙️</span> Settings
@@ -47,14 +54,14 @@
                             <div class="profile-menu-item" onclick="openAdminModal()">
                                 <span>🔐</span> Admin
                             </div>
-                            <div class="profile-menu-item" onclick="logout()">
-                                <span>🚪</span> Logout
-                            </div>
                             <div class="profile-menu-item" onclick="window.open('privacy-policy.html', '_blank')">
                                 <span>🔒</span> Privacy Policy
                             </div>
                             <div class="profile-menu-item" onclick="window.open('terms-conditions.html', '_blank')">
                                 <span>📋</span> Terms & Conditions
+                            </div>
+                            <div class="profile-menu-item" onclick="logout()">
+                                <span>🚪</span> Logout
                             </div>
                         </div>
                     </div>
@@ -365,6 +372,50 @@
                     <div id="gifResultsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;"></div>
                 </div>
             </div>
+        </div>
+
+        <!-- Account Dashboard Modal -->
+        <div class="modal" id="accountDashboardModal">
+          <div class="modal-content profile-modal">
+            <div class="modal-header">
+              <h2>My Account</h2>
+              <button class="close-btn" onclick="closeAccountDashboard()">×</button>
+            </div>
+            <div class="modal-body">
+              <div class="profile-edit-section">
+                <div class="profile-pic-section">
+                  <img src="" alt="Profile" class="profile-pic-large" id="dashboardProfilePic">
+                  <button class="change-pic-btn" onclick="triggerDashboardProfilePicUpload()">Change Picture</button>
+                  <input type="file" id="dashboardProfilePicUpload" accept="image/*" style="display: none;" onchange="handleDashboardProfilePicUpload(event)">
+                </div>
+                <div class="profile-fields">
+                  <div class="input-group">
+                    <label>Display Name</label>
+                    <input type="text" id="dashboardDisplayName" placeholder="Your display name">
+                  </div>
+                  <div class="input-group">
+                    <label>Username (@username)</label>
+                    <input type="text" id="dashboardUsername" placeholder="username">
+                  </div>
+                  <div class="input-group">
+                    <label>Bio</label>
+                    <textarea id="dashboardBio" placeholder="Tell us about yourself..." maxlength="150"></textarea>
+                  </div>
+                  <div class="input-group">
+                    <label>Location</label>
+                    <input type="text" id="dashboardLocation" placeholder="Where are you?">
+                  </div>
+                </div>
+              </div>
+              <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeAccountDashboard()">Cancel</button>
+                <button class="btn-primary" onclick="saveDashboardProfile()">Save Changes</button>
+              </div>
+              <hr style="margin:2rem 0;">
+              <h3>My Posts</h3>
+              <div id="dashboardPostsList" style="max-height:300px;overflow-y:auto;"></div>
+            </div>
+          </div>
         </div>
     </div>
 
