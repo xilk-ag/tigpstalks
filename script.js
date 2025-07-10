@@ -761,23 +761,25 @@ function createPost() {
         content: content,
         isAnonymous: isAnonymous,
         selectedMedia: selectedMedia ? 'has media' : 'no media',
+        selectedGif: selectedGif ? 'has gif' : 'no gif',
         mediaType: selectedMedia ? typeof selectedMedia : 'none'
     });
     
-    if (!content) {
-        showNotification('Please enter some content for your post!', 'error');
+    if (!content && !selectedMedia && !selectedGif) {
+        showNotification('Please enter some content or add media for your post!', 'error');
         return;
     }
     
-    console.log('Creating post with content:', content, 'isAnonymous:', isAnonymous, 'media:', selectedMedia);
+    console.log('Creating post with content:', content, 'isAnonymous:', isAnonymous, 'media:', selectedMedia, 'gif:', selectedGif);
     
-    // Use the async addPost function
-    addPost(content, isAnonymous, selectedMedia).then(() => {
+    // Use the async addPost function with GIF support
+    addPost(content, isAnonymous, selectedMedia, selectedGif).then(() => {
         console.log('Post created successfully, clearing form...');
         postInput.value = '';
         postInput.style.height = 'auto';
         document.getElementById('anonymousPost').checked = false;
         selectedMedia = null;
+        selectedGif = null;
         updateMediaPreview(document.getElementById('postMediaPreview'), null);
     }).catch((error) => {
         console.error('Error in createPost:', error);
@@ -787,27 +789,21 @@ function createPost() {
 
 // Create post from modal
 function createPostFromModal() {
-    const content = modalPostInput.value.trim();
-    const isAnonymous = modalAnonymousPost.checked;
-    
+    const postInput = document.getElementById('modalPostInput');
+    const content = postInput.value.trim();
+    const isAnonymous = document.getElementById('modalAnonymousPost').checked;
     if (!content && !modalSelectedMedia && !modalSelectedGif) {
         showNotification('Please enter some content or add media for your post!', 'error');
         return;
     }
-    
-    console.log('Creating modal post with content:', content, 'isAnonymous:', isAnonymous, 'media:', modalSelectedMedia, 'gif:', modalSelectedGif);
-    
-    // Use the async addPost function with GIF support
     addPost(content, isAnonymous, modalSelectedMedia, modalSelectedGif).then(() => {
-        modalPostInput.value = '';
-        modalPostInput.style.height = 'auto';
-        modalAnonymousPost.checked = false;
+        postInput.value = '';
+        postInput.style.height = 'auto';
+        document.getElementById('modalAnonymousPost').checked = false;
         modalSelectedMedia = null;
         modalSelectedGif = null;
-        updateMediaPreview(modalPostMediaPreview, null);
-        closePostModal();
+        updateMediaPreview(document.getElementById('modalPostMediaPreview'), null);
     }).catch((error) => {
-        console.error('Error in createPostFromModal:', error);
         showNotification('Failed to create post. Please try again.', 'error');
     });
 }
@@ -1123,12 +1119,24 @@ function renderGifResults() {
 }
 
 function selectGifForPost(gifUrl, event) {
+    // Find the GIF object from gifSearchResults
+    const gifObj = gifSearchResults.find(gif => gif.images.original.url === gifUrl);
+    if (!gifObj) {
+        showNotification('GIF not found.', 'error');
+        closeGifSearchModal();
+        return;
+    }
+    const gifData = {
+        url: gifObj.images.original.url,
+        preview: gifObj.images.fixed_width.url,
+        title: gifObj.title || 'GIF'
+    };
     if (gifSearchTarget === 'main') {
-        selectedMedia = gifUrl;
-        updateMediaPreview(postMediaPreview, selectedMedia);
+        selectedGif = gifData;
+        updateMediaPreview(postMediaPreview, gifData.preview);
     } else if (gifSearchTarget === 'modal') {
-        modalSelectedMedia = gifUrl;
-        updateMediaPreview(modalPostMediaPreview, modalSelectedMedia);
+        modalSelectedGif = gifData;
+        updateMediaPreview(modalPostMediaPreview, gifData.preview);
     }
     closeGifSearchModal();
 }
@@ -2661,3 +2669,71 @@ function renderComments(comments) {
         </div>
     `).join('');
 }
+
+// Utility function to clean up duplicate posts
+async function cleanupDuplicatePosts() {
+  try {
+    console.log('Starting duplicate post cleanup...');
+    
+    // Fetch all posts from Firestore
+    const allPosts = await fetchPostsFromFirestore();
+    console.log('Total posts found:', allPosts.length);
+    
+    // Group posts by content to find duplicates
+    const contentGroups = {};
+    allPosts.forEach(post => {
+      const content = post.content.toLowerCase().trim();
+      if (!contentGroups[content]) {
+        contentGroups[content] = [];
+      }
+      contentGroups[content].push(post);
+    });
+    
+    // Find duplicates for "hello" and "jaddu"
+    const duplicatesToRemove = [];
+    const targetContents = ['hello', 'jaddu'];
+    
+    targetContents.forEach(targetContent => {
+      const posts = contentGroups[targetContent] || [];
+      if (posts.length > 1) {
+        console.log(`Found ${posts.length} posts with content "${targetContent}"`);
+        
+        // Keep the first post (most recent due to desc order), remove the rest
+        const postsToRemove = posts.slice(1);
+        duplicatesToRemove.push(...postsToRemove);
+        
+        console.log(`Keeping post ID: ${posts[0].id}, removing ${postsToRemove.length} duplicates`);
+      }
+    });
+    
+    // Remove duplicate posts
+    if (duplicatesToRemove.length > 0) {
+      console.log(`Removing ${duplicatesToRemove.length} duplicate posts...`);
+      
+      for (const post of duplicatesToRemove) {
+        try {
+          await db.collection('posts').doc(post.id).delete();
+          console.log(`Deleted duplicate post ID: ${post.id}`);
+        } catch (error) {
+          console.error(`Error deleting post ${post.id}:`, error);
+        }
+      }
+      
+      // Refresh posts after cleanup
+      posts = await fetchPostsFromFirestore();
+      renderPosts();
+      
+      showNotification(`Successfully removed ${duplicatesToRemove.length} duplicate posts!`, 'success');
+    } else {
+      console.log('No duplicate posts found for "hello" or "jaddu"');
+      showNotification('No duplicate posts found for "hello" or "jaddu"', 'info');
+    }
+    
+  } catch (error) {
+    console.error('Error during duplicate cleanup:', error);
+    showNotification('Error cleaning up duplicate posts: ' + error.message, 'error');
+  }
+}
+
+// Make cleanup function globally available
+window.cleanupDuplicatePosts = cleanupDuplicatePosts;

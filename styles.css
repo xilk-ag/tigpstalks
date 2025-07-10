@@ -1309,6 +1309,29 @@ body::before {
     flex-wrap: wrap;
 }
 
+.admin-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.admin-controls button {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.admin-controls button:hover {
+    background: #ff5252;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
 .backup-info {
     color: #666;
     line-height: 1.6;
