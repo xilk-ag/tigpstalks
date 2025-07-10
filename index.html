@@ -21,26 +21,40 @@
     <div class="app">
         <!-- Header -->
         <header class="header">
-            <div class="header-content" style="display:flex;align-items:center;justify-content:space-between;">
-                <div style="display:flex;align-items:center;gap:1.5rem;">
+            <div class="header-content">
+                <div class="header-left">
                     <!-- Hamburger menu (three lines only) on the left -->
-                    <div class="hamburger-menu" id="hamburgerMenu" onclick="console.log('Hamburger clicked'); toggleHamburgerMenu()">
-                        <span class="hamburger-icon" style="display:inline-block;width:28px;height:28px;vertical-align:middle;">
-                          <svg width="28" height="28" viewBox="0 0 28 28"><rect y="5" width="28" height="3" rx="1.5" fill="#a259ff"/><rect y="12.5" width="28" height="3" rx="1.5" fill="#a259ff"/><rect y="20" width="28" height="3" rx="1.5" fill="#a259ff"/></svg>
+                    <div class="hamburger-menu" id="hamburgerMenu" onclick="console.log('Hamburger clicked'); toggleHamburgerMenu();">
+                        <span class="hamburger-icon">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 12h18M3 6h18M3 18h18"/>
+                          </svg>
                         </span>
                     </div>
-                    <img src="/tigtalks.png" alt="TIGPS Talks logo" style="width:90px;height:auto;max-width:20vw;display:block;">
-                    <div>
-                        <span class="logo" style="font-size:2rem;font-weight:900;letter-spacing:0.04em;color:#00fff7;text-shadow:0 0 8px #a259ff99;">TIGPS Talks</span>
+                    <!-- Twitter-style logo -->
+                    <div class="logo-container">
+                        <svg class="twitter-logo" width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
                     </div>
                 </div>
-                <div style="display:flex;align-items:center;gap:1.2rem;">
-                    <a href="privacy-policy.html" style="color:#a259ff;font-weight:600;font-size:0.92rem;opacity:0.7;">Privacy Policy</a>
-                    <a href="terms-conditions.html" style="color:#a259ff;font-weight:600;font-size:0.92rem;opacity:0.7;">Terms of Service</a>
+                
+                <div class="header-center">
+                    <div class="search-container">
+                        <div class="search-box">
+                            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z"/>
+                            </svg>
+                            <input type="text" placeholder="Search" class="search-input">
+                        </div>
+                    </div>
                 </div>
-                <div class="header-actions">
+                
+                <div class="header-right">
                     <button class="btn-plus" onclick="openPostModal()" aria-label="New Post">
-                        <span style="font-size:1.7rem;line-height:1;">+</span>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8.75 21V3h2v18h-2zM18 21V8.75h2V21h-2zM3 21V3h2v18H3zM13 3v7h2V3h-2z"/>
+                        </svg>
                     </button>
                     <!-- Profile picture with dropdown menu on the right -->
                     <div class="user-menu" onclick="console.log('Profile clicked'); toggleProfileMenu();">
@@ -156,6 +170,43 @@
                 </div>
             </div>
         </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About</h4>
+                    <a href="#">About TIGPS Talks</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <a href="#">Help Center</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">Status</a>
+                    <a href="#">Developers</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                    <a href="#">Cookie Policy</a>
+                    <a href="#">Accessibility</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Settings</h4>
+                    <a href="#" onclick="openSettingsModal()">Settings</a>
+                    <a href="#" onclick="openProfileModal()">Profile</a>
+                    <a href="#" onclick="openAdminModal()">Admin</a>
+                    <a href="#" onclick="logout()">Logout</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 TIGPS Talks. All rights reserved.</p>
+            </div>
+        </footer>
 
         <!-- Post Modal -->
         <div class="modal" id="postModal">
