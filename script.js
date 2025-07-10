@@ -211,8 +211,8 @@ setupScreenshotDetection();
 // Mail button function
 function openMail() {
     const email = 'xilk.tigps@gmail.com';
-    const subject = 'TIGPS Social - Contact';
-    const body = 'Hello TIGPS Team,\n\nI would like to get in touch regarding TIGPS Social.\n\nBest regards,';
+    const subject = 'TIGPS TALKS - Contact';
+    const body = 'Hello TIGPS Team,\n\nI would like to get in touch regarding TIGPS TALKS.\n\nBest regards,';
     
     const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
@@ -320,7 +320,7 @@ async function initializeAppData() {
     if (posts.length === 0) {
       console.log('No posts found, creating test post...');
       const testPost = {
-        content: "Welcome to TIGPS Social! This is a test post to get things started. 🎉",
+        content: "Welcome to TIGPS TALKS! This is a test post to get things started. 🎉",
         author: "TIGPS Team",
         username: "tigps_team",
         avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face",
@@ -1052,7 +1052,7 @@ function sharePost(postId) {
   const url = window.location.origin + '/?post=' + postId;
   if (navigator.share) {
     navigator.share({
-      title: 'Check out this post on TIGPS Social!',
+              title: 'Check out this post on TIGPS TALKS!',
       url
     });
   } else {

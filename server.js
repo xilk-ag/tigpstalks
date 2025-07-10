@@ -195,6 +195,6 @@ app.get('*', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`TIGPS Social server running on port ${PORT}`);
+    console.log(`TIGPS TALKS server running on port ${PORT}`);
     console.log('Content protection enabled');
 }); 
