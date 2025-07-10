@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIGPS Social</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="stars-container">
+        <div class="stars"></div>
+        <div class="twinkling"></div>
+        <div class="glitter"></div>
+    </div>
+
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo" style="background:none;-webkit-text-fill-color:#fff;color:#fff;font-size:1.5rem;font-weight:700;filter:none;">TIGPS</h1>
+                <div class="header-actions">
+                    <button class="btn-plus" onclick="openPostModal()" aria-label="New Post">
+                        <span style="font-size:1.7rem;line-height:1;">+</span>
+                    </button>
+                    <div class="user-menu" onclick="toggleProfileMenu()">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Profile" class="profile-pic" id="headerProfilePic">
+                        <div class="profile-menu" id="profileMenu">
+                            <div class="profile-menu-item" onclick="openProfileModal()">
+                                <span>👤</span> Edit Profile
+                            </div>
+                            <div class="profile-menu-item" onclick="openSettingsModal()">
+                                <span>⚙️</span> Settings
+                            </div>
+                            <div class="profile-menu-item" onclick="openAdminModal()">
+                                <span>🔐</span> Admin
+                            </div>
+                            <div class="profile-menu-item" onclick="logout()">
+                                <span>🚪</span> Logout
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Post Creation -->
+                <div class="post-creator">
+                    <div class="post-input-container">
+                        <div class="post-header-section">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face" alt="Profile" class="post-avatar" id="postCreatorAvatar">
+                            <div class="post-creator-info">
+                                <div class="post-creator-name" id="postCreatorName">@alexchen</div>
+                                <div class="post-creator-display-name" id="postCreatorDisplayName">Alex Chen</div>
+                            </div>
+                        </div>
+                        <textarea 
+                            id="postInput" 
+                            placeholder="What's happening at TIGPS?" 
+                            class="post-input"
+                            maxlength="500"
+                        ></textarea>
+                        <div class="post-media-preview" id="postMediaPreview"></div>
+                        <div class="post-actions">
+                            <div class="post-options">
+                                <button class="media-btn" onclick="triggerImageUpload()">
+                                    🖼️ Add Image
+                                </button>
+                                <button class="media-btn" onclick="openGifSearchModal()">
+                                    🎬 Add GIF
+                                </button>
+                                <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="anonymousPost">
+                                    <span class="checkmark"></span>
+                                    Post Anonymously
+                                </label>
+                            </div>
+                            <div class="post-submit">
+                                <div class="char-count" id="charCount">0/500</div>
+                                <button class="btn-post" onclick="createPost()" id="postBtn">Post</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Posts Feed -->
+                <div class="posts-feed" id="postsFeed">
+                    <!-- Posts will be dynamically added here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Post Modal -->
+        <div class="modal" id="postModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Create New Post</h2>
+                    <button class="close-btn" onclick="closePostModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="post-header-section">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face" alt="Profile" class="post-avatar" id="modalPostCreatorAvatar">
+                        <div class="post-creator-info">
+                            <div class="post-creator-name" id="modalPostCreatorName">@alexchen</div>
+                            <div class="post-creator-display-name" id="modalPostCreatorDisplayName">Alex Chen</div>
+                        </div>
+                    </div>
+                    <textarea 
+                        id="modalPostInput" 
+                        placeholder="What's happening at TIGPS?" 
+                        class="modal-post-input"
+                        maxlength="500"
+                    ></textarea>
+                    <div class="post-media-preview" id="modalPostMediaPreview"></div>
+                    <div class="modal-actions">
+                        <div class="post-options">
+                            <button class="media-btn" onclick="triggerModalImageUpload()">
+                                📷 Image/GIF
+                            </button>
+                            <input type="file" id="modalImageUpload" accept="image/*,video/*" style="display: none;" onchange="handleModalImageUpload(event)">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="modalAnonymousPost">
+                                <span class="checkmark"></span>
+                                Post Anonymously
+                            </label>
+                        </div>
+                        <div class="post-submit">
+                            <div class="char-count" id="modalCharCount">0/500</div>
+                            <button class="btn-post" onclick="createPostFromModal()" id="modalPostBtn">Post</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Modal -->
+        <div class="modal" id="profileModal">
+            <div class="modal-content profile-modal">
+                <div class="modal-header">
+                    <h2>Edit Profile</h2>
+                    <button class="close-btn" onclick="closeProfileModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="profile-edit-section">
+                        <div class="profile-pic-section">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face" alt="Profile" class="profile-pic-large" id="profileEditPic">
+                            <button class="change-pic-btn" onclick="triggerProfilePicUpload()">Change Picture</button>
+                            <input type="file" id="profilePicUpload" accept="image/*" style="display: none;" onchange="handleProfilePicUpload(event)">
+                        </div>
+                        <div class="profile-fields">
+                            <div class="input-group">
+                                <label>Display Name</label>
+                                <input type="text" id="profileDisplayName" placeholder="Your display name" value="Alex Chen">
+                            </div>
+                            <div class="input-group">
+                                <label>Username (@username)</label>
+                                <input type="text" id="profileUsername" placeholder="username" value="alexchen">
+                            </div>
+                            <div class="input-group">
+                                <label>Bio</label>
+                                <textarea id="profileBio" placeholder="Tell us about yourself..." maxlength="150">Computer Science student at TIGPS. Love coding and coffee! ☕</textarea>
+                            </div>
+                            <div class="input-group">
+                                <label>Location</label>
+                                <input type="text" id="profileLocation" placeholder="Where are you?" value="TIGPS Campus">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-secondary" onclick="closeProfileModal()">Cancel</button>
+                        <button class="btn-primary" onclick="saveProfile()">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Modal -->
+        <div class="modal" id="adminModal">
+            <div class="modal-content admin-modal">
+                <div class="modal-header">
+                    <h2>Admin Panel</h2>
+                    <button class="close-btn" onclick="closeAdminModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Admin Login Section -->
+                    <div id="adminLoginSection" class="admin-section">
+                        <div class="admin-login-header">
+                            <h3>🔐 Admin Access Required</h3>
+                            <p>Enter the admin password to access Google Drive storage and data management.</p>
+                        </div>
+                        <div class="admin-login-form">
+                            <div class="input-group">
+                                <label for="adminPassword">Admin Password</label>
+                                <input type="password" id="adminPassword" placeholder="Enter admin password" onkeypress="handleAdminPasswordEnter(event)">
+                            </div>
+                            <button class="btn-primary" onclick="loginAdmin()">Login to Admin Panel</button>
+                        </div>
+                    </div>
+
+                    <!-- Admin Dashboard Section -->
+                    <div id="adminDashboardSection" class="admin-section" style="display: none;">
+                        <div class="admin-dashboard-header">
+                            <h3>🚀 Admin Dashboard</h3>
+                            <p>Manage Google Drive storage and monitor platform data.</p>
+                        </div>
+                        
+                        <!-- Google Drive Status -->
+                        <div class="admin-card">
+                            <h4>📁 Google Drive Storage</h4>
+                            <div class="drive-status-admin" id="driveStatusAdmin">
+                                <span class="status-indicator" id="adminStatusIndicator">●</span>
+                                <span id="adminStatusText">Not connected</span>
+                            </div>
+                            <div class="drive-actions">
+                                <button id="adminSignInBtn" onclick="adminSignInToGoogleDrive()" class="btn-primary">Connect Google Drive</button>
+                                <button id="adminSignOutBtn" onclick="adminSignOutFromGoogleDrive()" class="btn-secondary" style="display: none;">Disconnect</button>
+                            </div>
+                        </div>
+
+                        <!-- Data Statistics -->
+                        <div class="admin-card">
+                            <h4>📊 Platform Statistics</h4>
+                            <div class="admin-stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-number" id="adminTotalPosts">0</div>
+                                    <div class="stat-label">Total Posts</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="adminTotalUsers">0</div>
+                                    <div class="stat-label">Active Users</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="adminTotalComments">0</div>
+                                    <div class="stat-label">Total Comments</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="adminTotalMedia">0</div>
+                                    <div class="stat-label">Media Files</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Management -->
+                        <div class="admin-card">
+                            <h4>🔄 Data Management</h4>
+                            <div class="data-management-actions">
+                                <button onclick="adminExportData()" class="btn-secondary">Export All Data</button>
+                                <button onclick="adminImportData()" class="btn-secondary">Import Data</button>
+                                <button onclick="adminSyncData()" class="btn-primary">Sync to Google Drive</button>
+                                <input type="file" id="adminImportFile" accept=".json" style="display: none;" onchange="handleAdminImportFile(event)">
+                            </div>
+                            <div class="last-sync-info">
+                                <p>Last sync: <span id="adminLastSyncTime">Never</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Admin Actions -->
+                        <div class="admin-actions-section">
+                            <button onclick="logoutAdmin()" class="btn-danger">Logout from Admin</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Modal -->
+        <div class="modal" id="commentsModal">
+            <div class="modal-content comments-modal">
+                <div class="modal-header">
+                    <h2>Comments</h2>
+                    <button class="close-btn" onclick="closeCommentsModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="comments-list" id="commentsList">
+                        <!-- Comments will be added here -->
+                    </div>
+                    <div class="comment-input-section">
+                        <div class="comment-input-container">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" alt="Profile" class="comment-avatar" id="commentCreatorAvatar">
+                            <input type="text" id="commentInput" placeholder="Write a comment..." maxlength="200">
+                            <button class="btn-comment" onclick="addComment()">Comment</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Settings & Data Management</h2>
+                    <button onclick="closeSettingsModal()" class="close-btn">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-section">
+                        <h3>Google Drive Integration</h3>
+                        <div class="drive-status" id="driveStatus">
+                            <span class="status-indicator" id="statusIndicator">●</span>
+                            <span id="statusText">Checking connection...</span>
+                        </div>
+                        <div class="drive-controls">
+                            <button id="signInBtn" onclick="signInToGoogleDrive()" class="btn-primary">Sign in to Google Drive</button>
+                            <button id="signOutBtn" onclick="signOutFromGoogleDrive()" class="btn-secondary" style="display: none;">Sign out</button>
+                            <button id="syncBtn" onclick="syncData()" class="btn-secondary" style="display: none;">Sync Data</button>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>Data Management</h3>
+                        <div class="data-controls">
+                            <button onclick="exportData()" class="btn-secondary">Export All Data</button>
+                            <button onclick="importData()" class="btn-secondary">Import Data</button>
+                            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImportFile(event)">
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>Backup & Restore</h3>
+                        <div class="backup-info">
+                            <p>Your data is automatically saved to Google Drive when connected, or locally when offline.</p>
+                            <p>Last backup: <span id="lastBackupTime">Never</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GIF Search Modal -->
+        <div class="modal" id="gifSearchModal">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2>Search GIFs</h2>
+                    <button class="close-btn" onclick="closeGifSearchModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="gifSearchInput" placeholder="Search for GIFs..." style="width: 100%; margin-bottom: 1rem;">
+                    <div id="gifResultsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="google-drive-api.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
