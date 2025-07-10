@@ -1213,3 +1213,178 @@ body {
         min-width: 180px;
     }
 } 
+
+/* Sophisticated Admin Modal */
+.admin-modal {
+    background: rgba(20, 24, 38, 0.92) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 8px 40px 0 #00fff733, 0 1.5px 8px 0 #00fff7a0;
+    border: 2px solid #00b4d8cc !important;
+    animation: modalPop 0.5s cubic-bezier(.4,2,.6,1.2);
+    padding: 0 !important;
+}
+.admin-dashboard-header, .admin-login-header {
+    background: rgba(10, 14, 28, 0.95);
+    border-radius: 22px 22px 0 0;
+    padding: 2rem 1.5rem 1rem 1.5rem;
+    border-bottom: 1px solid #00b4d8cc;
+    box-shadow: 0 2px 12px #00b4d822;
+}
+.admin-dashboard-header h3, .admin-login-header h3 {
+    color: #00fff7;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+.admin-section {
+    padding: 1.5rem 2rem;
+}
+.admin-card {
+    background: rgba(24, 28, 43, 0.85);
+    border-radius: 16px;
+    box-shadow: 0 2px 16px #00b4d822;
+    border: 1.5px solid #00b4d8cc;
+    margin-bottom: 1.5rem;
+    padding: 1.2rem 1.5rem;
+    transition: box-shadow 0.3s, border 0.3s;
+}
+.admin-card h4 {
+    color: #00fff7;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.7rem;
+}
+.admin-stats-grid .stat-card {
+    background: rgba(0, 180, 216, 0.08);
+    border: 1.5px solid #00b4d8cc;
+    color: #fff;
+    box-shadow: 0 1px 8px #00b4d822;
+    border-radius: 12px;
+    padding: 1rem 0.5rem;
+    margin: 0.2rem;
+    transition: box-shadow 0.2s, border 0.2s;
+}
+.admin-stats-grid .stat-card:hover {
+    box-shadow: 0 2px 16px #00fff7cc;
+    border-color: #00fff7;
+}
+.admin-actions-section {
+    border-top: 1px solid #00b4d8cc;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    text-align: center;
+}
+.admin-section button, .admin-card button {
+    background: linear-gradient(90deg, #00b4d8 0%, #00fff7 100%);
+    color: #181c2b;
+    border: none;
+    border-radius: 22px;
+    font-weight: 600;
+    box-shadow: 0 2px 12px #00fff733;
+    transition: box-shadow 0.2s, background 0.2s, color 0.2s;
+    outline: none;
+    padding: 0.7rem 1.5rem;
+    margin: 0.2rem 0.5rem;
+    font-size: 1rem;
+}
+.admin-section button:hover, .admin-card button:hover {
+    background: linear-gradient(90deg, #00fff7 0%, #00b4d8 100%);
+    color: #232946;
+    box-shadow: 0 4px 24px #00fff7cc;
+}
+#adminStatusIndicator {
+    text-shadow: 0 0 8px #00fff7cc;
+    color: #00fff7 !important;
+}
+
+/* Sophisticated Add Post Modal */
+#postModal .modal-content {
+    background: rgba(20, 24, 38, 0.97) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 8px 40px 0 #00fff733, 0 1.5px 8px 0 #00fff7a0;
+    border: 2px solid #00b4d8cc !important;
+    animation: modalPop 0.5s cubic-bezier(.4,2,.6,1.2);
+    padding: 0 !important;
+}
+#postModal .modal-header {
+    background: rgba(10, 14, 28, 0.95);
+    border-radius: 22px 22px 0 0;
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    border-bottom: 1px solid #00b4d8cc;
+    box-shadow: 0 2px 12px #00b4d822;
+}
+#postModal .modal-header h2 {
+    color: #00fff7;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+#postModal .modal-body {
+    padding: 1.5rem 2rem;
+}
+#postModal .modal-post-input {
+    background: rgba(24, 28, 43, 0.85);
+    border: 1.5px solid #00b4d8cc;
+    color: #fff;
+    border-radius: 14px;
+    font-size: 1.05rem;
+    font-weight: 400;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: border 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 8px #00b4d822;
+}
+#postModal .modal-post-input:focus {
+    border-color: #00fff7;
+    box-shadow: 0 0 16px #00fff7cc;
+    outline: none;
+}
+#postModal .btn-post {
+    background: linear-gradient(90deg, #00b4d8 0%, #00fff7 100%);
+    color: #181c2b;
+    border: none;
+    border-radius: 22px;
+    font-weight: 600;
+    box-shadow: 0 2px 12px #00fff733;
+    transition: box-shadow 0.2s, background 0.2s, color 0.2s;
+    outline: none;
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+}
+#postModal .btn-post:hover {
+    background: linear-gradient(90deg, #00fff7 0%, #00b4d8 100%);
+    color: #232946;
+    box-shadow: 0 4px 24px #00fff7cc;
+}
+@media (max-width: 600px) {
+    .admin-section, #postModal .modal-body { padding: 1rem 0.5rem; }
+} 
+
+/* Google Login Button for Admin */
+.btn-google-login {
+    background: #fff !important;
+    color: #444 !important;
+    border: 1.5px solid #e0e0e0 !important;
+    border-radius: 22px !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    box-shadow: 0 2px 8px #23294622 !important;
+    display: flex;
+    align-items: center;
+    gap: 0.7em;
+    padding: 0.7rem 1.5rem !important;
+    margin: 0.2rem 0.5rem !important;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.btn-google-login:hover, .btn-google-login:focus {
+    background: #e8f0fe !important;
+    color: #1967d2 !important;
+    box-shadow: 0 4px 16px #4285f422 !important;
+}
+.google-g-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+} 

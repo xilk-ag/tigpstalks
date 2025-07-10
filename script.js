@@ -28,6 +28,36 @@ let gifSearchTimeout = null;
 let gifSearchResults = [];
 let gifSearchTarget = null; // 'main' or 'modal'
 
+// --- Google Drive Integration for Admin ---
+let googleAuthInstance = null;
+let googleDriveAccessToken = null;
+
+async function loadGoogleApiClient() {
+    return new Promise((resolve) => {
+        if (window.gapi && window.gapi.load) {
+            window.gapi.load('client:auth2', resolve);
+        } else {
+            const check = setInterval(() => {
+                if (window.gapi && window.gapi.load) {
+                    clearInterval(check);
+                    window.gapi.load('client:auth2', resolve);
+                }
+            }, 100);
+        }
+    });
+}
+
+async function initGoogleAuth() {
+    await loadGoogleApiClient();
+    if (!googleAuthInstance) {
+        await window.gapi.client.init({
+            clientId: window.TIGPS_GOOGLE_CLIENT_ID,
+            scope: 'https://www.googleapis.com/auth/drive.file',
+        });
+        googleAuthInstance = window.gapi.auth2.getAuthInstance();
+    }
+}
+
 // DOM Elements
 const postsFeed = document.getElementById('postsFeed');
 const postInput = document.getElementById('postInput');
@@ -832,42 +862,37 @@ function updateAdminDriveStatus() {
     const signInBtn = document.getElementById('adminSignInBtn');
     const signOutBtn = document.getElementById('adminSignOutBtn');
     
-    if (googleDriveManager) {
-        const authStatus = googleDriveManager.getAuthStatus();
-        
-        if (authStatus.isAuthenticated) {
-            statusIndicator.style.color = '#4CAF50';
-            statusText.textContent = 'Connected to Google Drive';
-            signInBtn.style.display = 'none';
-            signOutBtn.style.display = 'inline-block';
-        } else {
-            statusIndicator.style.color = '#FF9800';
-            statusText.textContent = 'Not connected to Google Drive';
-            signInBtn.style.display = 'inline-block';
-            signOutBtn.style.display = 'none';
-        }
-    } else {
-        statusIndicator.style.color = '#F44336';
-        statusText.textContent = 'Google Drive not available';
+    if (googleDriveAccessToken) {
+        statusIndicator.style.color = '#4CAF50';
+        statusText.textContent = 'Connected to Google Drive';
         signInBtn.style.display = 'none';
+        signOutBtn.style.display = 'inline-block';
+    } else {
+        statusIndicator.style.color = '#FF9800';
+        statusText.textContent = 'Not connected to Google Drive';
+        signInBtn.style.display = 'inline-block';
         signOutBtn.style.display = 'none';
     }
 }
 
 // Admin Google Drive functions
 async function adminSignInToGoogleDrive() {
-    if (googleDriveManager) {
-        await googleDriveManager.signIn();
+    try {
+        await initGoogleAuth();
+        const user = await googleAuthInstance.signIn();
+        const authResponse = user.getAuthResponse();
+        googleDriveAccessToken = authResponse.access_token;
         updateAdminDriveStatus();
         showNotification('Google Drive connected successfully!', 'success');
-    } else {
-        showNotification('Google Drive not available.', 'error');
+    } catch (e) {
+        showNotification('Google Drive sign-in failed.', 'error');
     }
 }
 
 async function adminSignOutFromGoogleDrive() {
-    if (googleDriveManager) {
-        await googleDriveManager.signOut();
+    if (googleAuthInstance) {
+        await googleAuthInstance.signOut();
+        googleDriveAccessToken = null;
         updateAdminDriveStatus();
         showNotification('Google Drive disconnected.', 'info');
     }
