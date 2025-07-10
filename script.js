@@ -555,8 +555,20 @@ function renderPosts() {
     
     postsFeed.innerHTML = '';
     
+    // Add debug panel at the top
+    const debugDiv = document.createElement('div');
+    debugDiv.style.cssText = 'background: #f0f0f0; padding: 15px; margin: 15px 0; border: 2px solid #ccc; border-radius: 8px; font-family: monospace; font-size: 12px;';
+    debugDiv.innerHTML = `
+        <strong>🔍 DEBUG PANEL:</strong><br>
+        Posts array length: <strong>${posts ? posts.length : 'undefined'}</strong><br>
+        Posts array: <pre>${JSON.stringify(posts, null, 2)}</pre><br>
+        <button onclick="testFetch()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin: 5px;">Test Fetch Posts</button>
+        <button onclick="createTestPost()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin: 5px;">Create Test Post</button>
+    `;
+    postsFeed.appendChild(debugDiv);
+    
     if (!Array.isArray(posts) || posts.length === 0) {
-        postsFeed.innerHTML = `
+        postsFeed.innerHTML += `
             <div class="empty-state">
                 <h3>No posts yet</h3>
                 <p>Be the first to share what's happening at TIGPS!</p>
@@ -574,6 +586,37 @@ function renderPosts() {
         const postElement = createPostElement(post, index);
         postsFeed.appendChild(postElement);
     });
+}
+
+// Test functions for debugging
+async function testFetch() {
+    console.log('Testing fetch...');
+    try {
+        const testPosts = await fetchPostsFromFirestore();
+        console.log('Test fetch result:', testPosts);
+        posts = testPosts;
+        renderPosts();
+    } catch (error) {
+        console.error('Test fetch error:', error);
+    }
+}
+
+async function createTestPost() {
+    console.log('Creating test post...');
+    try {
+        const testPost = {
+            content: "This is a test post created at " + new Date().toLocaleString(),
+            author: "Test User",
+            username: "testuser",
+            avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face",
+            timestamp: new Date().toISOString()
+        };
+        await savePostToFirestore(testPost);
+        console.log('Test post created successfully');
+        await testFetch(); // Refresh posts
+    } catch (error) {
+        console.error('Test post creation error:', error);
+    }
 }
 
 // Create individual post element
