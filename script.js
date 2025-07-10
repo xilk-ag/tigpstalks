@@ -84,6 +84,154 @@ async function initGoogleAuth() {
     }
 }
 
+// Firebase Firestore integration
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, getDocs, addDoc, setDoc, doc, updateDoc, getDoc, query, orderBy } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBMTZlitQGyqNx3LO0cNiITBpBHMec8rN8",
+  authDomain: "xilk-tigps.firebaseapp.com",
+  projectId: "xilk-tigps",
+  storageBucket: "xilk-tigps.firebasestorage.app",
+  messagingSenderId: "242470054512",
+  appId: "1:242470054512:web:ee2a87d593d8e3a48aa2b5",
+  measurementId: "G-SW6DE3T95T"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Fetch posts from Firestore
+async function fetchPostsFromFirestore() {
+  const postsCol = collection(db, "posts");
+  const q = query(postsCol, orderBy("timestamp", "desc"));
+  const postSnapshot = await getDocs(q);
+  return postSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+// Save post to Firestore
+async function savePostToFirestore(post) {
+  await addDoc(collection(db, "posts"), post);
+}
+// Fetch user profile from Firestore
+async function fetchProfileFromFirestore(username) {
+  const profileRef = doc(db, "profiles", username);
+  const profileSnap = await getDoc(profileRef);
+  return profileSnap.exists() ? profileSnap.data() : null;
+}
+// Save user profile to Firestore
+async function saveProfileToFirestore(profile) {
+  await setDoc(doc(db, "profiles", profile.username), profile);
+}
+// Fetch comments for a post from Firestore
+async function fetchCommentsFromFirestore(postId) {
+  const commentsCol = collection(db, "posts", postId, "comments");
+  const q = query(commentsCol, orderBy("timestamp", "asc"));
+  const commentSnapshot = await getDocs(q);
+  return commentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+// Save comment to Firestore
+async function saveCommentToFirestore(postId, comment) {
+  await addDoc(collection(db, "posts", postId, "comments"), comment);
+}
+
+// On app load, fetch posts and profile from Firestore
+async function initializeAppData() {
+  try {
+    posts = await fetchPostsFromFirestore();
+    renderPosts();
+    // Load user profile if logged in
+    const user = localStorage.getItem('tigpsUser');
+    if (user) {
+      const { username } = JSON.parse(user);
+      const profile = await fetchProfileFromFirestore(username);
+      if (profile) {
+        currentUser = { ...currentUser, ...profile };
+        updateProfileDisplay();
+      }
+    }
+  } catch (e) {
+    showNotification('Failed to load data from Firestore.', 'error');
+  }
+}
+// Patch addPost to use Firestore
+addPost = async function(content, isAnonymous, media) {
+  const user = getCurrentUserForPost(isAnonymous);
+  const timestamp = new Date().toISOString();
+  const post = {
+    content,
+    author: user.displayName,
+    username: user.username,
+    avatar: user.avatar,
+    isAnonymous: isAnonymous ? 1 : 0,
+    media,
+    timestamp
+  };
+  try {
+    await savePostToFirestore(post);
+    posts = await fetchPostsFromFirestore();
+    renderPosts();
+    showNotification('Post created!', 'success');
+  } catch (e) {
+    showNotification('Failed to create post.', 'error');
+  }
+};
+// Patch saveProfile to use Firestore
+saveProfile = async function() {
+  const displayName = document.getElementById('profileDisplayName').value.trim();
+  const username = document.getElementById('profileUsername').value.trim();
+  const bio = document.getElementById('profileBio').value.trim();
+  const location = document.getElementById('profileLocation').value.trim();
+  const avatar = currentUser.avatar;
+  const profile = { displayName, username, bio, location, avatar };
+  try {
+    await saveProfileToFirestore(profile);
+    currentUser = { ...currentUser, ...profile };
+    localStorage.setItem('tigpsUser', JSON.stringify(currentUser));
+    updateProfileDisplay();
+    closeProfileModal();
+    showNotification('Profile saved!', 'success');
+  } catch (e) {
+    showNotification('Failed to save profile.', 'error');
+  }
+};
+// Patch showComments to load from Firestore
+showComments = async function(postId) {
+  currentPostId = postId;
+  try {
+    const comments = await fetchCommentsFromFirestore(postId);
+    renderComments(comments);
+    commentsModal.style.display = 'block';
+  } catch (e) {
+    showNotification('Failed to load comments.', 'error');
+  }
+};
+// Patch addComment to use Firestore
+addComment = async function() {
+  const content = commentInput.value.trim();
+  if (!content) return;
+  const user = getCurrentUserForPost(false);
+  const comment = {
+    author: user.displayName,
+    username: user.username,
+    avatar: user.avatar,
+    content,
+    timestamp: new Date().toISOString()
+  };
+  try {
+    await saveCommentToFirestore(currentPostId, comment);
+    const comments = await fetchCommentsFromFirestore(currentPostId);
+    renderComments(comments);
+    commentInput.value = '';
+  } catch (e) {
+    showNotification('Failed to add comment.', 'error');
+  }
+};
+// On DOMContentLoaded, initialize app data
+const oldDOMContentLoaded2 = document.onreadystatechange;
+document.addEventListener('DOMContentLoaded', function() {
+  initializeAppData();
+  if (typeof oldDOMContentLoaded2 === 'function') oldDOMContentLoaded2();
+});
+
 // DOM Elements
 const postsFeed = document.getElementById('postsFeed');
 const postInput = document.getElementById('postInput');
