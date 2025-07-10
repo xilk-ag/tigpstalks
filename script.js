@@ -545,34 +545,7 @@ function createPostFromModal() {
 }
 
 // Add new post
-async function addPost(content, isAnonymous, media) {
-    const tags = extractTags(content);
-    const user = getCurrentUserForPost(isAnonymous);
-    const post = {
-        id: nextPostId++,
-        content: content,
-        author: user.displayName,
-        username: user.username,
-        avatar: user.avatar,
-        timestamp: new Date(),
-        likes: 0,
-        comments: [],
-        isAnonymous: isAnonymous,
-        isLiked: false,
-        media: media,
-        tags: tags
-    };
-    
-    posts.unshift(post);
-    renderPosts();
-    showEmptyStateIfNeeded();
-    
-    // Save to Google Drive if admin is logged in
-    if (isAdminLoggedIn && googleDriveManager) {
-        await googleDriveManager.savePosts(posts);
-        updateAdminStats();
-    }
-}
+// This function is replaced by the Firestore version below
 
 // Extract tags from content
 function extractTags(content) {
@@ -1466,12 +1439,7 @@ function getCurrentUserForPost(isAnonymous) {
         avatar: currentUser.avatar,
     };
 }
-// Patch addPost to use getCurrentUserForPost
-const originalAddPost = addPost;
-addPost = async function(content, isAnonymous, media) {
-    const user = getCurrentUserForPost(isAnonymous);
-    return originalAddPost.call(this, content, isAnonymous, media, user);
-};
+// addPost function is already defined with Firestore integration above
 // Patch saveProfile to update localStorage
 const originalSaveProfile = saveProfile;
 saveProfile = async function() {
