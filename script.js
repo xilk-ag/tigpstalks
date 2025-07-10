@@ -33,28 +33,34 @@ let googleAuthInstance = null;
 let googleDriveAccessToken = null;
 
 async function loadGoogleApiClient() {
-    return new Promise((resolve) => {
-        if (window.gapi && window.gapi.load) {
-            window.gapi.load('client:auth2', resolve);
-        } else {
-            const check = setInterval(() => {
-                if (window.gapi && window.gapi.load) {
-                    clearInterval(check);
-                    window.gapi.load('client:auth2', resolve);
-                }
-            }, 100);
+    return new Promise((resolve, reject) => {
+        function checkGapi() {
+            if (window.gapi && window.gapi.load) {
+                console.log('[GAPI] gapi loaded');
+                window.gapi.load('client:auth2', resolve);
+            } else {
+                setTimeout(checkGapi, 100);
+            }
         }
+        checkGapi();
     });
 }
 
 async function initGoogleAuth() {
     await loadGoogleApiClient();
     if (!googleAuthInstance) {
+        if (!window.TIGPS_GOOGLE_CLIENT_ID) {
+            console.error('[GAPI] Client ID not set');
+            showNotification('Google Client ID not set.', 'error');
+            throw new Error('Google Client ID not set');
+        }
+        console.log('[GAPI] Initializing Google Auth with client ID:', window.TIGPS_GOOGLE_CLIENT_ID);
         await window.gapi.client.init({
             clientId: window.TIGPS_GOOGLE_CLIENT_ID,
             scope: 'https://www.googleapis.com/auth/drive.file',
         });
         googleAuthInstance = window.gapi.auth2.getAuthInstance();
+        console.log('[GAPI] Google Auth instance initialized');
     }
 }
 
@@ -878,13 +884,16 @@ function updateAdminDriveStatus() {
 // Admin Google Drive functions
 async function adminSignInToGoogleDrive() {
     try {
+        console.log('[GAPI] Starting sign-in flow');
         await initGoogleAuth();
         const user = await googleAuthInstance.signIn();
         const authResponse = user.getAuthResponse();
         googleDriveAccessToken = authResponse.access_token;
+        console.log('[GAPI] Sign-in successful, access token:', googleDriveAccessToken);
         updateAdminDriveStatus();
         showNotification('Google Drive connected successfully!', 'success');
     } catch (e) {
+        console.error('[GAPI] Sign-in failed:', e);
         showNotification('Google Drive sign-in failed.', 'error');
     }
 }
