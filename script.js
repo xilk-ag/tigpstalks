@@ -160,6 +160,7 @@ async function initializeAppData() {
 addPost = async function(content, isAnonymous, media) {
   const user = getCurrentUserForPost(isAnonymous);
   const timestamp = new Date().toISOString();
+  const tags = extractTags(content);
   const post = {
     content,
     author: user.displayName,
@@ -171,7 +172,7 @@ addPost = async function(content, isAnonymous, media) {
     likes: 0,
     comments: [],
     isLiked: false,
-    tags: []
+    tags: tags
   };
   try {
     await savePostToFirestore(post);
@@ -179,6 +180,7 @@ addPost = async function(content, isAnonymous, media) {
     renderPosts();
     showNotification('Post created!', 'success');
   } catch (e) {
+    console.error('Error creating post:', e);
     showNotification('Failed to create post.', 'error');
   }
 };
@@ -504,7 +506,7 @@ function detectTags(e) {
 }
 
 // Create post from main input
-function createPost() {
+async function createPost() {
     const content = postInput.value.trim();
     const isAnonymous = anonymousPost.checked;
     
@@ -513,18 +515,23 @@ function createPost() {
         return;
     }
     
-    addPost(content, isAnonymous, selectedMedia);
-    postInput.value = '';
-    postInput.style.height = 'auto';
-    anonymousPost.checked = false;
-    selectedMedia = null;
-    updateMediaPreview(postMediaPreview, null);
+    console.log('Creating post with content:', content, 'isAnonymous:', isAnonymous, 'media:', selectedMedia);
     
-    showNotification('Post created successfully!', 'success');
+    try {
+        await addPost(content, isAnonymous, selectedMedia);
+        postInput.value = '';
+        postInput.style.height = 'auto';
+        anonymousPost.checked = false;
+        selectedMedia = null;
+        updateMediaPreview(postMediaPreview, null);
+    } catch (error) {
+        console.error('Error in createPost:', error);
+        showNotification('Failed to create post. Please try again.', 'error');
+    }
 }
 
 // Create post from modal
-function createPostFromModal() {
+async function createPostFromModal() {
     const content = modalPostInput.value.trim();
     const isAnonymous = modalAnonymousPost.checked;
     
@@ -533,15 +540,20 @@ function createPostFromModal() {
         return;
     }
     
-    addPost(content, isAnonymous, modalSelectedMedia);
-    modalPostInput.value = '';
-    modalPostInput.style.height = 'auto';
-    modalAnonymousPost.checked = false;
-    modalSelectedMedia = null;
-    updateMediaPreview(modalPostMediaPreview, null);
-    closePostModal();
+    console.log('Creating modal post with content:', content, 'isAnonymous:', isAnonymous, 'media:', modalSelectedMedia);
     
-    showNotification('Post created successfully!', 'success');
+    try {
+        await addPost(content, isAnonymous, modalSelectedMedia);
+        modalPostInput.value = '';
+        modalPostInput.style.height = 'auto';
+        modalAnonymousPost.checked = false;
+        modalSelectedMedia = null;
+        updateMediaPreview(modalPostMediaPreview, null);
+        closePostModal();
+    } catch (error) {
+        console.error('Error in createPostFromModal:', error);
+        showNotification('Failed to create post. Please try again.', 'error');
+    }
 }
 
 // Add new post
