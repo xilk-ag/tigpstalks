@@ -43,6 +43,13 @@
                 </div>
                 
                 <div class="header-right">
+                    <!-- Mail button -->
+                    <button class="btn-mail" onclick="openMail()" title="Contact Us">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                        </svg>
+                    </button>
+                    
                     <!-- Profile picture with dropdown menu on the right -->
                     <div class="user-menu" onclick="console.log('Profile clicked'); toggleProfileMenu();">
                         <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Profile" class="profile-pic" id="headerProfilePic">
@@ -55,6 +62,9 @@
                             </div>
                             <div class="profile-menu-item" onclick="openSettingsModal()">
                                 <span>⚙️</span> Settings
+                            </div>
+                            <div class="profile-menu-item" onclick="openMail()">
+                                <span>📧</span> Contact Us
                             </div>
                             <div class="profile-menu-item" onclick="openAdminModal()">
                                 <span>🔐</span> Admin
@@ -92,6 +102,9 @@
                 </div>
                 <div class="sidebar-item" onclick="openSettingsModal()">
                     <span>⚙️</span> Settings
+                </div>
+                <div class="sidebar-item" onclick="openMail()">
+                    <span>📧</span> Contact Us
                 </div>
                 <div class="sidebar-item" onclick="logout()">
                     <span>🚪</span> Logout

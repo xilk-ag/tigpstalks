@@ -61,6 +61,73 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// Security middleware
+app.use((req, res, next) => {
+    // Prevent caching of all content
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    // Prevent content from being embedded in iframes
+    res.setHeader('X-Frame-Options', 'DENY');
+    
+    // Prevent MIME type sniffing
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    
+    // Additional security headers
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    
+    next();
+});
+
+// Serve static files with protection
+app.use(express.static(path.join(__dirname), {
+    setHeaders: (res, filePath) => {
+        // Add protection headers for images
+        if (filePath.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
+            res.setHeader('Content-Disposition', 'inline');
+            res.setHeader('X-Content-Protection', 'no-download');
+        }
+        
+        // Add protection for CSS and JS files
+        if (filePath.match(/\.(css|js)$/i)) {
+            res.setHeader('X-Content-Protection', 'no-copy');
+        }
+    }
+}));
+
+// Special route for images with additional protection
+app.get('/protected-images/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const imagePath = path.join(__dirname, 'images', filename);
+    
+    // Check if file exists
+    if (!require('fs').existsSync(imagePath)) {
+        return res.status(404).send('Image not found');
+    }
+    
+    // Set additional protection headers
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('X-Content-Protection', 'no-download');
+    res.setHeader('X-Image-Protection', 'watermarked');
+    
+    res.sendFile(imagePath);
+});
+
+// API endpoint to check if user is trying to access protected content
+app.post('/api/protection-check', (req, res) => {
+    // Log potential security violations
+    console.log('Protection check triggered:', {
+        timestamp: new Date().toISOString(),
+        userAgent: req.get('User-Agent'),
+        ip: req.ip,
+        referer: req.get('Referer')
+    });
+    
+    res.json({ status: 'protected' });
+});
+
 // API Endpoints
 
 // Profiles
@@ -122,7 +189,13 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
     res.json({ url: `/uploads/${req.file.filename}` });
 });
 
+// Catch-all route to serve index.html
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // Start server
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`TIGPS Social server running on port ${PORT}`);
+    console.log('Content protection enabled');
 }); 

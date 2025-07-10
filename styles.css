@@ -5,6 +5,73 @@
     box-sizing: border-box;
 }
 
+/* Prevent text selection and copying */
+* {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Allow text selection only for specific elements */
+.post-input, .comment-input, .modal-post-input, 
+input[type="text"], input[type="password"], textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+/* Prevent image dragging and context menu */
+img, video {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+}
+
+/* Add watermark overlay to images */
+.post-media {
+    position: relative;
+}
+
+.post-media::after {
+    content: 'TIGPS Social';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 24px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+    z-index: 10;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+}
+
+/* Screenshot-friendly content (removed visual distortion) */
+.post, .post-content, .post-media {
+    /* Removed filters to allow clear screenshots */
+}
+
+/* Allow pointer events for interactive images */
+.post-media img, .post-media video, .gif-item img, .selected-gif img {
+    pointer-events: auto;
+}
+
+/* Disable right-click context menu */
+body {
+    -webkit-context-menu: none;
+    -moz-context-menu: none;
+    -ms-context-menu: none;
+    context-menu: none;
+}
+
 /* --- DARK THEME BASE --- */
 body {
     background: #000 !important;
@@ -171,8 +238,8 @@ body::before {
 }
 
 .tigps-logo {
-    width: 54px;
-    height: 54px;
+    width: 67.5px; /* 54px * 1.25 = 67.5px */
+    height: 67.5px; /* 54px * 1.25 = 67.5px */
     object-fit: contain;
 }
 
@@ -197,6 +264,32 @@ body::before {
 
 .btn-plus:hover {
     background: #1a8cd8 !important;
+}
+
+/* Mail button */
+.btn-mail {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: none !important;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-right: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.btn-mail:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: scale(1.05);
+    color: #00fff7 !important;
 }
 
 /* User menu */
@@ -738,6 +831,39 @@ body::before {
 .post-action-btn.delete:hover {
     background: rgba(227, 27, 35, 0.2);
     color: #e31b23;
+}
+
+/* Button styles */
+.btn-primary {
+    background: #1d9bf0;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: #1a8cd8;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* Empty state */
@@ -1296,6 +1422,12 @@ body::before {
     
     .header-right {
         gap: 8px;
+    }
+    
+    .btn-mail {
+        width: 36px;
+        height: 36px;
+        margin-right: 4px;
     }
     
     .footer-content {

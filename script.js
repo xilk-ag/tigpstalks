@@ -29,6 +29,197 @@ let isAdminLoggedIn = false;
 const ADMIN_PASSWORD = "allmighty555"; // You can change this password
 const ADMIN_USERNAME = "alphatigps";
 
+// Check admin state from localStorage on page load
+function checkAdminState() {
+    const adminState = localStorage.getItem('isAdminLoggedIn');
+    if (adminState === 'true') {
+        isAdminLoggedIn = true;
+        console.log('Admin state restored from localStorage');
+        console.log('isAdminLoggedIn:', isAdminLoggedIn);
+    }
+}
+
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    checkAdminState();
+    setupContentProtection();
+});
+
+// Content protection functions
+function setupContentProtection() {
+    // Prevent right-click context menu
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        showNotification('Right-click is disabled for content protection.', 'warning');
+        return false;
+    });
+
+    // Prevent keyboard shortcuts for copying, saving, etc. (but allow screenshots)
+    document.addEventListener('keydown', function(e) {
+        // Prevent Ctrl+C, Ctrl+X, Ctrl+A, Ctrl+S, Ctrl+U (but allow Ctrl+P for screenshots)
+        if (
+            (e.ctrlKey && (e.key === 'c' || e.key === 'x' || e.key === 'a' || e.key === 's' || e.key === 'u')) ||
+            (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+            (e.ctrlKey && e.shiftKey && e.key === 'C')
+        ) {
+            e.preventDefault();
+            showNotification('This action is disabled for content protection.', 'warning');
+            return false;
+        }
+    });
+
+    // Prevent drag and drop
+    document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+        return false;
+    });
+
+    // Prevent selection
+    document.addEventListener('selectstart', function(e) {
+        if (!e.target.matches('.post-input, .comment-input, .modal-post-input, input[type="text"], input[type="password"], textarea')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // Prevent copy events
+    document.addEventListener('copy', function(e) {
+        if (!e.target.matches('.post-input, .comment-input, .modal-post-input, input[type="text"], input[type="password"], textarea')) {
+            e.preventDefault();
+            showNotification('Copying content is disabled.', 'warning');
+            return false;
+        }
+    });
+
+    // Prevent cut events
+    document.addEventListener('cut', function(e) {
+        if (!e.target.matches('.post-input, .comment-input, .modal-post-input, input[type="text"], input[type="password"], textarea')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // Prevent paste events (except in input fields)
+    document.addEventListener('paste', function(e) {
+        if (!e.target.matches('.post-input, .comment-input, .modal-post-input, input[type="text"], input[type="password"], textarea')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // Allow developer tools for debugging (F12, Ctrl+Shift+I, etc.)
+    // Removed restrictions to allow screenshots and screen recording
+
+    // Additional protection for images
+    const images = document.querySelectorAll('img');
+    images.forEach(img => {
+        img.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showNotification('Image right-click is disabled.', 'warning');
+            return false;
+        });
+        
+        img.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+    });
+
+    // Monitor for new images added dynamically
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === 1) { // Element node
+                    const newImages = node.querySelectorAll ? node.querySelectorAll('img') : [];
+                    newImages.forEach(img => {
+                        img.addEventListener('contextmenu', function(e) {
+                            e.preventDefault();
+                            showNotification('Image right-click is disabled.', 'warning');
+                            return false;
+                        });
+                        
+                        img.addEventListener('dragstart', function(e) {
+                            e.preventDefault();
+                            return false;
+                        });
+                    });
+                }
+            });
+        });
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
+    console.log('Content protection enabled');
+}
+
+// Screenshot and screen recording detection (now allowed)
+function setupScreenshotDetection() {
+    // Allow all screenshot and screen recording methods
+    console.log('Screenshots and screen recording are now allowed');
+    
+    // Optional: Log when users take screenshots (for analytics, not blocking)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'PrintScreen' || (e.ctrlKey && e.key === 'p')) {
+            console.log('Screenshot/print action detected - allowed');
+        }
+    });
+
+    // Optional: Log window resize (for analytics, not blocking)
+    let lastWidth = window.innerWidth;
+    let lastHeight = window.innerHeight;
+    
+    window.addEventListener('resize', function() {
+        const currentWidth = window.innerWidth;
+        const currentHeight = window.innerHeight;
+        
+        // Log significant window size changes (for analytics)
+        if (Math.abs(currentWidth - lastWidth) > 100 || Math.abs(currentHeight - lastHeight) > 100) {
+            console.log('Significant window resize detected - allowed');
+        }
+        
+        lastWidth = currentWidth;
+        lastHeight = currentHeight;
+    });
+
+    // Optional: Log visibility changes (for analytics, not blocking)
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            console.log('User switched away from page - allowed');
+        }
+    });
+
+    // Optional: Log fullscreen changes (for analytics, not blocking)
+    document.addEventListener('fullscreenchange', function() {
+        if (document.fullscreenElement) {
+            console.log('Fullscreen mode activated - allowed');
+        }
+    });
+}
+
+// Call screenshot detection setup
+setupScreenshotDetection();
+
+// Mail button function
+function openMail() {
+    const email = 'xilk.tigps@gmail.com';
+    const subject = 'TIGPS Social - Contact';
+    const body = 'Hello TIGPS Team,\n\nI would like to get in touch regarding TIGPS Social.\n\nBest regards,';
+    
+    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    // Try to open default mail client
+    window.location.href = mailtoLink;
+    
+    // Fallback: show email in notification
+    setTimeout(() => {
+        showNotification(`Email: ${email}`, 'info');
+    }, 1000);
+}
+
 // GIF Search Modal Logic
 let gifSearchTimeout = null;
 let gifSearchResults = [];
@@ -724,12 +915,14 @@ function createPostElement(post, index) {
                 }
                 <div class="post-time">${timeAgo}</div>
             </div>
+            ${isAdminLoggedIn ? `
             <div class="post-menu">
                 <button class="post-menu-btn" onclick="togglePostMenu('${safePost.id}')">⋯</button>
                 <div class="post-menu-dropdown" id="post-menu-${safePost.id}">
-                    ${isAdminLoggedIn ? `<div class="post-menu-item" onclick="deletePost('${safePost.id}')">🗑️ Delete Post</div>` : ''}
+                    <div class="post-menu-item" onclick="deletePost('${safePost.id}')">🗑️ Delete Post</div>
                 </div>
             </div>
+            ` : '<!-- Admin not logged in, no menu shown -->'}
         </div>
         <div class="post-content">${formatContent(safePost.content)}</div>
         ${mediaHtml}
@@ -750,11 +943,6 @@ function createPostElement(post, index) {
                 <button class="post-action-btn" data-post-id="${safePost.id}" data-action="share">
                     📤 Share
                 </button>
-                ${isAdminLoggedIn ? `
-                    <button class="post-action-btn" onclick="deletePost('${safePost.id}')">
-                        🗑️ Delete
-                    </button>
-                ` : ''}
             </div>
         </div>
     `;
@@ -1324,9 +1512,13 @@ function loginAdmin() {
     const password = document.getElementById('adminPassword').value;
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
         isAdminLoggedIn = true;
+        // Save admin state to localStorage
+        localStorage.setItem('isAdminLoggedIn', 'true');
         // Hide login, show dashboard (if present)
         showNotification('Admin login successful!', 'success');
         closeAdminModal();
+        // Refresh posts to show admin controls
+        renderPosts();
         // Optionally, show admin dashboard section if you have one
         // document.getElementById('adminDashboardSection').style.display = 'block';
     } else {
@@ -1336,11 +1528,15 @@ function loginAdmin() {
 
 function logoutAdmin() {
     isAdminLoggedIn = false;
+    // Clear admin state from localStorage
+    localStorage.removeItem('isAdminLoggedIn');
     document.getElementById('adminLoginSection').style.display = 'block';
     document.getElementById('adminDashboardSection').style.display = 'none';
     document.getElementById('adminPassword').value = '';
     
     showNotification('Logged out from admin panel.', 'info');
+    // Refresh posts to hide admin controls
+    renderPosts();
 }
 
 function updateAdminStats() {
@@ -1938,19 +2134,24 @@ function renderDashboardPosts() {
 
 // Delete post (admin only)
 async function deletePost(postId) {
+    console.log('deletePost called with postId:', postId, 'type:', typeof postId);
+    console.log('isAdminLoggedIn:', isAdminLoggedIn);
+    
     if (!isAdminLoggedIn) {
         showNotification('Only admins can delete posts!', 'error');
         return;
     }
     
-    const post = posts.find(p => p.id === postId);
+    // Handle both string and number postIds
+    const post = posts.find(p => p.id == postId || p.id === postId);
     if (!post) {
+        console.log('Post not found. Available posts:', posts.map(p => ({ id: p.id, type: typeof p.id })));
         showNotification('Post not found!', 'error');
         return;
     }
     
     if (confirm(`Are you sure you want to delete this post by @${post.username}?`)) {
-        const postIndex = posts.findIndex(p => p.id === postId);
+        const postIndex = posts.findIndex(p => p.id == postId || p.id === postId);
         if (postIndex !== -1) {
             posts.splice(postIndex, 1);
             renderPosts();
@@ -2421,7 +2622,7 @@ function hideLoadingOverlay() {
 document.addEventListener('DOMContentLoaded', function() {
     // Start 1s timer
     loadingOverlayTimeout = setTimeout(() => {
-        if (postsLoaded) hideLoadingOverlay();
+        hideLoadingOverlay();
     }, 1000);
 });
 
@@ -2430,10 +2631,7 @@ const originalInitializeAppData = initializeAppData;
 initializeAppData = async function() {
     await originalInitializeAppData();
     postsLoaded = true;
-    if (loadingOverlayTimeout) {
-        // If 3s already passed, hide overlay now
-        hideLoadingOverlay();
-    }
+    // Loading screen will hide after 1 second regardless of posts loading
 };
 
 // Render comments in the modal

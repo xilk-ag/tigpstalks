@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Test - TIGPS Social</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #000;
+            color: #fff;
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .test-button {
+            background: #1d9bf0;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #1a8cd8;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status.success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+        }
+        .status.error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #F44336;
+        }
+        .status.info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 TIGPS Social - Admin Functionality Test</h1>
+    
+    <div class="test-section">
+        <h2>Admin Login Test</h2>
+        <p>Use these credentials to test admin functionality:</p>
+        <ul>
+            <li><strong>Username:</strong> alphatigps</li>
+            <li><strong>Password:</strong> allmighty555</li>
+        </ul>
+        <button class="test-button" onclick="testAdminLogin()">Test Admin Login</button>
+        <button class="test-button" onclick="testAdminLogout()">Test Admin Logout</button>
+        <button class="test-button" onclick="checkAdminStatus()">Check Admin Status</button>
+        <div id="adminStatus" class="status info">Click "Check Admin Status" to see current state</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Three Dots Menu Test</h2>
+        <p>After logging in as admin, you should see three dots (⋯) on each post that allow you to delete posts.</p>
+        <button class="test-button" onclick="goToMainApp()">Go to Main App</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Delete Function Test</h2>
+        <p>Once logged in as admin, you can:</p>
+        <ol>
+            <li>Click the three dots (⋯) on any post</li>
+            <li>Select "🗑️ Delete Post" from the dropdown</li>
+            <li>Confirm the deletion</li>
+        </ol>
+        <div id="deleteTestStatus" class="status info">Test the delete function in the main app</div>
+    </div>
+
+    <script>
+        function testAdminLogin() {
+            // Simulate admin login
+            localStorage.setItem('isAdminLoggedIn', 'true');
+            document.getElementById('adminStatus').innerHTML = '✅ Admin login successful! Check the main app to see three dots menus.';
+            document.getElementById('adminStatus').className = 'status success';
+        }
+
+        function testAdminLogout() {
+            // Simulate admin logout
+            localStorage.removeItem('isAdminLoggedIn');
+            document.getElementById('adminStatus').innerHTML = '❌ Admin logged out. Three dots menus should be hidden.';
+            document.getElementById('adminStatus').className = 'status error';
+        }
+
+        function checkAdminStatus() {
+            const isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true';
+            if (isAdmin) {
+                document.getElementById('adminStatus').innerHTML = '✅ Admin is currently logged in';
+                document.getElementById('adminStatus').className = 'status success';
+            } else {
+                document.getElementById('adminStatus').innerHTML = '❌ Admin is not logged in';
+                document.getElementById('adminStatus').className = 'status error';
+            }
+        }
+
+        function goToMainApp() {
+            window.location.href = 'index.html';
+        }
+
+        // Check status on page load
+        checkAdminStatus();
+    </script>
+</body>
+</html> 
