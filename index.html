@@ -72,28 +72,22 @@
 
         <!-- Sidebar Menu (for hamburger menu) -->
         <div class="sidebar-menu" id="sidebarMenu">
-            <div class="sidebar-header">
-                <h3>Menu</h3>
+            <div class="sidebar-header" style="display:flex;flex-direction:column;align-items:center;">
+                <img src="/tigpstalks.png" alt="TIGPS Talks" class="tigps-logo" style="height:80px;width:auto;margin-bottom:1rem;">
                 <button class="close-sidebar-btn" onclick="toggleHamburgerMenu()">×</button>
             </div>
             <div class="sidebar-content">
                 <div class="sidebar-item" onclick="openAccountDashboard(event)">
-                    <span>👤</span> My Account
+                    <span>👤</span> Edit Account
                 </div>
                 <div class="sidebar-item" onclick="openProfileModal()">
                     <span>✏️</span> Edit Profile
                 </div>
+                <div class="sidebar-item" onclick="openAdminModal()">
+                    <span>🔐</span> Admin Page
+                </div>
                 <div class="sidebar-item" onclick="openSettingsModal()">
                     <span>⚙️</span> Settings
-                </div>
-                <div class="sidebar-item" onclick="openAdminModal()">
-                    <span>🔐</span> Admin Panel
-                </div>
-                <div class="sidebar-item" onclick="window.open('privacy-policy.html', '_blank')">
-                    <span>🔒</span> Privacy Policy
-                </div>
-                <div class="sidebar-item" onclick="window.open('terms-conditions.html', '_blank')">
-                    <span>📋</span> Terms & Conditions
                 </div>
                 <div class="sidebar-item" onclick="logout()">
                     <span>🚪</span> Logout
@@ -107,43 +101,20 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="container">
-                <!-- Post Creation -->
-                <div class="post-creator">
+                <!-- Post Creation Area -->
+                <div class="post-creation">
                     <div class="post-input-container">
-                        <div class="post-header-section">
-                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face" alt="Profile" class="post-avatar" id="postCreatorAvatar">
-                            <div class="post-creator-info">
-                                <div class="post-creator-name" id="postCreatorName">@alexchen</div>
-                                <div class="post-creator-display-name" id="postCreatorDisplayName">Alex Chen</div>
-                            </div>
-                        </div>
-                        <textarea 
-                            id="postInput" 
-                            placeholder="What's happening at TIGPS?" 
-                            class="post-input"
-                            maxlength="500"
-                        ></textarea>
-                        <div class="post-media-preview" id="postMediaPreview"></div>
+                        <textarea id="postContent" placeholder="What's on your mind?" maxlength="500"></textarea>
                         <div class="post-actions">
-                            <div class="post-options">
-                                <button class="media-btn" onclick="triggerImageUpload()">
-                                    🖼️ Add Image
-                                </button>
-                                <button class="media-btn" onclick="openGifSearchModal('main')">
-                                    🎬 Add GIF
-                                </button>
-                                <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
-                                <label class="checkbox-container">
-                                    <input type="checkbox" id="anonymousPost">
-                                    <span class="checkmark"></span>
-                                    Post Anonymously
-                                </label>
-                            </div>
-                            <div class="post-submit">
-                                <div class="char-count" id="charCount">0/500</div>
-                                <button class="btn-post" onclick="createPost()" id="postBtn">Post</button>
-                            </div>
+                            <button class="gif-btn" onclick="openGifSearch()">
+                                <span>🎬</span> GIF
+                            </button>
+                            <button id="postButton" onclick="createPost()" disabled>Post</button>
                         </div>
+                    </div>
+                    <div id="selectedGif" class="selected-gif" style="display: none;">
+                        <img id="selectedGifImg" src="" alt="Selected GIF">
+                        <button onclick="removeSelectedGif()" class="remove-gif-btn">×</button>
                     </div>
                 </div>
 
@@ -252,6 +223,10 @@
                 </div>
                 <div class="modal-body">
                     <div class="input-group">
+                        <label for="adminUsername">Admin Username</label>
+                        <input type="text" id="adminUsername" placeholder="Enter admin username" onkeydown="if(event.key==='Enter'){loginAdmin();}">
+                    </div>
+                    <div class="input-group">
                         <label for="adminPassword">Admin Password</label>
                         <input type="password" id="adminPassword" placeholder="Enter admin password" onkeydown="if(event.key==='Enter'){loginAdmin();}">
                     </div>
@@ -327,15 +302,20 @@
         </div>
 
         <!-- GIF Search Modal -->
-        <div class="modal" id="gifSearchModal">
-            <div class="modal-content" style="max-width: 600px;">
+        <div id="gifSearchModal" class="modal">
+            <div class="modal-content gif-modal">
                 <div class="modal-header">
-                    <h2>Search GIFs</h2>
-                    <button class="close-btn" onclick="closeGifSearchModal()">×</button>
+                    <h2>🎬 Search GIFs</h2>
+                    <button class="close-btn" onclick="closeGifSearch()">×</button>
                 </div>
-                <div class="modal-body">
-                    <input type="text" id="gifSearchInput" placeholder="Search for GIFs..." style="width: 100%; margin-bottom: 1rem;">
-                    <div id="gifResultsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;"></div>
+                <div class="gif-search-container">
+                    <div class="gif-search-input">
+                        <input type="text" id="gifSearchInput" placeholder="Search for GIFs..." onkeyup="searchGifs(event)">
+                        <button onclick="searchGifs()" class="search-gif-btn">🔍</button>
+                    </div>
+                    <div id="gifResults" class="gif-results">
+                        <div class="gif-loading">Search for GIFs to get started!</div>
+                    </div>
                 </div>
             </div>
         </div>

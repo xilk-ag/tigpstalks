@@ -22,11 +22,14 @@ let googleDriveManager = null;
 // Admin state
 let isAdminLoggedIn = false;
 const ADMIN_PASSWORD = "abc@12345"; // You can change this password
+const ADMIN_USERNAME = "alphatigps";
 
 // GIF Search Modal Logic
 let gifSearchTimeout = null;
 let gifSearchResults = [];
 let gifSearchTarget = null; // 'main' or 'modal'
+
+// GIF Search Feature - Variables already declared above
 
 // --- Google Drive Integration for Admin ---
 let googleAuthInstance = null;
@@ -715,7 +718,7 @@ function createPostElement(post, index) {
                     📤 Share
                 </button>
                 ${isAdminLoggedIn ? `
-                    <button class="post-action-btn" onclick="deletePost(${safePost.id})">
+                    <button class="post-action-btn" onclick="deletePost('${safePost.id}')">
                         🗑️ Delete
                     </button>
                 ` : ''}
@@ -1082,30 +1085,14 @@ function toggleProfileMenu() {
   }
 }
 
-// Hamburger menu management
+// Sidebar hamburger menu logic
 function toggleHamburgerMenu() {
-  console.log('toggleHamburgerMenu called');
-  const sidebar = document.getElementById('sidebarMenu');
-  const overlay = document.getElementById('sidebarOverlay');
-  const hamburgerMenu = document.getElementById('hamburgerMenu');
-  
-  console.log('Sidebar elements found:', {
-    sidebar: !!sidebar,
-    overlay: !!overlay,
-    hamburgerMenu: !!hamburgerMenu
-  });
-  
-  if (sidebar.classList.contains('open')) {
-    sidebar.classList.remove('open');
-    overlay.classList.remove('show');
-    hamburgerMenu.classList.remove('active');
-    console.log('Sidebar closed');
-  } else {
-    sidebar.classList.add('open');
-    overlay.classList.add('show');
-    hamburgerMenu.classList.add('active');
-    console.log('Sidebar opened');
-  }
+    const sidebar = document.getElementById('sidebarMenu');
+    if (sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+    } else {
+        sidebar.classList.add('open');
+    }
 }
 
 // Close menu when clicking outside
@@ -1269,8 +1256,18 @@ function handleAdminPasswordEnter(event) {
 }
 
 function loginAdmin() {
-    const username = document.getElementById('adminUsername').value;
-    setAdminByUsername(username);
+    const username = document.getElementById('adminUsername').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        isAdminLoggedIn = true;
+        // Hide login, show dashboard (if present)
+        showNotification('Admin login successful!', 'success');
+        closeAdminModal();
+        // Optionally, show admin dashboard section if you have one
+        // document.getElementById('adminDashboardSection').style.display = 'block';
+    } else {
+        showNotification('Invalid admin username or password.', 'error');
+    }
 }
 
 function logoutAdmin() {
@@ -2044,4 +2041,241 @@ if (typeof createPostFromModal === 'function') {
     originalCreatePostFromModal();
     startPostCooldown();
   }
+} 
+
+window.toggleLike = toggleLike;
+window.showComments = showComments;
+window.sharePost = sharePost;
+window.addComment = addComment; 
+
+// GIF Search Feature - Variables already declared above
+
+// Open GIF search modal
+function openGifSearch() {
+    document.getElementById('gifSearchModal').style.display = 'flex';
+    document.getElementById('gifSearchInput').focus();
+}
+
+// Close GIF search modal
+function closeGifSearch() {
+    document.getElementById('gifSearchModal').style.display = 'none';
+    document.getElementById('gifSearchInput').value = '';
+    document.getElementById('gifResults').innerHTML = '<div class="gif-loading">Search for GIFs to get started!</div>';
+}
+
+// Search GIFs with debouncing
+function searchGifs(event = null) {
+    if (event && event.key !== 'Enter') return;
+    
+    const query = document.getElementById('gifSearchInput').value.trim();
+    if (!query) return;
+    
+    // Clear previous timeout
+    if (gifSearchTimeout) {
+        clearTimeout(gifSearchTimeout);
+    }
+    
+    // Debounce search
+    gifSearchTimeout = setTimeout(() => {
+        performGifSearch(query);
+    }, 300);
+}
+
+// Perform actual GIF search
+async function performGifSearch(query) {
+    const resultsContainer = document.getElementById('gifResults');
+    resultsContainer.innerHTML = '<div class="gif-loading">Searching...</div>';
+    
+    try {
+        const response = await fetch(`${GIPHY_BASE_URL}/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=20&rating=g`);
+        const data = await response.json();
+        
+        if (data.data && data.data.length > 0) {
+            displayGifResults(data.data);
+        } else {
+            resultsContainer.innerHTML = '<div class="gif-loading">No GIFs found. Try a different search term!</div>';
+        }
+    } catch (error) {
+        console.error('Error searching GIFs:', error);
+        resultsContainer.innerHTML = '<div class="gif-loading">Error loading GIFs. Please try again.</div>';
+    }
+}
+
+// Display GIF search results
+function displayGifResults(gifs) {
+    const resultsContainer = document.getElementById('gifResults');
+    resultsContainer.innerHTML = '';
+    
+    gifs.forEach(gif => {
+        const gifItem = document.createElement('div');
+        gifItem.className = 'gif-item';
+        gifItem.onclick = () => selectGif(gif);
+        
+        gifItem.innerHTML = `
+            <img src="${gif.images.fixed_height_small.url}" 
+                 alt="${gif.title}" 
+                 data-original="${gif.images.original.url}"
+                 data-preview="${gif.images.fixed_height_small.url}">
+        `;
+        
+        resultsContainer.appendChild(gifItem);
+    });
+}
+
+// Select a GIF
+function selectGif(gif) {
+    selectedGif = {
+        url: gif.images.original.url,
+        preview: gif.images.fixed_height_small.url,
+        title: gif.title,
+        id: gif.id
+    };
+    
+    // Show selected GIF in post area
+    const selectedGifContainer = document.getElementById('selectedGif');
+    const selectedGifImg = document.getElementById('selectedGifImg');
+    
+    selectedGifImg.src = selectedGif.preview;
+    selectedGifContainer.style.display = 'inline-block';
+    
+    // Close modal
+    closeGifSearch();
+    
+    // Enable post button if there's content
+    updatePostButton();
+}
+
+// Remove selected GIF
+function removeSelectedGif() {
+    selectedGif = null;
+    document.getElementById('selectedGif').style.display = 'none';
+    updatePostButton();
+}
+
+// Update post button state
+function updatePostButton() {
+    const postContent = document.getElementById('postContent').value.trim();
+    const postButton = document.getElementById('postButton');
+    
+    if (postContent || selectedGif) {
+        postButton.disabled = false;
+    } else {
+        postButton.disabled = true;
+    }
+}
+
+// Update createPost function to include GIF support
+function createPost() {
+    const postContent = document.getElementById('postContent').value.trim();
+    const postButton = document.getElementById('postButton');
+    
+    if (!postContent && !selectedGif) {
+        alert('Please add some content or a GIF to your post!');
+        return;
+    }
+    
+    // Disable post button and show loading
+    postButton.disabled = true;
+    postButton.textContent = 'Posting...';
+    
+    const postData = {
+        content: postContent,
+        gif: selectedGif,
+        timestamp: new Date().toISOString(),
+        username: currentUser,
+        likes: 0,
+        comments: [],
+        shares: 0
+    };
+    
+    // Add to Firestore
+    addDoc(collection(db, 'posts'), postData)
+        .then(() => {
+            // Clear form
+            document.getElementById('postContent').value = '';
+            removeSelectedGif();
+            updatePostButton();
+            
+            // Reset button
+            postButton.textContent = 'Post';
+            postButton.disabled = true;
+            
+            // Show success message
+            showNotification('Post created successfully!', 'success');
+            
+            // Start cooldown
+            startPostCooldown();
+        })
+        .catch((error) => {
+            console.error('Error creating post:', error);
+            postButton.textContent = 'Post';
+            postButton.disabled = false;
+            showNotification('Error creating post. Please try again.', 'error');
+        });
+}
+
+// Add event listeners for post content changes
+document.addEventListener('DOMContentLoaded', function() {
+    const postContent = document.getElementById('postContent');
+    if (postContent) {
+        postContent.addEventListener('input', updatePostButton);
+    }
+});
+
+// Update post rendering to include GIFs
+function renderPost(post, postId) {
+    const postElement = document.createElement('div');
+    postElement.className = 'post';
+    postElement.id = `post-${postId}`;
+    
+    let postContent = `
+        <div class="post-header">
+            <div class="post-user-info">
+                <div class="post-username">@${post.username}</div>
+                <div class="post-time">${formatTime(post.timestamp)}</div>
+            </div>
+            ${isAdmin ? `<button class="delete-post-btn" onclick="deletePost('${postId}')">🗑️</button>` : ''}
+        </div>
+        <div class="post-content">
+            ${post.content ? `<p>${escapeHtml(post.content)}</p>` : ''}
+            ${post.gif ? `<div class="post-gif"><img src="${post.gif.preview}" alt="${post.gif.title}" onclick="openGifModal('${post.gif.url}')"></div>` : ''}
+        </div>
+        <div class="post-actions">
+            <button onclick="likePost('${postId}')" class="action-btn ${post.likedBy && post.likedBy.includes(currentUser) ? 'liked' : ''}">
+                👍 ${post.likes || 0}
+            </button>
+            <button onclick="showComments('${postId}')" class="action-btn">
+                💬 ${post.comments ? post.comments.length : 0}
+            </button>
+            <button onclick="sharePost('${postId}')" class="action-btn">
+                🔄 ${post.shares || 0}
+            </button>
+        </div>
+    `;
+    
+    postElement.innerHTML = postContent;
+    return postElement;
+}
+
+// Open GIF in modal for full view
+function openGifModal(gifUrl) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.onclick = () => modal.remove();
+    
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px; text-align: center;">
+            <img src="${gifUrl}" style="max-width: 100%; max-height: 80vh; border-radius: 12px;">
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 } 
