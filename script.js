@@ -1,3 +1,7 @@
+// Giphy API Configuration
+const GIPHY_API_KEY = 'GlVGYHkr3WSBnllca54iNt0yFbjz7L65'; // Free Giphy API key
+const GIPHY_BASE_URL = 'https://api.giphy.com/v1/gifs';
+
 // User Profile Data
 let currentUser = {
     id: 1,
@@ -15,13 +19,14 @@ let nextCommentId = 1;
 let currentPostId = null;
 let selectedMedia = null;
 let modalSelectedMedia = null;
+let modalSelectedGif = null;
 
 // Google Drive integration
 let googleDriveManager = null;
 
 // Admin state
 let isAdminLoggedIn = false;
-const ADMIN_PASSWORD = "abc@12345"; // You can change this password
+const ADMIN_PASSWORD = "allmighty555"; // You can change this password
 const ADMIN_USERNAME = "alphatigps";
 
 // GIF Search Modal Logic
@@ -160,7 +165,7 @@ async function initializeAppData() {
 }
 
 // Enhanced addPost to ensure all fields are saved
-addPost = async function(content, isAnonymous, media) {
+addPost = async function(content, isAnonymous, media, gif) {
   const user = getCurrentUserForPost(isAnonymous);
   const timestamp = new Date().toISOString();
   const tags = extractTags(content);
@@ -169,6 +174,7 @@ addPost = async function(content, isAnonymous, media) {
     content: content,
     isAnonymous: isAnonymous,
     media: media ? 'has media' : 'no media',
+    gif: gif ? 'has gif' : 'no gif',
     mediaType: typeof media,
     mediaLength: media ? media.length : 0
   });
@@ -180,6 +186,7 @@ addPost = async function(content, isAnonymous, media) {
     avatar: user.avatar,
     isAnonymous: isAnonymous,
     media: media || null,
+    gif: gif || null,
     timestamp,
     likes: 0,
     comments: [],
@@ -189,7 +196,8 @@ addPost = async function(content, isAnonymous, media) {
   
   console.log('Post object to save:', {
     ...post,
-    media: post.media ? 'data URL present' : 'no media'
+    media: post.media ? 'data URL present' : 'no media',
+    gif: post.gif ? 'gif object present' : 'no gif'
   });
   
   try {
@@ -240,24 +248,29 @@ showComments = async function(postId) {
 
 // Add comment using Firestore
 addComment = async function() {
-  const content = commentInput.value.trim();
-  if (!content) return;
-  const user = getCurrentUserForPost(false);
-  const comment = {
-    author: user.displayName,
-    username: user.username,
-    avatar: user.avatar,
-    content,
-    timestamp: new Date().toISOString()
-  };
-  try {
-    await saveCommentToFirestore(currentPostId, comment);
-    const comments = await fetchCommentsFromFirestore(currentPostId);
-    renderComments(comments);
-    commentInput.value = '';
-  } catch (e) {
-    showNotification('Failed to add comment.', 'error');
-  }
+    const commentInput = document.getElementById('commentInput');
+    const content = commentInput.value.trim();
+    if (!content) return;
+    
+    const user = getCurrentUserForPost(false);
+    const comment = {
+        author: user.displayName,
+        username: user.username,
+        avatar: user.avatar,
+        content,
+        timestamp: new Date().toISOString()
+    };
+    
+    try {
+        await saveCommentToFirestore(currentPostId.toString(), comment);
+        const comments = await fetchCommentsFromFirestore(currentPostId.toString());
+        renderComments(comments);
+        commentInput.value = '';
+        showNotification('Comment added!', 'success');
+    } catch (e) {
+        console.error('Error adding comment:', e);
+        showNotification('Failed to add comment.', 'error');
+    }
 };
 
 // Save dashboard profile using Firestore
@@ -269,7 +282,7 @@ async function saveDashboardProfile() {
   const avatar = document.getElementById('dashboardProfilePic').src;
   const profile = { displayName, username, bio, location, avatar };
   try {
-    await saveProfileToFirestore(profile);
+    await saveProfileToFirestore({ ...profile, username });
     currentUser = { ...currentUser, ...profile };
     localStorage.setItem('tigpsUser', JSON.stringify(currentUser));
     updateProfileDisplay();
@@ -549,8 +562,9 @@ function detectTags(e) {
 
 // Create post from main input
 function createPost() {
+    const postInput = document.getElementById('postInput');
     const content = postInput.value.trim();
-    const isAnonymous = anonymousPost.checked;
+    const isAnonymous = document.getElementById('anonymousPost').checked;
     
     console.log('createPost called with:', {
         content: content,
@@ -571,9 +585,9 @@ function createPost() {
         console.log('Post created successfully, clearing form...');
         postInput.value = '';
         postInput.style.height = 'auto';
-        anonymousPost.checked = false;
+        document.getElementById('anonymousPost').checked = false;
         selectedMedia = null;
-        updateMediaPreview(postMediaPreview, null);
+        updateMediaPreview(document.getElementById('postMediaPreview'), null);
     }).catch((error) => {
         console.error('Error in createPost:', error);
         showNotification('Failed to create post. Please try again.', 'error');
@@ -585,19 +599,20 @@ function createPostFromModal() {
     const content = modalPostInput.value.trim();
     const isAnonymous = modalAnonymousPost.checked;
     
-    if (!content) {
-        showNotification('Please enter some content for your post!', 'error');
+    if (!content && !modalSelectedMedia && !modalSelectedGif) {
+        showNotification('Please enter some content or add media for your post!', 'error');
         return;
     }
     
-    console.log('Creating modal post with content:', content, 'isAnonymous:', isAnonymous, 'media:', modalSelectedMedia);
+    console.log('Creating modal post with content:', content, 'isAnonymous:', isAnonymous, 'media:', modalSelectedMedia, 'gif:', modalSelectedGif);
     
-    // Use the async addPost function
-    addPost(content, isAnonymous, modalSelectedMedia).then(() => {
+    // Use the async addPost function with GIF support
+    addPost(content, isAnonymous, modalSelectedMedia, modalSelectedGif).then(() => {
         modalPostInput.value = '';
         modalPostInput.style.height = 'auto';
         modalAnonymousPost.checked = false;
         modalSelectedMedia = null;
+        modalSelectedGif = null;
         updateMediaPreview(modalPostMediaPreview, null);
         closePostModal();
     }).catch((error) => {
@@ -668,8 +683,13 @@ function createPostElement(post, index) {
         isAnonymous: post.isAnonymous || false,
         isLiked: post.isLiked || false,
         media: post.media || null,
-        tags: post.tags || []
+        gif: post.gif || null,
+        tags: post.tags || [],
+        likedBy: post.likedBy || []
     };
+    
+    // Check if current user has liked this post
+    const hasLiked = currentUser && currentUser.username && safePost.likedBy && safePost.likedBy.includes(currentUser.username);
     
     const timeAgo = getTimeAgo(safePost.timestamp);
     const mediaHtml = safePost.media ? `
@@ -678,6 +698,12 @@ function createPostElement(post, index) {
                 `<video src="${safePost.media}" controls></video>` : 
                 `<img src="${safePost.media}" alt="Post media">`
             }
+        </div>
+    ` : '';
+    
+    const gifHtml = safePost.gif ? `
+        <div class="post-media">
+            <img src="${safePost.gif.preview}" alt="${safePost.gif.title}" onclick="openGifModal('${safePost.gif.url}')" style="cursor: pointer;">
         </div>
     ` : '';
     
@@ -701,6 +727,7 @@ function createPostElement(post, index) {
         </div>
         <div class="post-content">${formatContent(safePost.content)}</div>
         ${mediaHtml}
+        ${gifHtml}
         ${tagsHtml}
         <div class="post-actions-bar">
             <div class="post-stats">
@@ -708,8 +735,8 @@ function createPostElement(post, index) {
                 <span>${safePost.comments.length} comments</span>
             </div>
             <div class="post-actions">
-                <button class="post-action-btn ${safePost.isLiked ? 'liked' : ''}" data-post-id="${safePost.id}" data-action="like">
-                    ${safePost.isLiked ? '❤️' : '🤍'} Like
+                <button class="post-action-btn ${hasLiked ? 'liked' : ''}" data-post-id="${safePost.id}" data-action="like">
+                    ${hasLiked ? '❤️' : '🤍'} Like
                 </button>
                 <button class="post-action-btn" data-post-id="${safePost.id}" data-action="comment">
                     💬 Comment
@@ -737,24 +764,50 @@ function formatContent(content) {
 // --- Like Functionality ---
 async function toggleLike(postId) {
   try {
+    console.log('toggleLike called with postId:', postId);
+    
+    // Ensure we have a current user
+    if (!currentUser || !currentUser.username) {
+      showNotification('Please log in to like posts.', 'error');
+      return;
+    }
+    
     const postRef = db.collection('posts').doc(postId.toString());
     const postDoc = await postRef.get();
-    if (!postDoc.exists) return;
+    
+    if (!postDoc.exists) {
+      console.error('Post not found:', postId);
+      showNotification('Post not found.', 'error');
+      return;
+    }
+    
     let post = postDoc.data();
     if (!post.likes) post.likes = 0;
     if (!post.likedBy) post.likedBy = [];
-    const user = currentUser.username || 'anonymous';
-    if (post.likedBy.includes(user)) {
+    
+    const user = currentUser.username;
+    const hasLiked = post.likedBy.includes(user);
+    
+    if (hasLiked) {
+      // Unlike
       post.likes -= 1;
       post.likedBy = post.likedBy.filter(u => u !== user);
+      showNotification('Post unliked!', 'info');
     } else {
+      // Like
       post.likes += 1;
       post.likedBy.push(user);
+      showNotification('Post liked!', 'success');
     }
+    
     await postRef.update({ likes: post.likes, likedBy: post.likedBy });
+    
+    // Refresh posts to show updated like count
     posts = await fetchPostsFromFirestore();
     renderPosts();
+    
   } catch (e) {
+    console.error('Error toggling like:', e);
     showNotification('Failed to like post.', 'error');
   }
 }
@@ -772,8 +825,10 @@ async function showComments(postId) {
 }
 
 async function addComment() {
+  const commentInput = document.getElementById('commentInput');
   const content = commentInput.value.trim();
   if (!content) return;
+  
   const user = getCurrentUserForPost(false);
   const comment = {
     author: user.displayName,
@@ -782,12 +837,15 @@ async function addComment() {
     content,
     timestamp: new Date().toISOString()
   };
+  
   try {
     await saveCommentToFirestore(currentPostId.toString(), comment);
     const comments = await fetchCommentsFromFirestore(currentPostId.toString());
     renderComments(comments);
     commentInput.value = '';
+    showNotification('Comment added!', 'success');
   } catch (e) {
+    console.error('Error adding comment:', e);
     showNotification('Failed to add comment.', 'error');
   }
 }
@@ -2046,14 +2104,25 @@ if (typeof createPostFromModal === 'function') {
 window.toggleLike = toggleLike;
 window.showComments = showComments;
 window.sharePost = sharePost;
-window.addComment = addComment; 
+window.addComment = addComment;
+window.openGifSearch = openGifSearch;
+window.closeGifSearch = closeGifSearch;
+window.searchGifs = searchGifs;
+window.selectGif = selectGif;
+window.selectModalGif = selectModalGif;
+window.removeSelectedGif = removeSelectedGif;
+window.removeModalSelectedGif = removeModalSelectedGif;
+window.openModalGifSearch = openModalGifSearch;
+window.openGifModal = openGifModal; 
 
 // GIF Search Feature - Variables already declared above
+let selectedGif = null;
 
 // Open GIF search modal
 function openGifSearch() {
     document.getElementById('gifSearchModal').style.display = 'flex';
     document.getElementById('gifSearchInput').focus();
+    document.getElementById('gifResults').innerHTML = '<div class="gif-loading">Search for GIFs to get started!</div>';
 }
 
 // Close GIF search modal
@@ -2109,7 +2178,10 @@ function displayGifResults(gifs) {
     gifs.forEach(gif => {
         const gifItem = document.createElement('div');
         gifItem.className = 'gif-item';
-        gifItem.onclick = () => selectGif(gif);
+        
+        // Choose the right selection function based on target
+        const selectFunction = gifSearchTarget === 'modal' ? 'selectModalGif' : 'selectGif';
+        gifItem.onclick = () => window[selectFunction](gif);
         
         gifItem.innerHTML = `
             <img src="${gif.images.fixed_height_small.url}" 
@@ -2122,7 +2194,7 @@ function displayGifResults(gifs) {
     });
 }
 
-// Select a GIF
+// Select a GIF for main post
 function selectGif(gif) {
     selectedGif = {
         url: gif.images.original.url,
@@ -2132,86 +2204,95 @@ function selectGif(gif) {
     };
     
     // Show selected GIF in post area
-    const selectedGifContainer = document.getElementById('selectedGif');
-    const selectedGifImg = document.getElementById('selectedGifImg');
-    
-    selectedGifImg.src = selectedGif.preview;
-    selectedGifContainer.style.display = 'inline-block';
+    const postMediaPreview = document.getElementById('postMediaPreview');
+    postMediaPreview.innerHTML = `
+        <div class="selected-gif">
+            <img src="${selectedGif.preview}" alt="${selectedGif.title}">
+            <button class="remove-gif-btn" onclick="removeSelectedGif()">×</button>
+        </div>
+    `;
     
     // Close modal
     closeGifSearch();
-    
-    // Enable post button if there's content
-    updatePostButton();
 }
 
-// Remove selected GIF
+// Select a GIF for modal post
+function selectModalGif(gif) {
+    modalSelectedGif = {
+        url: gif.images.original.url,
+        preview: gif.images.fixed_height_small.url,
+        title: gif.title,
+        id: gif.id
+    };
+    
+    // Show selected GIF in modal post area
+    const modalPostMediaPreview = document.getElementById('modalPostMediaPreview');
+    modalPostMediaPreview.innerHTML = `
+        <div class="selected-gif">
+            <img src="${modalSelectedGif.preview}" alt="${modalSelectedGif.title}">
+            <button class="remove-gif-btn" onclick="removeModalSelectedGif()">×</button>
+        </div>
+    `;
+    
+    // Close modal
+    closeGifSearch();
+}
+
+// Remove selected GIF from main post
 function removeSelectedGif() {
     selectedGif = null;
-    document.getElementById('selectedGif').style.display = 'none';
-    updatePostButton();
+    document.getElementById('postMediaPreview').innerHTML = '';
 }
 
-// Update post button state
-function updatePostButton() {
-    const postContent = document.getElementById('postContent').value.trim();
-    const postButton = document.getElementById('postButton');
-    
-    if (postContent || selectedGif) {
-        postButton.disabled = false;
-    } else {
-        postButton.disabled = true;
-    }
+// Remove selected GIF from modal post
+function removeModalSelectedGif() {
+    modalSelectedGif = null;
+    document.getElementById('modalPostMediaPreview').innerHTML = '';
+}
+
+// Open GIF search for modal
+function openModalGifSearch() {
+    document.getElementById('gifSearchModal').style.display = 'flex';
+    document.getElementById('gifSearchInput').focus();
+    document.getElementById('gifResults').innerHTML = '<div class="gif-loading">Search for GIFs to get started!</div>';
+    // Set flag to indicate this is for modal
+    gifSearchTarget = 'modal';
 }
 
 // Update createPost function to include GIF support
 function createPost() {
-    const postContent = document.getElementById('postContent').value.trim();
-    const postButton = document.getElementById('postButton');
+    const postInput = document.getElementById('postInput');
+    const content = postInput.value.trim();
+    const isAnonymous = document.getElementById('anonymousPost').checked;
     
-    if (!postContent && !selectedGif) {
-        alert('Please add some content or a GIF to your post!');
+    console.log('createPost called with:', {
+        content: content,
+        isAnonymous: isAnonymous,
+        selectedMedia: selectedMedia ? 'has media' : 'no media',
+        selectedGif: selectedGif ? 'has gif' : 'no gif',
+        mediaType: selectedMedia ? typeof selectedMedia : 'none'
+    });
+    
+    if (!content && !selectedMedia && !selectedGif) {
+        showNotification('Please enter some content or add media for your post!', 'error');
         return;
     }
     
-    // Disable post button and show loading
-    postButton.disabled = true;
-    postButton.textContent = 'Posting...';
+    console.log('Creating post with content:', content, 'isAnonymous:', isAnonymous, 'media:', selectedMedia, 'gif:', selectedGif);
     
-    const postData = {
-        content: postContent,
-        gif: selectedGif,
-        timestamp: new Date().toISOString(),
-        username: currentUser,
-        likes: 0,
-        comments: [],
-        shares: 0
-    };
-    
-    // Add to Firestore
-    addDoc(collection(db, 'posts'), postData)
-        .then(() => {
-            // Clear form
-            document.getElementById('postContent').value = '';
-            removeSelectedGif();
-            updatePostButton();
-            
-            // Reset button
-            postButton.textContent = 'Post';
-            postButton.disabled = true;
-            
-            // Show success message
-            showNotification('Post created successfully!', 'success');
-            
-            // Start cooldown
-            startPostCooldown();
-        })
-        .catch((error) => {
-            console.error('Error creating post:', error);
-            postButton.textContent = 'Post';
-            postButton.disabled = false;
-            showNotification('Error creating post. Please try again.', 'error');
-        });
+    // Use the async addPost function with GIF support
+    addPost(content, isAnonymous, selectedMedia, selectedGif).then(() => {
+        console.log('Post created successfully, clearing form...');
+        postInput.value = '';
+        postInput.style.height = 'auto';
+        document.getElementById('anonymousPost').checked = false;
+        selectedMedia = null;
+        selectedGif = null;
+        updateMediaPreview(document.getElementById('postMediaPreview'), null);
+    }).catch((error) => {
+        console.error('Error in createPost:', error);
+        showNotification('Failed to create post. Please try again.', 'error');
+    });
 }
 
 // Add event listeners for post content changes
@@ -2279,3 +2360,58 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 } 
+
+// Loading overlay logic
+let postsLoaded = false;
+let loadingOverlayTimeout = null;
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.classList.add('hide');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Start 3s timer
+    loadingOverlayTimeout = setTimeout(() => {
+        if (postsLoaded) hideLoadingOverlay();
+    }, 3000);
+});
+
+// Patch initializeAppData to hide overlay after posts load
+const originalInitializeAppData = initializeAppData;
+initializeAppData = async function() {
+    await originalInitializeAppData();
+    postsLoaded = true;
+    if (loadingOverlayTimeout) {
+        // If 3s already passed, hide overlay now
+        hideLoadingOverlay();
+    }
+};
+
+// Render comments in the modal
+function renderComments(comments) {
+    const commentsList = document.getElementById('commentsList');
+    if (!commentsList) {
+        console.error('Comments list element not found');
+        return;
+    }
+    
+    if (!comments || comments.length === 0) {
+        commentsList.innerHTML = '<div class="empty-comments">No comments yet. Be the first to comment!</div>';
+        return;
+    }
+    
+    commentsList.innerHTML = comments.map(comment => `
+        <div class="comment">
+            <img src="${comment.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'}" alt="Profile" class="comment-avatar">
+            <div class="comment-content">
+                <div class="comment-header">
+                    <span class="comment-author">${comment.author}</span>
+                    <span class="comment-username">@${comment.username}</span>
+                    <span class="comment-time">${getTimeAgo(comment.timestamp)}</span>
+                </div>
+                <div class="comment-text">${escapeHtml(comment.content)}</div>
+            </div>
+        </div>
+    `).join('');
+}

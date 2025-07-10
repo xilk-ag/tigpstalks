@@ -114,6 +114,7 @@ body::before {
     align-items: center;
     justify-content: space-between;
     height: 60px;
+    position: relative;
 }
 
 .header-left {
@@ -155,6 +156,18 @@ body::before {
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+/* Centered logo overlay */
+.header-center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10;
 }
 
 .tigps-logo {
@@ -1415,6 +1428,18 @@ body::before {
 .hamburger-icon {
   cursor: pointer;
   vertical-align: middle;
+  color: white !important;
+}
+
+.hamburger-icon svg {
+  color: white !important;
+  fill: white !important;
+  stroke: white !important;
+}
+
+.hamburger-icon path {
+  stroke: white !important;
+  stroke-width: 2;
 }
 
 /* Profile menu (dropdown) */
@@ -1815,10 +1840,32 @@ body::before {
     width: 90vw;
     max-height: 80vh;
     overflow: hidden;
+    background: #1a1a1a !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+}
+
+.gif-modal .modal-header {
+    background: #2a2a2a !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.gif-modal .modal-header h2 {
+    color: #fff !important;
+}
+
+.gif-modal .close-btn {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.gif-modal .close-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
 }
 
 .gif-search-container {
     padding: 20px;
+    background: #1a1a1a;
 }
 
 .gif-search-input {
@@ -1830,11 +1877,17 @@ body::before {
 .gif-search-input input {
     flex: 1;
     padding: 12px 16px;
-    border: 2px solid #333;
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 25px;
-    background: rgba(255, 255, 255, 0.1);
+    background: #2a2a2a;
     color: white;
     font-size: 16px;
+    outline: none;
+}
+
+.gif-search-input input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .gif-search-input input::placeholder {
@@ -1863,7 +1916,9 @@ body::before {
     gap: 15px;
     max-height: 400px;
     overflow-y: auto;
-    padding: 10px 0;
+    padding: 10px;
+    background: #2a2a2a;
+    border-radius: 12px;
 }
 
 .gif-item {
@@ -1872,6 +1927,7 @@ body::before {
     overflow: hidden;
     transition: all 0.3s ease;
     border: 2px solid transparent;
+    background: #3a3a3a;
 }
 
 .gif-item:hover {
@@ -1986,6 +2042,91 @@ body::before {
 }
 
 #postButton:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+} 
+
+/* Loading Overlay Styles */
+.loading-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(20, 20, 30, 0.7);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px) saturate(1.2);
+    transition: opacity 0.5s;
+}
+.loading-overlay.hide {
+    opacity: 0;
+    pointer-events: none;
+}
+.loading-spinner {
+    border: 6px solid #eee;
+    border-top: 6px solid #764ba2;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1.5rem;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.loading-text {
+    color: #fff;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-shadow: 0 2px 8px #000a;
+} 
+
+.empty-comments {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 2rem;
+    font-style: italic;
+}
+
+.comment-input-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.comment-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 0.9rem;
+}
+
+.comment-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-comment {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-comment:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 } 

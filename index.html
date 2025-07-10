@@ -11,6 +11,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Loading TIGPS Social...</div>
+    </div>
     <div class="stars"></div>
     <div class="stars-container">
         <div class="stars"></div>
@@ -31,11 +35,12 @@
                           </svg>
                         </span>
                     </div>
-                    <!-- TIGPS Talks logo -->
-                    <div class="logo-container">
-                        <img src="/tigtalks.png" alt="TIGPS Talks" class="tigps-logo">
-                        <span class="tigps-text">TIGPS TALKS</span>
-                    </div>
+                </div>
+                
+                <!-- Centered TIGPS Talks logo -->
+                <div class="header-center">
+                    <img src="/tigtalks.png" alt="TIGPS Talks" class="tigps-logo">
+                    <span class="tigps-text">TIGPS TALKS</span>
                 </div>
                 
                 <div class="header-right">
@@ -102,19 +107,42 @@
         <main class="main-content">
             <div class="container">
                 <!-- Post Creation Area -->
-                <div class="post-creation">
+                <div class="post-creator">
                     <div class="post-input-container">
-                        <textarea id="postContent" placeholder="What's on your mind?" maxlength="500"></textarea>
-                        <div class="post-actions">
-                            <button class="gif-btn" onclick="openGifSearch()">
-                                <span>🎬</span> GIF
-                            </button>
-                            <button id="postButton" onclick="createPost()" disabled>Post</button>
+                        <div class="post-header-section">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face" alt="Profile" class="post-avatar" id="postCreatorAvatar">
+                            <div class="post-creator-info">
+                                <div class="post-creator-name" id="postCreatorName">@alexchen</div>
+                                <div class="post-creator-display-name" id="postCreatorDisplayName">Alex Chen</div>
+                            </div>
                         </div>
-                    </div>
-                    <div id="selectedGif" class="selected-gif" style="display: none;">
-                        <img id="selectedGifImg" src="" alt="Selected GIF">
-                        <button onclick="removeSelectedGif()" class="remove-gif-btn">×</button>
+                        <textarea 
+                            id="postInput" 
+                            placeholder="What's happening at TIGPS?" 
+                            class="post-input"
+                            maxlength="500"
+                        ></textarea>
+                        <div class="post-media-preview" id="postMediaPreview"></div>
+                        <div class="post-actions">
+                            <div class="post-options">
+                                <button class="media-btn" onclick="triggerImageUpload()">
+                                    🖼️ Add Image
+                                </button>
+                                <button class="media-btn gif-btn" onclick="openGifSearch()">
+                                    🎬 Add GIF
+                                </button>
+                                <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="anonymousPost">
+                                    <span class="checkmark"></span>
+                                    Post Anonymously
+                                </label>
+                            </div>
+                            <div class="post-submit">
+                                <div class="char-count" id="charCount">0/500</div>
+                                <button class="btn-post" onclick="createPost()" id="postBtn">Post</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -157,7 +185,10 @@
                     <div class="modal-actions">
                         <div class="post-options">
                             <button class="media-btn" onclick="triggerModalImageUpload()">
-                                📷 Image/GIF
+                                🖼️ Add Image
+                            </button>
+                            <button class="media-btn gif-btn" onclick="openModalGifSearch()">
+                                🎬 Add GIF
                             </button>
                             <input type="file" id="modalImageUpload" accept="image/*,video/*" style="display: none;" onchange="handleModalImageUpload(event)">
                             <label class="checkbox-container">
