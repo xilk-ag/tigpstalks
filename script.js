@@ -33,199 +33,164 @@ let googleAuthInstance = null;
 let googleDriveAccessToken = null;
 let gapiReady = false;
 
-// LocalStorage-based data management (WORKING SOLUTION)
-function savePostsToLocalStorage() {
-    localStorage.setItem('tigpsPosts', JSON.stringify(posts));
+// Firebase config and Firestore initialization
+const firebaseConfig = {
+  apiKey: "AIzaSyBMTZlitQGyqNx3LO0cNiITBpBHMec8rN8",
+  authDomain: "xilk-tigps.firebaseapp.com",
+  projectId: "xilk-tigps",
+  storageBucket: "xilk-tigps.firebasestorage.app",
+  messagingSenderId: "242470054512",
+  appId: "1:242470054512:web:47b3aed365f6534c8aa2b5",
+  measurementId: "G-LNH8BXWW83"
+};
+if (!window.firebase.apps.length) {
+  window.firebase.initializeApp(firebaseConfig);
+}
+const db = window.firebase.firestore();
+
+// Firestore CRUD for posts
+async function fetchPostsFromFirestore() {
+  const postsCol = db.collection("posts");
+  const postSnapshot = await postsCol.orderBy("timestamp", "desc").get();
+  return postSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+async function savePostToFirestore(post) {
+  await db.collection("posts").add(post);
+}
+// Firestore CRUD for profiles
+async function fetchProfileFromFirestore(username) {
+  const profileRef = db.collection("profiles").doc(username);
+  const profileSnap = await profileRef.get();
+  return profileSnap.exists ? profileSnap.data() : null;
+}
+async function saveProfileToFirestore(profile) {
+  await db.collection("profiles").doc(profile.username).set(profile);
+}
+// Firestore CRUD for comments
+async function fetchCommentsFromFirestore(postId) {
+  const commentsCol = db.collection("posts").doc(postId).collection("comments");
+  const commentSnapshot = await commentsCol.orderBy("timestamp", "asc").get();
+  return commentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+async function saveCommentToFirestore(postId, comment) {
+  await db.collection("posts").doc(postId).collection("comments").add(comment);
 }
 
-function loadPostsFromLocalStorage() {
-    const savedPosts = localStorage.getItem('tigpsPosts');
-    if (savedPosts) {
-        posts = JSON.parse(savedPosts);
-        nextPostId = Math.max(...posts.map(p => p.id || 0), 0) + 1;
-        nextCommentId = Math.max(...posts.flatMap(p => (p.comments || []).map(c => c.id || 0)), 0) + 1;
-    }
-}
-
-function saveProfileToLocalStorage(profile) {
-    localStorage.setItem('tigpsProfiles', JSON.stringify({
-        ...JSON.parse(localStorage.getItem('tigpsProfiles') || '{}'),
-        [profile.username]: profile
-    }));
-}
-
-function loadProfileFromLocalStorage(username) {
-    const profiles = JSON.parse(localStorage.getItem('tigpsProfiles') || '{}');
-    return profiles[username] || null;
-}
-
-function saveCommentsToLocalStorage(postId, comments) {
-    const allComments = JSON.parse(localStorage.getItem('tigpsComments') || '{}');
-    allComments[postId] = comments;
-    localStorage.setItem('tigpsComments', JSON.stringify(allComments));
-}
-
-function loadCommentsFromLocalStorage(postId) {
-    const allComments = JSON.parse(localStorage.getItem('tigpsComments') || '{}');
-    return allComments[postId] || [];
-}
-
-// WORKING FUNCTIONS - Replace Firestore with localStorage
-async function fetchPostsFromLocalStorage() {
-    loadPostsFromLocalStorage();
-    return posts;
-}
-
-async function savePostToLocalStorage(post) {
-    post.id = nextPostId++;
-    posts.unshift(post);
-    savePostsToLocalStorage();
-    return post;
-}
-
-async function fetchProfileFromLocalStorage(username) {
-    return loadProfileFromLocalStorage(username);
-}
-
-async function saveProfileToLocalStorage(profile) {
-    saveProfileToLocalStorage(profile);
-    return profile;
-}
-
-async function fetchCommentsFromLocalStorage(postId) {
-    return loadCommentsFromLocalStorage(postId);
-}
-
-async function saveCommentToLocalStorage(postId, comment) {
-    comment.id = nextCommentId++;
-    const comments = loadCommentsFromLocalStorage(postId);
-    comments.push(comment);
-    saveCommentsToLocalStorage(postId, comments);
-    return comment;
-}
-
-// Initialize app with localStorage (WORKING)
+// Initialize app with Firestore
 async function initializeAppData() {
-    try {
-        console.log('Initializing app with localStorage...');
-        posts = await fetchPostsFromLocalStorage();
-        console.log('Posts loaded from localStorage:', posts.length);
-        renderPosts();
-        
-        // Load user profile if logged in
-        const user = localStorage.getItem('tigpsUser');
-        if (user) {
-            const { username } = JSON.parse(user);
-            const profile = await fetchProfileFromLocalStorage(username);
-            if (profile) {
-                currentUser = { ...currentUser, ...profile };
-                updateProfileDisplay();
-            }
-        }
-        console.log('App initialization complete');
-    } catch (e) {
-        console.error('App initialization error:', e);
-        showNotification('Failed to load data. Error: ' + e.message, 'error');
+  try {
+    posts = await fetchPostsFromFirestore();
+    renderPosts();
+    // Load user profile if logged in
+    const user = localStorage.getItem('tigpsUser');
+    if (user) {
+      const { username } = JSON.parse(user);
+      const profile = await fetchProfileFromFirestore(username);
+      if (profile) {
+        currentUser = { ...currentUser, ...profile };
+        updateProfileDisplay();
+      }
     }
+  } catch (e) {
+    showNotification('Failed to load data from Firestore. ' + e.message, 'error');
+  }
 }
 
-// WORKING addPost function
+// Add post using Firestore
 addPost = async function(content, isAnonymous, media) {
-    const user = getCurrentUserForPost(isAnonymous);
-    const timestamp = new Date().toISOString();
-    const post = {
-        content,
-        author: user.displayName,
-        username: user.username,
-        avatar: user.avatar,
-        isAnonymous: isAnonymous ? 1 : 0,
-        media,
-        timestamp,
-        likes: 0,
-        comments: []
-    };
-    try {
-        await savePostToLocalStorage(post);
-        posts = await fetchPostsFromLocalStorage();
-        renderPosts();
-        showNotification('Post created!', 'success');
-    } catch (e) {
-        showNotification('Failed to create post.', 'error');
-    }
+  const user = getCurrentUserForPost(isAnonymous);
+  const timestamp = new Date().toISOString();
+  const post = {
+    content,
+    author: user.displayName,
+    username: user.username,
+    avatar: user.avatar,
+    isAnonymous: isAnonymous ? 1 : 0,
+    media,
+    timestamp
+  };
+  try {
+    await savePostToFirestore(post);
+    posts = await fetchPostsFromFirestore();
+    renderPosts();
+    showNotification('Post created!', 'success');
+  } catch (e) {
+    showNotification('Failed to create post.', 'error');
+  }
 };
 
-// WORKING saveProfile function
+// Save profile using Firestore
 saveProfile = async function() {
-    const displayName = document.getElementById('profileDisplayName').value.trim();
-    const username = document.getElementById('profileUsername').value.trim();
-    const bio = document.getElementById('profileBio').value.trim();
-    const location = document.getElementById('profileLocation').value.trim();
-    const avatar = currentUser.avatar;
-    const profile = { displayName, username, bio, location, avatar };
-    try {
-        await saveProfileToLocalStorage(profile);
-        currentUser = { ...currentUser, ...profile };
-        localStorage.setItem('tigpsUser', JSON.stringify(currentUser));
-        updateProfileDisplay();
-        closeProfileModal();
-        showNotification('Profile saved!', 'success');
-    } catch (e) {
-        showNotification('Failed to save profile.', 'error');
-    }
+  const displayName = document.getElementById('profileDisplayName').value.trim();
+  const username = document.getElementById('profileUsername').value.trim();
+  const bio = document.getElementById('profileBio').value.trim();
+  const location = document.getElementById('profileLocation').value.trim();
+  const avatar = currentUser.avatar;
+  const profile = { displayName, username, bio, location, avatar };
+  try {
+    await saveProfileToFirestore(profile);
+    currentUser = { ...currentUser, ...profile };
+    localStorage.setItem('tigpsUser', JSON.stringify(currentUser));
+    updateProfileDisplay();
+    closeProfileModal();
+    showNotification('Profile saved!', 'success');
+  } catch (e) {
+    showNotification('Failed to save profile.', 'error');
+  }
 };
 
-// WORKING showComments function
+// Show comments using Firestore
 showComments = async function(postId) {
-    currentPostId = postId;
-    try {
-        const comments = await fetchCommentsFromLocalStorage(postId);
-        renderComments(comments);
-        commentsModal.style.display = 'block';
-    } catch (e) {
-        showNotification('Failed to load comments.', 'error');
-    }
+  currentPostId = postId;
+  try {
+    const comments = await fetchCommentsFromFirestore(postId);
+    renderComments(comments);
+    commentsModal.style.display = 'block';
+  } catch (e) {
+    showNotification('Failed to load comments.', 'error');
+  }
 };
 
-// WORKING addComment function
+// Add comment using Firestore
 addComment = async function() {
-    const content = commentInput.value.trim();
-    if (!content) return;
-    const user = getCurrentUserForPost(false);
-    const comment = {
-        author: user.displayName,
-        username: user.username,
-        avatar: user.avatar,
-        content,
-        timestamp: new Date().toISOString()
-    };
-    try {
-        await saveCommentToLocalStorage(currentPostId, comment);
-        const comments = await fetchCommentsFromLocalStorage(currentPostId);
-        renderComments(comments);
-        commentInput.value = '';
-    } catch (e) {
-        showNotification('Failed to add comment.', 'error');
-    }
+  const content = commentInput.value.trim();
+  if (!content) return;
+  const user = getCurrentUserForPost(false);
+  const comment = {
+    author: user.displayName,
+    username: user.username,
+    avatar: user.avatar,
+    content,
+    timestamp: new Date().toISOString()
+  };
+  try {
+    await saveCommentToFirestore(currentPostId, comment);
+    const comments = await fetchCommentsFromFirestore(currentPostId);
+    renderComments(comments);
+    commentInput.value = '';
+  } catch (e) {
+    showNotification('Failed to add comment.', 'error');
+  }
 };
 
-// WORKING saveDashboardProfile function
+// Save dashboard profile using Firestore
 async function saveDashboardProfile() {
-    const displayName = document.getElementById('dashboardDisplayName').value.trim();
-    const username = document.getElementById('dashboardUsername').value.trim();
-    const bio = document.getElementById('dashboardBio').value.trim();
-    const location = document.getElementById('dashboardLocation').value.trim();
-    const avatar = document.getElementById('dashboardProfilePic').src;
-    const profile = { displayName, username, bio, location, avatar };
-    try {
-        await saveProfileToLocalStorage(profile);
-        currentUser = { ...currentUser, ...profile };
-        localStorage.setItem('tigpsUser', JSON.stringify(currentUser));
-        updateProfileDisplay();
-        closeAccountDashboard();
-        showNotification('Profile saved!', 'success');
-    } catch (e) {
-        showNotification('Failed to save profile.', 'error');
-    }
+  const displayName = document.getElementById('dashboardDisplayName').value.trim();
+  const username = document.getElementById('dashboardUsername').value.trim();
+  const bio = document.getElementById('dashboardBio').value.trim();
+  const location = document.getElementById('dashboardLocation').value.trim();
+  const avatar = document.getElementById('dashboardProfilePic').src;
+  const profile = { displayName, username, bio, location, avatar };
+  try {
+    await saveProfileToFirestore(profile);
+    currentUser = { ...currentUser, ...profile };
+    localStorage.setItem('tigpsUser', JSON.stringify(currentUser));
+    updateProfileDisplay();
+    closeAccountDashboard();
+    showNotification('Profile saved!', 'success');
+  } catch (e) {
+    showNotification('Failed to save profile.', 'error');
+  }
 }
 
 // DOM Elements
@@ -272,8 +237,8 @@ async function initializeGoogleDrive() {
             const savedPosts = await googleDriveManager.loadPosts();
             if (savedPosts && savedPosts.length > 0) {
                 posts = savedPosts;
-                nextPostId = Math.max(...posts.map(p => p.id)) + 1;
-                nextCommentId = Math.max(...posts.flatMap(p => p.comments.map(c => c.id))) + 1;
+                nextPostId = Math.max(...posts.map(p => p.id || 0), 0) + 1;
+                nextCommentId = Math.max(...posts.flatMap(p => (p.comments || []).map(c => c.id || 0)), 0) + 1;
             } else {
                 // Load sample data if no saved posts
                 // loadSampleData(); // Removed sample data loading
@@ -1534,7 +1499,7 @@ async function saveDashboardProfile() {
   const avatar = document.getElementById('dashboardProfilePic').src;
   const profile = { displayName, username, bio, location, avatar };
   try {
-    await saveProfileToLocalStorage({ ...profile, username });
+    await saveProfileToFirestore({ ...profile, username });
     currentUser = { ...currentUser, ...profile };
     localStorage.setItem('tigpsUser', JSON.stringify(currentUser));
     updateProfileDisplay();
