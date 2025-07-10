@@ -791,7 +791,10 @@ body::before {
 
 .post-actions {
     display: flex;
-    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .post-action-btn {
