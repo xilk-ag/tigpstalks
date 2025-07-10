@@ -1083,35 +1083,53 @@ function removeMedia(previewId) {
 
 // Profile management
 function toggleProfileMenu() {
+  console.log('toggleProfileMenu called');
   const menu = document.getElementById('profileMenu');
   const userMenu = document.querySelector('.user-menu');
   const hamburgerMenu = document.querySelector('.hamburger-menu');
   
-  if (menu.style.display === 'block') {
-    menu.style.display = 'none';
+  console.log('Elements found:', {
+    menu: !!menu,
+    userMenu: !!userMenu,
+    hamburgerMenu: !!hamburgerMenu
+  });
+  
+  if (menu.classList.contains('show')) {
+    menu.classList.remove('show');
     userMenu.classList.remove('active');
     hamburgerMenu.classList.remove('active');
+    console.log('Profile menu closed');
   } else {
-    menu.style.display = 'block';
+    menu.classList.add('show');
     userMenu.classList.add('active');
     hamburgerMenu.classList.add('active');
+    console.log('Profile menu opened');
   }
 }
 
 // Hamburger menu management
 function toggleHamburgerMenu() {
+  console.log('toggleHamburgerMenu called');
   const sidebar = document.getElementById('sidebarMenu');
   const overlay = document.getElementById('sidebarOverlay');
   const hamburgerMenu = document.getElementById('hamburgerMenu');
+  
+  console.log('Sidebar elements found:', {
+    sidebar: !!sidebar,
+    overlay: !!overlay,
+    hamburgerMenu: !!hamburgerMenu
+  });
   
   if (sidebar.classList.contains('open')) {
     sidebar.classList.remove('open');
     overlay.classList.remove('show');
     hamburgerMenu.classList.remove('active');
+    console.log('Sidebar closed');
   } else {
     sidebar.classList.add('open');
     overlay.classList.add('show');
     hamburgerMenu.classList.add('active');
+    console.log('Sidebar opened');
   }
 }
 
@@ -1125,7 +1143,7 @@ window.addEventListener('click', function(e) {
   
   // Close profile menu if clicking outside
   if (!userMenu.contains(e.target) && !hamburgerMenu.contains(e.target)) {
-    menu.style.display = 'none';
+    menu.classList.remove('show');
     userMenu.classList.remove('active');
     hamburgerMenu.classList.remove('active');
   }

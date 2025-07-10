@@ -24,12 +24,12 @@
             <div class="header-content" style="display:flex;align-items:center;justify-content:space-between;">
                 <div style="display:flex;align-items:center;gap:1.5rem;">
                     <!-- Hamburger menu (three lines only) on the left -->
-                    <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleHamburgerMenu()">
+                    <div class="hamburger-menu" id="hamburgerMenu" onclick="console.log('Hamburger clicked'); toggleHamburgerMenu()">
                         <span class="hamburger-icon" style="display:inline-block;width:28px;height:28px;vertical-align:middle;">
                           <svg width="28" height="28" viewBox="0 0 28 28"><rect y="5" width="28" height="3" rx="1.5" fill="#a259ff"/><rect y="12.5" width="28" height="3" rx="1.5" fill="#a259ff"/><rect y="20" width="28" height="3" rx="1.5" fill="#a259ff"/></svg>
                         </span>
                     </div>
-                    <img src="/xilk-logo.png" alt="xilk logo" style="width:90px;height:auto;max-width:20vw;display:block;">
+                    <img src="/logo.png" alt="xilk logo" style="width:90px;height:auto;max-width:20vw;display:block;">
                     <div>
                         <span class="logo" style="font-size:2rem;font-weight:900;letter-spacing:0.04em;color:#00fff7;text-shadow:0 0 8px #a259ff99;">TIGPS Talks</span>
                     </div>
@@ -43,7 +43,7 @@
                         <span style="font-size:1.7rem;line-height:1;">+</span>
                     </button>
                     <!-- Profile picture with dropdown menu on the right -->
-                    <div class="user-menu" onclick="toggleProfileMenu()">
+                    <div class="user-menu" onclick="console.log('Profile clicked'); toggleProfileMenu();">
                         <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Profile" class="profile-pic" id="headerProfilePic">
                         <div class="profile-menu" id="profileMenu">
                             <div class="profile-menu-item" onclick="openAccountDashboard(event)">
