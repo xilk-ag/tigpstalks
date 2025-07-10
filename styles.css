@@ -644,6 +644,16 @@ body::before {
     color: #ff6b6b;
 }
 
+.post-action-btn.delete {
+    color: #e31b23;
+    background: rgba(227, 27, 35, 0.1);
+}
+
+.post-action-btn.delete:hover {
+    background: rgba(227, 27, 35, 0.2);
+    color: #e31b23;
+}
+
 /* Empty state */
 .empty-state {
     text-align: center;

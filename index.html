@@ -266,10 +266,11 @@
                         </div>
                         <div class="admin-login-form">
                             <div class="input-group">
-                                <label for="adminPassword">Admin Password</label>
-                                <input type="password" id="adminPassword" placeholder="Enter admin password" onkeypress="handleAdminPasswordEnter(event)">
+                                <label for="adminUsername">Admin Username</label>
+                                <input type="text" id="adminUsername" placeholder="Enter @username (e.g., @alexchen)" onkeypress="handleAdminUsernameEnter(event)">
                             </div>
-                            <button class="btn-primary" onclick="loginAdmin()">Login to Admin Panel</button>
+                            <button class="btn-primary" onclick="setAdminByUsername(document.getElementById('adminUsername').value)">Set Admin</button>
+                            <p style="margin-top: 10px; font-size: 12px; color: #888;">Enter the username of the person who should have admin access. They must have posted at least once.</p>
                         </div>
                     </div>
 

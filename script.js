@@ -432,62 +432,83 @@ function loadSampleData() {
 
 // Setup event listeners
 function setupEventListeners() {
-    // Auto-resize textarea and character count
-    postInput.addEventListener('input', function(e) {
-        autoResizeTextarea(e);
-        updateCharCount(e.target, charCount);
-    });
-    
-    modalPostInput.addEventListener('input', function(e) {
-        autoResizeTextarea(e);
-        updateCharCount(e.target, modalCharCount);
-    });
-    
-    // Close modals when clicking outside
-    postModal.addEventListener('click', function(e) {
-        if (e.target === postModal) {
-            closePostModal();
+    // Post action buttons event delegation
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('post-action-btn')) {
+            const postId = parseInt(e.target.getAttribute('data-post-id'));
+            const action = e.target.getAttribute('data-action');
+            
+            switch(action) {
+                case 'like':
+                    toggleLike(postId);
+                    break;
+                case 'comment':
+                    showComments(postId);
+                    break;
+                case 'share':
+                    sharePost(postId);
+                    break;
+            }
         }
     });
+
+    // Character count updates
+    const postInput = document.getElementById('postInput');
+    const modalPostInput = document.getElementById('modalPostInput');
+    const commentInput = document.getElementById('commentInput');
     
-    profileModal.addEventListener('click', function(e) {
-        if (e.target === profileModal) {
-            closeProfileModal();
-        }
-    });
+    if (postInput) {
+        postInput.addEventListener('input', function(e) {
+            updateCharCount(e.target, document.getElementById('charCount'));
+            autoResizeTextarea(e);
+            detectTags(e);
+        });
+    }
     
-    adminModal.addEventListener('click', function(e) {
-        if (e.target === adminModal) {
-            closeAdminModal();
-        }
-    });
+    if (modalPostInput) {
+        modalPostInput.addEventListener('input', function(e) {
+            updateCharCount(e.target, document.getElementById('modalCharCount'));
+            autoResizeTextarea(e);
+            detectTags(e);
+        });
+    }
     
-    commentsModal.addEventListener('click', function(e) {
-        if (e.target === commentsModal) {
-            closeCommentsModal();
-        }
-    });
+    if (commentInput) {
+        commentInput.addEventListener('input', function(e) {
+            autoResizeTextarea(e);
+        });
+    }
+
+    // Enter key handlers
+    if (postInput) {
+        postInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                createPost();
+            }
+        });
+    }
     
-    settingsModal.addEventListener('click', function(e) {
-        if (e.target === settingsModal) {
-            closeSettingsModal();
-        }
-    });
+    if (modalPostInput) {
+        modalPostInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                createPostFromModal();
+            }
+        });
+    }
     
-    // Close modals with Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            if (postModal.style.display === 'block') closePostModal();
-            if (profileModal.style.display === 'block') closeProfileModal();
-            if (adminModal.style.display === 'block') closeAdminModal();
-            if (commentsModal.style.display === 'block') closeCommentsModal();
-            if (settingsModal.style.display === 'block') closeSettingsModal();
-        }
-    });
-    
-    // Tag detection in post input
-    postInput.addEventListener('input', detectTags);
-    modalPostInput.addEventListener('input', detectTags);
+    if (commentInput) {
+        commentInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                addComment();
+            }
+        });
+    }
+
+    // Admin password enter key
+    const adminPassword = document.getElementById('adminPassword');
+    if (adminPassword) {
+        adminPassword.addEventListener('keydown', handleAdminPasswordEnter);
+    }
 }
 
 // Auto-resize textarea
@@ -684,15 +705,20 @@ function createPostElement(post, index) {
                 <span>${safePost.comments.length} comments</span>
             </div>
             <div class="post-actions">
-                <button class="post-action-btn ${safePost.isLiked ? 'liked' : ''}" onclick="toggleLike(${safePost.id})">
+                <button class="post-action-btn ${safePost.isLiked ? 'liked' : ''}" data-post-id="${safePost.id}" data-action="like">
                     ${safePost.isLiked ? '❤️' : '🤍'} Like
                 </button>
-                <button class="post-action-btn" onclick="showComments(${safePost.id})">
+                <button class="post-action-btn" data-post-id="${safePost.id}" data-action="comment">
                     💬 Comment
                 </button>
-                <button class="post-action-btn" onclick="sharePost(${safePost.id})">
+                <button class="post-action-btn" data-post-id="${safePost.id}" data-action="share">
                     📤 Share
                 </button>
+                ${isAdminLoggedIn ? `
+                    <button class="post-action-btn" onclick="deletePost(${safePost.id})">
+                        🗑️ Delete
+                    </button>
+                ` : ''}
             </div>
         </div>
     `;
@@ -1229,6 +1255,41 @@ function updateProfileDisplay() {
     if (commentCreatorAvatar) commentCreatorAvatar.src = currentUser.avatar || commentCreatorAvatar.src;
 }
 
+// Set admin by username
+function setAdminByUsername(username) {
+    if (!username) {
+        showNotification('Please provide a username!', 'error');
+        return;
+    }
+    
+    // Remove @ if present
+    const cleanUsername = username.replace('@', '');
+    
+    // Check if user exists in posts
+    const userExists = posts.some(post => post.username === cleanUsername);
+    
+    if (!userExists) {
+        showNotification(`User @${cleanUsername} not found in posts!`, 'error');
+        return;
+    }
+    
+    // Set admin
+    currentUser.username = cleanUsername;
+    isAdminLoggedIn = true;
+    
+    // Show admin dashboard
+    document.getElementById('adminLoginSection').style.display = 'none';
+    document.getElementById('adminDashboardSection').style.display = 'block';
+    
+    // Update UI
+    updateProfileDisplay();
+    showNotification(`Admin access granted to @${cleanUsername}!`, 'success');
+    
+    // Update admin stats
+    updateAdminStats();
+    updateAdminDriveStatus();
+}
+
 // Admin functions
 function openAdminModal() {
   const adminModal = document.getElementById('adminModal');
@@ -1246,6 +1307,12 @@ function closeAdminModal() {
     isAdminLoggedIn = false;
 }
 
+function handleAdminUsernameEnter(event) {
+    if (event.key === 'Enter') {
+        setAdminByUsername(document.getElementById('adminUsername').value);
+    }
+}
+
 function handleAdminPasswordEnter(event) {
     if (event.key === 'Enter') {
         loginAdmin();
@@ -1253,21 +1320,8 @@ function handleAdminPasswordEnter(event) {
 }
 
 function loginAdmin() {
-    const password = document.getElementById('adminPassword').value;
-    
-    if (password === ADMIN_PASSWORD) {
-        isAdminLoggedIn = true;
-        document.getElementById('adminLoginSection').style.display = 'none';
-        document.getElementById('adminDashboardSection').style.display = 'block';
-        
-        updateAdminStats();
-        updateAdminDriveStatus();
-        
-        showNotification('Admin access granted! Welcome to the admin panel.', 'success');
-    } else {
-        showNotification('Invalid admin password!', 'error');
-        document.getElementById('adminPassword').value = '';
-    }
+    const username = document.getElementById('adminUsername').value;
+    setAdminByUsername(username);
 }
 
 function logoutAdmin() {
@@ -1847,4 +1901,36 @@ function renderDashboardPosts() {
     `;
     dashboardPostsList.appendChild(div);
   });
+} 
+
+// Delete post (admin only)
+async function deletePost(postId) {
+    if (!isAdminLoggedIn) {
+        showNotification('Only admins can delete posts!', 'error');
+        return;
+    }
+    
+    const post = posts.find(p => p.id === postId);
+    if (!post) {
+        showNotification('Post not found!', 'error');
+        return;
+    }
+    
+    if (confirm(`Are you sure you want to delete this post by @${post.username}?`)) {
+        const postIndex = posts.findIndex(p => p.id === postId);
+        if (postIndex !== -1) {
+            posts.splice(postIndex, 1);
+            renderPosts();
+            
+            // Save to Firestore
+            try {
+                const db = firebase.firestore();
+                await db.collection('posts').doc(postId.toString()).delete();
+                showNotification('Post deleted successfully!', 'success');
+            } catch (error) {
+                console.error('Error deleting post from Firestore:', error);
+                showNotification('Error deleting post from database!', 'error');
+            }
+        }
+    }
 } 
