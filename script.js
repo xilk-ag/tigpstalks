@@ -161,19 +161,25 @@ addPost = async function(content, isAnonymous, media) {
   const user = getCurrentUserForPost(isAnonymous);
   const timestamp = new Date().toISOString();
   const tags = extractTags(content);
+  
+  console.log('Creating post with media:', media, 'type:', typeof media);
+  
   const post = {
     content,
     author: user.displayName,
     username: user.username,
     avatar: user.avatar,
     isAnonymous: isAnonymous,
-    media,
+    media: media || null,
     timestamp,
     likes: 0,
     comments: [],
     isLiked: false,
     tags: tags
   };
+  
+  console.log('Post object to save:', post);
+  
   try {
     await savePostToFirestore(post);
     posts = await fetchPostsFromFirestore();
@@ -887,15 +893,14 @@ function handleImageUpload(event) {
     if (file && file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            if (gifSearchTarget === 'modal') {
-                modalSelectedMedia = e.target.result;
-                updateMediaPreview(modalPostMediaPreview, modalSelectedMedia);
-            } else {
-                selectedMedia = e.target.result;
-                updateMediaPreview(postMediaPreview, selectedMedia);
-            }
+            // This is for the main post input (not modal)
+            selectedMedia = e.target.result;
+            updateMediaPreview(postMediaPreview, selectedMedia);
+            console.log('Image uploaded for main post:', selectedMedia);
         };
         reader.readAsDataURL(file);
+    } else {
+        showNotification('Please select a valid image file.', 'error');
     }
 }
 
@@ -903,6 +908,23 @@ function handleImageUpload(event) {
 function triggerModalImageUpload() {
     document.getElementById('modalImageUpload').click();
 }
+
+function handleModalImageUpload(event) {
+    const file = event.target.files[0];
+    if (file && (file.type.startsWith('image/') || file.type.startsWith('video/'))) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // This is for the modal post input
+            modalSelectedMedia = e.target.result;
+            updateMediaPreview(modalPostMediaPreview, modalSelectedMedia);
+            console.log('Media uploaded for modal post:', modalSelectedMedia);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        showNotification('Please select a valid image or video file.', 'error');
+    }
+}
+
 function openModalGifSearch() {
     openGifSearchModal('modal');
 }
