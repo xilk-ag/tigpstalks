@@ -96,10 +96,10 @@ body::before {
 
 /* Header */
 .header {
-    background: rgba(255, 255, 255, 0.85) !important;
+    background: rgba(0, 0, 0, 0.95) !important;
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     padding: 0 !important;
     position: sticky;
     top: 0;
@@ -113,19 +113,13 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 53px;
+    height: 60px;
 }
 
 .header-left {
     display: flex;
     align-items: center;
     gap: 16px;
-}
-
-.header-center {
-    flex: 1;
-    max-width: 600px;
-    margin: 0 16px;
 }
 
 .header-right {
@@ -143,11 +137,11 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #0f1419;
+    color: #fff;
 }
 
 .hamburger-menu:hover {
-    background: rgba(15, 20, 25, 0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .hamburger-icon {
@@ -160,54 +154,21 @@ body::before {
 .logo-container {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 12px;
 }
 
-.twitter-logo {
-    color: #1d9bf0;
+.tigps-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
 }
 
-/* Search */
-.search-container {
-    width: 100%;
-}
-
-.search-box {
-    position: relative;
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.search-icon {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #536471;
-    pointer-events: none;
-}
-
-.search-input {
-    width: 100%;
-    height: 44px;
-    padding: 12px 16px 12px 44px;
-    border: none;
-    border-radius: 9999px;
-    background: #eff3f4;
-    font-size: 15px;
-    color: #0f1419;
-    transition: background 0.2s;
-}
-
-.search-input:focus {
-    outline: none;
-    background: #fff;
-    box-shadow: 0 0 0 1px #1d9bf0;
-}
-
-.search-input::placeholder {
-    color: #536471;
+.tigps-text {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 /* Header buttons */
@@ -243,7 +204,7 @@ body::before {
 }
 
 .user-menu:hover {
-    background: rgba(15, 20, 25, 0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .profile-pic {
@@ -263,9 +224,9 @@ body::before {
     position: absolute;
     top: 100%;
     right: 0;
-    background: #fff;
-    border: 1px solid #cfd9de;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background: #000;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     border-radius: 16px;
     padding: 8px 0;
     min-width: 200px;
@@ -290,12 +251,12 @@ body::before {
     display: flex;
     align-items: center;
     gap: 12px;
-    color: #0f1419;
+    color: #fff;
     font-size: 15px;
 }
 
 .profile-menu-item:hover {
-    background: #f7f9fa;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 /* Main content */
@@ -1694,8 +1655,8 @@ body::before {
 
 /* Footer */
 .footer {
-    background: #fff;
-    border-top: 1px solid #cfd9de;
+    background: #000;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding: 40px 0 20px;
     margin-top: 60px;
 }
@@ -1710,7 +1671,7 @@ body::before {
 }
 
 .footer-section h4 {
-    color: #536471;
+    color: #fff;
     font-size: 13px;
     font-weight: 700;
     margin-bottom: 16px;
@@ -1720,7 +1681,7 @@ body::before {
 
 .footer-section a {
     display: block;
-    color: #536471;
+    color: #888;
     text-decoration: none;
     font-size: 13px;
     margin-bottom: 12px;
@@ -1735,12 +1696,12 @@ body::before {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px 16px 0;
-    border-top: 1px solid #cfd9de;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     margin-top: 40px;
 }
 
 .footer-bottom p {
-    color: #536471;
+    color: #888;
     font-size: 13px;
     text-align: center;
     margin: 0;
