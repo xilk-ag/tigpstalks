@@ -48,6 +48,17 @@ function checkAdminState() {
 document.addEventListener('DOMContentLoaded', function() {
     checkAdminState();
     setupContentProtection();
+    
+    // Hide loading screen after 1 second
+    setTimeout(function() {
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            setTimeout(function() {
+                loadingScreen.style.display = 'none';
+            }, 500);
+        }
+    }, 1000);
 });
 
 // Content protection functions
