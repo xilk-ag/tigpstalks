@@ -26,15 +26,11 @@ body {
 }
 .stars {
     background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="white" opacity="0.8"/><circle cx="80" cy="40" r="0.5" fill="white" opacity="0.6"/><circle cx="40" cy="80" r="1.5" fill="white" opacity="0.9"/><circle cx="90" cy="10" r="0.8" fill="white" opacity="0.7"/><circle cx="10" cy="90" r="1.2" fill="white" opacity="0.8"/></svg>') repeat;
-    animation: twinkle 20s linear infinite;
+    /* animation: twinkle 20s linear infinite; */
 }
 .twinkling {
     background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="white" opacity="0.3"/><circle cx="30" cy="70" r="1" fill="white" opacity="0.4"/><circle cx="70" cy="30" r="1.5" fill="white" opacity="0.3"/></svg>') repeat;
-    animation: twinkle 15s linear infinite reverse;
-}
-@keyframes twinkle {
-    0% { transform: translateY(0px); }
-    100% { transform: translateY(-100px); }
+    /* animation: twinkle 15s linear infinite reverse; */
 }
 /* Glitter overlay */
 .glitter {
@@ -42,12 +38,10 @@ body {
                 repeating-radial-gradient(circle at 80% 80%, #fff5 0 1.5px, transparent 1.5px 100px);
     mix-blend-mode: lighten;
     opacity: 0.5;
-    animation: glitterMove 8s linear infinite;
+    /* animation: glitterMove 8s linear infinite; */
 }
-@keyframes glitterMove {
-    0% { background-position: 0 0, 0 0; }
-    100% { background-position: 100px 200px, 200px 100px; }
-}
+/* @keyframes twinkle { ... } */
+/* @keyframes glitterMove { ... } */
 
 /* App container */
 .app {
