@@ -79,7 +79,9 @@ async function saveCommentToFirestore(postId, comment) {
 // Initialize app with Firestore
 async function initializeAppData() {
   try {
+    console.log('Initializing app with Firestore...');
     posts = await fetchPostsFromFirestore();
+    console.log('Posts loaded from Firestore:', posts.length, posts);
     renderPosts();
     // Load user profile if logged in
     const user = localStorage.getItem('tigpsUser');
@@ -91,7 +93,9 @@ async function initializeAppData() {
         updateProfileDisplay();
       }
     }
+    console.log('App initialization complete');
   } catch (e) {
+    console.error('App initialization error:', e);
     showNotification('Failed to load data from Firestore. ' + e.message, 'error');
   }
 }
@@ -520,9 +524,17 @@ function extractTags(content) {
 
 // Render all posts
 function renderPosts() {
+    const postsFeed = document.getElementById('postsFeed');
+    if (!postsFeed) {
+        console.error('postsFeed element not found');
+        return;
+    }
+    
+    console.log('Rendering posts:', posts.length, posts);
+    
     postsFeed.innerHTML = '';
     
-    if (posts.length === 0) {
+    if (!posts || posts.length === 0) {
         postsFeed.innerHTML = `
             <div class="empty-state">
                 <h3>No posts yet</h3>
@@ -920,29 +932,38 @@ window.addEventListener('click', function(e) {
   }
 });
 
+// Fix profile modal opening
 function openProfileModal() {
-  const displayNameInput = document.getElementById('profileDisplayName');
-  const usernameInput = document.getElementById('profileUsername');
-  const bioInput = document.getElementById('profileBio');
-  const locationInput = document.getElementById('profileLocation');
-  const profilePic = document.getElementById('profileEditPic');
-  
-  if (!displayNameInput || !usernameInput || !bioInput || !locationInput || !profilePic) {
-    showNotification('Profile modal error: missing fields.', 'error');
-    return;
-  }
-  
-  displayNameInput.value = currentUser.displayName || '';
-  usernameInput.value = currentUser.username || '';
-  bioInput.value = currentUser.bio || '';
-  locationInput.value = currentUser.location || '';
-  profilePic.src = currentUser.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face';
-  
-  const profileModal = document.getElementById('profileModal');
-  if (profileModal) {
+    console.log('Opening profile modal...');
+    const displayNameInput = document.getElementById('profileDisplayName');
+    const usernameInput = document.getElementById('profileUsername');
+    const bioInput = document.getElementById('profileBio');
+    const locationInput = document.getElementById('profileLocation');
+    const profilePic = document.getElementById('profileEditPic');
+    const profileModal = document.getElementById('profileModal');
+    
+    if (!displayNameInput || !usernameInput || !bioInput || !locationInput || !profilePic || !profileModal) {
+        console.error('Profile modal elements not found:', {
+            displayNameInput: !!displayNameInput,
+            usernameInput: !!usernameInput,
+            bioInput: !!bioInput,
+            locationInput: !!locationInput,
+            profilePic: !!profilePic,
+            profileModal: !!profileModal
+        });
+        showNotification('Profile modal error: missing fields.', 'error');
+        return;
+    }
+    
+    displayNameInput.value = currentUser.displayName || '';
+    usernameInput.value = currentUser.username || '';
+    bioInput.value = currentUser.bio || '';
+    locationInput.value = currentUser.location || '';
+    profilePic.src = currentUser.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face';
+    
     profileModal.style.display = 'block';
     document.body.style.overflow = 'hidden';
-  }
+    console.log('Profile modal opened successfully');
 }
 
 function closeProfileModal() {
