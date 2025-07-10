@@ -84,10 +84,7 @@ async function initGoogleAuth() {
     }
 }
 
-// Firebase Firestore integration
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, addDoc, setDoc, doc, updateDoc, getDoc, query, orderBy } from "firebase/firestore";
-
+// Initialize Firebase (compat)
 const firebaseConfig = {
   apiKey: "AIzaSyBMTZlitQGyqNx3LO0cNiITBpBHMec8rN8",
   authDomain: "xilk-tigps.firebaseapp.com",
@@ -97,40 +94,40 @@ const firebaseConfig = {
   appId: "1:242470054512:web:ee2a87d593d8e3a48aa2b5",
   measurementId: "G-SW6DE3T95T"
 };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+if (!window.firebase.apps.length) {
+  window.firebase.initializeApp(firebaseConfig);
+}
+const db = window.firebase.firestore();
 
 // Fetch posts from Firestore
 async function fetchPostsFromFirestore() {
-  const postsCol = collection(db, "posts");
-  const q = query(postsCol, orderBy("timestamp", "desc"));
-  const postSnapshot = await getDocs(q);
+  const postsCol = db.collection("posts");
+  const postSnapshot = await postsCol.orderBy("timestamp", "desc").get();
   return postSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 // Save post to Firestore
 async function savePostToFirestore(post) {
-  await addDoc(collection(db, "posts"), post);
+  await db.collection("posts").add(post);
 }
 // Fetch user profile from Firestore
 async function fetchProfileFromFirestore(username) {
-  const profileRef = doc(db, "profiles", username);
-  const profileSnap = await getDoc(profileRef);
-  return profileSnap.exists() ? profileSnap.data() : null;
+  const profileRef = db.collection("profiles").doc(username);
+  const profileSnap = await profileRef.get();
+  return profileSnap.exists ? profileSnap.data() : null;
 }
 // Save user profile to Firestore
 async function saveProfileToFirestore(profile) {
-  await setDoc(doc(db, "profiles", profile.username), profile);
+  await db.collection("profiles").doc(profile.username).set(profile);
 }
 // Fetch comments for a post from Firestore
 async function fetchCommentsFromFirestore(postId) {
-  const commentsCol = collection(db, "posts", postId, "comments");
-  const q = query(commentsCol, orderBy("timestamp", "asc"));
-  const commentSnapshot = await getDocs(q);
+  const commentsCol = db.collection("posts").doc(postId).collection("comments");
+  const commentSnapshot = await commentsCol.orderBy("timestamp", "asc").get();
   return commentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 // Save comment to Firestore
 async function saveCommentToFirestore(postId, comment) {
-  await addDoc(collection(db, "posts", postId, "comments"), comment);
+  await db.collection("posts").doc(postId).collection("comments").add(comment);
 }
 
 // On app load, fetch posts and profile from Firestore
