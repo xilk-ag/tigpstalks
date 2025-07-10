@@ -63,7 +63,21 @@ async function fetchPostsFromFirestore() {
     const postsArr = postSnapshot.docs.map(doc => {
       const data = doc.data();
       console.log('Document ID:', doc.id, 'Data:', data);
-      return { id: doc.id, ...data };
+      // Ensure all required fields are present
+      return {
+        id: doc.id,
+        content: data.content || '',
+        author: data.author || 'Unknown',
+        username: data.username || 'unknown',
+        avatar: data.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face',
+        timestamp: data.timestamp || new Date().toISOString(),
+        likes: data.likes || 0,
+        comments: data.comments || [],
+        isAnonymous: data.isAnonymous || false,
+        isLiked: data.isLiked || false,
+        media: data.media || null,
+        tags: data.tags || []
+      };
     });
     
     console.log('Final posts array:', postsArr);
@@ -102,8 +116,6 @@ async function initializeAppData() {
     posts = await fetchPostsFromFirestore();
     console.log('Posts loaded from Firestore:', posts.length, posts);
     renderPosts();
-    addDebugPanel(); // Add debug panel
-    
     // Load user profile if logged in
     const user = localStorage.getItem('tigpsUser');
     if (user) {
@@ -121,7 +133,7 @@ async function initializeAppData() {
   }
 }
 
-// Add post using Firestore
+// Enhanced addPost to ensure all fields are saved
 addPost = async function(content, isAnonymous, media) {
   const user = getCurrentUserForPost(isAnonymous);
   const timestamp = new Date().toISOString();
@@ -132,7 +144,11 @@ addPost = async function(content, isAnonymous, media) {
     avatar: user.avatar,
     isAnonymous: isAnonymous ? 1 : 0,
     media,
-    timestamp
+    timestamp,
+    likes: 0,
+    comments: [],
+    isLiked: false,
+    tags: []
   };
   try {
     await savePostToFirestore(post);
@@ -555,20 +571,8 @@ function renderPosts() {
     
     postsFeed.innerHTML = '';
     
-    // Add debug panel at the top
-    const debugDiv = document.createElement('div');
-    debugDiv.style.cssText = 'background: #f0f0f0; padding: 15px; margin: 15px 0; border: 2px solid #ccc; border-radius: 8px; font-family: monospace; font-size: 12px;';
-    debugDiv.innerHTML = `
-        <strong>🔍 DEBUG PANEL:</strong><br>
-        Posts array length: <strong>${posts ? posts.length : 'undefined'}</strong><br>
-        Posts array: <pre>${JSON.stringify(posts, null, 2)}</pre><br>
-        <button onclick="testFetch()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin: 5px;">Test Fetch Posts</button>
-        <button onclick="createTestPost()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin: 5px;">Create Test Post</button>
-    `;
-    postsFeed.appendChild(debugDiv);
-    
     if (!Array.isArray(posts) || posts.length === 0) {
-        postsFeed.innerHTML += `
+        postsFeed.innerHTML = `
             <div class="empty-state">
                 <h3>No posts yet</h3>
                 <p>Be the first to share what's happening at TIGPS!</p>
@@ -588,87 +592,72 @@ function renderPosts() {
     });
 }
 
-// Test functions for debugging
-async function testFetch() {
-    console.log('Testing fetch...');
-    try {
-        const testPosts = await fetchPostsFromFirestore();
-        console.log('Test fetch result:', testPosts);
-        posts = testPosts;
-        renderPosts();
-    } catch (error) {
-        console.error('Test fetch error:', error);
-    }
-}
-
-async function createTestPost() {
-    console.log('Creating test post...');
-    try {
-        const testPost = {
-            content: "This is a test post created at " + new Date().toLocaleString(),
-            author: "Test User",
-            username: "testuser",
-            avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face",
-            timestamp: new Date().toISOString()
-        };
-        await savePostToFirestore(testPost);
-        console.log('Test post created successfully');
-        await testFetch(); // Refresh posts
-    } catch (error) {
-        console.error('Test post creation error:', error);
-    }
-}
-
 // Create individual post element
 function createPostElement(post, index) {
     const postDiv = document.createElement('div');
     postDiv.className = 'post';
     postDiv.style.animationDelay = `${index * 0.1}s`;
     
-    const timeAgo = getTimeAgo(post.timestamp);
-    const mediaHtml = post.media ? `
+    // Ensure all required fields exist
+    const safePost = {
+        id: post.id || index,
+        content: post.content || '',
+        author: post.author || 'Unknown',
+        username: post.username || 'unknown',
+        avatar: post.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face',
+        timestamp: post.timestamp || new Date().toISOString(),
+        likes: post.likes || 0,
+        comments: post.comments || [],
+        isAnonymous: post.isAnonymous || false,
+        isLiked: post.isLiked || false,
+        media: post.media || null,
+        tags: post.tags || []
+    };
+    
+    const timeAgo = getTimeAgo(safePost.timestamp);
+    const mediaHtml = safePost.media ? `
         <div class="post-media">
-            ${post.media.includes('video') ? 
-                `<video src="${post.media}" controls></video>` : 
-                `<img src="${post.media}" alt="Post media">`
+            ${safePost.media.includes('video') ? 
+                `<video src="${safePost.media}" controls></video>` : 
+                `<img src="${safePost.media}" alt="Post media">`
             }
         </div>
     ` : '';
     
-    const tagsHtml = post.tags.length > 0 ? `
+    const tagsHtml = safePost.tags && safePost.tags.length > 0 ? `
         <div class="post-tags">
-            ${post.tags.map(tag => `<span class="post-tag" onclick="searchTag('${tag}')">#${tag}</span>`).join('')}
+            ${safePost.tags.map(tag => `<span class="post-tag" onclick="searchTag('${tag}')">#${tag}</span>`).join('')}
         </div>
     ` : '';
     
     postDiv.innerHTML = `
         <div class="post-header">
-            <img src="${post.avatar}" alt="${post.author}" class="post-avatar">
+            <img src="${safePost.avatar}" alt="${safePost.author}" class="post-avatar">
             <div class="post-info">
-                ${post.isAnonymous ? 
+                ${safePost.isAnonymous ? 
                     '<div class="post-anonymous">Anonymous</div>' : 
-                    `<div class="post-author">${post.author}</div>
-                     <div class="post-username">@${post.username}</div>`
+                    `<div class="post-author">${safePost.author}</div>
+                     <div class="post-username">@${safePost.username}</div>`
                 }
                 <div class="post-time">${timeAgo}</div>
             </div>
         </div>
-        <div class="post-content">${formatContent(post.content)}</div>
+        <div class="post-content">${formatContent(safePost.content)}</div>
         ${mediaHtml}
         ${tagsHtml}
         <div class="post-actions-bar">
             <div class="post-stats">
-                <span>${post.likes} likes</span>
-                <span>${post.comments.length} comments</span>
+                <span>${safePost.likes} likes</span>
+                <span>${safePost.comments.length} comments</span>
             </div>
             <div class="post-actions">
-                <button class="post-action-btn ${post.isLiked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
-                    ${post.isLiked ? '❤️' : '🤍'} Like
+                <button class="post-action-btn ${safePost.isLiked ? 'liked' : ''}" onclick="toggleLike(${safePost.id})">
+                    ${safePost.isLiked ? '❤️' : '🤍'} Like
                 </button>
-                <button class="post-action-btn" onclick="showComments(${post.id})">
+                <button class="post-action-btn" onclick="showComments(${safePost.id})">
                     💬 Comment
                 </button>
-                <button class="post-action-btn" onclick="sharePost(${post.id})">
+                <button class="post-action-btn" onclick="sharePost(${safePost.id})">
                     📤 Share
                 </button>
             </div>
@@ -1617,28 +1606,4 @@ function renderDashboardPosts() {
     `;
     dashboardPostsList.appendChild(div);
   });
-} 
-
-// Add debug panel to homepage
-function addDebugPanel() {
-  const postsFeed = document.getElementById('postsFeed');
-  if (postsFeed) {
-    const debugDiv = document.createElement('div');
-    debugDiv.style.cssText = 'background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc; font-family: monospace; font-size: 12px;';
-    debugDiv.innerHTML = `
-      <strong>DEBUG INFO:</strong><br>
-      Posts array length: ${posts ? posts.length : 'undefined'}<br>
-      Posts array: ${JSON.stringify(posts, null, 2)}<br>
-      <button onclick="refreshPosts()" style="margin-top: 5px;">Refresh Posts</button>
-    `;
-    postsFeed.appendChild(debugDiv);
-  }
-}
-
-// Function to manually refresh posts
-async function refreshPosts() {
-  console.log('Manual refresh triggered...');
-  posts = await fetchPostsFromFirestore();
-  renderPosts();
-  addDebugPanel();
 } 
