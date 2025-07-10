@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google Login Test</title>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script>
+    window.TIGPS_GOOGLE_CLIENT_ID = '159469583555-5lsk05m18trjfu6fhvg6gnh8gighvk15.apps.googleusercontent.com';
+  </script>
+</head>
+<body>
+  <button onclick="adminSignInToGoogleDrive()">Login with Google</button>
+  <script>
+    let googleAuthInstance = null;
+    async function loadGoogleApiClient() {
+      return new Promise((resolve) => {
+        function checkGapi() {
+          if (window.gapi && window.gapi.load) {
+            window.gapi.load('client:auth2', resolve);
+          } else {
+            setTimeout(checkGapi, 100);
+          }
+        }
+        checkGapi();
+      });
+    }
+    async function initGoogleAuth() {
+      await loadGoogleApiClient();
+      if (!googleAuthInstance) {
+        await window.gapi.client.init({
+          clientId: window.TIGPS_GOOGLE_CLIENT_ID,
+          scope: 'https://www.googleapis.com/auth/drive.file',
+        });
+        googleAuthInstance = window.gapi.auth2.getAuthInstance();
+      }
+    }
+    async function adminSignInToGoogleDrive() {
+      console.log('[GAPI] Starting sign-in flow');
+      try {
+        await initGoogleAuth();
+        const user = await googleAuthInstance.signIn();
+        alert('Signed in as: ' + user.getBasicProfile().getEmail());
+      } catch (e) {
+        alert('Sign-in failed: ' + e.error);
+      }
+    }
+  </script>
+</body>
+</html>
