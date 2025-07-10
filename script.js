@@ -703,15 +703,33 @@ function openModalGifSearch() {
 
 function handleProfilePicUpload(event) {
     const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            currentUser.avatar = e.target.result;
-            updateProfileDisplay();
-            document.getElementById('profileEditPic').src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+    if (!file) {
+        showNotification('No file selected.', 'error');
+        return;
     }
+    if (!file.type.startsWith('image/')) {
+        showNotification('Please select a valid image file.', 'error');
+        return;
+    }
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        showNotification('Image is too large (max 5MB).', 'error');
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        if (!e.target.result) {
+            showNotification('Failed to read image file.', 'error');
+            return;
+        }
+        currentUser.avatar = e.target.result;
+        updateProfileDisplay();
+        const profilePic = document.getElementById('profileEditPic');
+        if (profilePic) profilePic.src = e.target.result;
+    };
+    reader.onerror = function() {
+        showNotification('Error reading image file.', 'error');
+    };
+    reader.readAsDataURL(file);
 }
 
 function updateMediaPreview(previewElement, media) {
@@ -749,12 +767,20 @@ function toggleProfileMenu() {
 }
 
 function openProfileModal() {
-    document.getElementById('profileDisplayName').value = currentUser.displayName;
-    document.getElementById('profileUsername').value = currentUser.username;
-    document.getElementById('profileBio').value = currentUser.bio;
-    document.getElementById('profileLocation').value = currentUser.location;
-    document.getElementById('profileEditPic').src = currentUser.avatar;
-    
+    const displayNameInput = document.getElementById('profileDisplayName');
+    const usernameInput = document.getElementById('profileUsername');
+    const bioInput = document.getElementById('profileBio');
+    const locationInput = document.getElementById('profileLocation');
+    const profilePic = document.getElementById('profileEditPic');
+    if (!displayNameInput || !usernameInput || !bioInput || !locationInput || !profilePic) {
+        showNotification('Profile modal error: missing fields.', 'error');
+        return;
+    }
+    displayNameInput.value = currentUser.displayName || '';
+    usernameInput.value = currentUser.username || '';
+    bioInput.value = currentUser.bio || '';
+    locationInput.value = currentUser.location || '';
+    profilePic.src = currentUser.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face';
     profileModal.style.display = 'block';
     document.body.style.overflow = 'hidden';
 }
@@ -782,21 +808,22 @@ async function saveProfile() {
 }
 
 function updateProfileDisplay() {
-    // Update header profile pic
-    document.getElementById('headerProfilePic').src = currentUser.avatar;
-    
-    // Update post creator info
-    document.getElementById('postCreatorAvatar').src = currentUser.avatar;
-    document.getElementById('postCreatorName').textContent = `@${currentUser.username}`;
-    document.getElementById('postCreatorDisplayName').textContent = currentUser.displayName;
-    
-    // Update modal post creator info
-    document.getElementById('modalPostCreatorAvatar').src = currentUser.avatar;
-    document.getElementById('modalPostCreatorName').textContent = `@${currentUser.username}`;
-    document.getElementById('modalPostCreatorDisplayName').textContent = currentUser.displayName;
-    
-    // Update comment creator avatar
-    document.getElementById('commentCreatorAvatar').src = currentUser.avatar;
+    const headerPic = document.getElementById('headerProfilePic');
+    const postCreatorAvatar = document.getElementById('postCreatorAvatar');
+    const postCreatorName = document.getElementById('postCreatorName');
+    const postCreatorDisplayName = document.getElementById('postCreatorDisplayName');
+    const modalPostCreatorAvatar = document.getElementById('modalPostCreatorAvatar');
+    const modalPostCreatorName = document.getElementById('modalPostCreatorName');
+    const modalPostCreatorDisplayName = document.getElementById('modalPostCreatorDisplayName');
+    const commentCreatorAvatar = document.getElementById('commentCreatorAvatar');
+    if (headerPic) headerPic.src = currentUser.avatar || headerPic.src;
+    if (postCreatorAvatar) postCreatorAvatar.src = currentUser.avatar || postCreatorAvatar.src;
+    if (postCreatorName) postCreatorName.textContent = `@${currentUser.username || ''}`;
+    if (postCreatorDisplayName) postCreatorDisplayName.textContent = currentUser.displayName || '';
+    if (modalPostCreatorAvatar) modalPostCreatorAvatar.src = currentUser.avatar || modalPostCreatorAvatar.src;
+    if (modalPostCreatorName) modalPostCreatorName.textContent = `@${currentUser.username || ''}`;
+    if (modalPostCreatorDisplayName) modalPostCreatorDisplayName.textContent = currentUser.displayName || '';
+    if (commentCreatorAvatar) commentCreatorAvatar.src = currentUser.avatar || commentCreatorAvatar.src;
 }
 
 // Admin functions
