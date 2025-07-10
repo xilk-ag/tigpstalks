@@ -51,8 +51,11 @@ const db = window.firebase.firestore();
 // Firestore CRUD for posts
 async function fetchPostsFromFirestore() {
   const postsCol = db.collection("posts");
-  const postSnapshot = await postsCol.orderBy("timestamp", "desc").get();
-  return postSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  // Remove orderBy for debugging
+  const postSnapshot = await postsCol.get();
+  const postsArr = postSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  console.log('Fetched posts from Firestore:', postsArr);
+  return postsArr;
 }
 async function savePostToFirestore(post) {
   await db.collection("posts").add(post);
@@ -534,7 +537,7 @@ function renderPosts() {
     
     postsFeed.innerHTML = '';
     
-    if (!posts || posts.length === 0) {
+    if (!Array.isArray(posts) || posts.length === 0) {
         postsFeed.innerHTML = `
             <div class="empty-state">
                 <h3>No posts yet</h3>
@@ -546,6 +549,10 @@ function renderPosts() {
     }
     
     posts.forEach((post, index) => {
+        if (!post || typeof post !== 'object') {
+            console.warn('Skipping invalid post:', post);
+            return;
+        }
         const postElement = createPostElement(post, index);
         postsFeed.appendChild(postElement);
     });
