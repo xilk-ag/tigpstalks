@@ -980,6 +980,7 @@ function createPostElement(post, index) {
                 }
                 <div class="post-time">${timeAgo}</div>
             </div>
+            <!-- Temporarily removed three-dot menu
             ${isAdminLoggedIn ? `
             <div class="post-menu">
                 <button class="post-menu-btn" onclick="togglePostMenu('${safePost.id}')">⋯</button>
@@ -988,6 +989,7 @@ function createPostElement(post, index) {
                 </div>
             </div>
             ` : '<!-- Admin not logged in, no menu shown -->'}
+            -->
         </div>
         <div class="post-content">${formatContent(safePost.content)}</div>
         ${mediaHtml}
