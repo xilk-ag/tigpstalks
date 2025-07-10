@@ -180,10 +180,16 @@
                         <div class="post-actions">
                             <div class="post-options">
                                 <button class="media-btn" onclick="triggerImageUpload()">
-                                    🖼️ Add Image
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 6px;">
+                                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                    </svg>
+                                    Add Image
                                 </button>
                                 <button class="media-btn gif-btn" onclick="openGifSearch()">
-                                    🎬 Add GIF
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 6px;">
+                                        <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4ZM4 6V18H20V6H4ZM6 8H18V10H6V8ZM6 12H14V14H6V12ZM6 16H16V18H6V16Z"/>
+                                    </svg>
+                                    Add GIF
                                 </button>
                                 <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                                 <label class="checkbox-container">
@@ -239,10 +245,16 @@
                     <div class="modal-actions">
                         <div class="post-options">
                             <button class="media-btn" onclick="triggerModalImageUpload()">
-                                🖼️ Add Image
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 6px;">
+                                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                </svg>
+                                Add Image
                             </button>
                             <button class="media-btn gif-btn" onclick="openModalGifSearch()">
-                                🎬 Add GIF
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 6px;">
+                                    <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4ZM4 6V18H20V6H4ZM6 8H18V10H6V8ZM6 12H14V14H6V12ZM6 16H16V18H6V16Z"/>
+                                </svg>
+                                Add GIF
                             </button>
                             <input type="file" id="modalImageUpload" accept="image/*,video/*" style="display: none;" onchange="handleModalImageUpload(event)">
                             <label class="checkbox-container">
