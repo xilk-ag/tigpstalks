@@ -171,17 +171,9 @@ body::before {
 }
 
 .tigps-logo {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
-}
-
-.tigps-text {
-    color: #fff;
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 /* Header buttons */
