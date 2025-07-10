@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://apis.google.com/js/api.js"></script>
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK (must be before script.js) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
@@ -428,7 +428,8 @@
     <script>
 window.TIGPS_GOOGLE_CLIENT_ID = '363283261404-0bopi877ikv148a43vo6rhcnit3r85ei.apps.googleusercontent.com';
 </script>
-    <script src="script.js"></script>
+    <!-- Only one script.js, loaded after Firebase SDKs -->
+    <script src="script.js" defer></script>
     <script>
 // Starfield: white, subtle, animated
 (function() {
