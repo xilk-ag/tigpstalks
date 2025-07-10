@@ -506,7 +506,7 @@ function detectTags(e) {
 }
 
 // Create post from main input
-async function createPost() {
+function createPost() {
     const content = postInput.value.trim();
     const isAnonymous = anonymousPost.checked;
     
@@ -517,21 +517,21 @@ async function createPost() {
     
     console.log('Creating post with content:', content, 'isAnonymous:', isAnonymous, 'media:', selectedMedia);
     
-    try {
-        await addPost(content, isAnonymous, selectedMedia);
+    // Use the async addPost function
+    addPost(content, isAnonymous, selectedMedia).then(() => {
         postInput.value = '';
         postInput.style.height = 'auto';
         anonymousPost.checked = false;
         selectedMedia = null;
         updateMediaPreview(postMediaPreview, null);
-    } catch (error) {
+    }).catch((error) => {
         console.error('Error in createPost:', error);
         showNotification('Failed to create post. Please try again.', 'error');
-    }
+    });
 }
 
 // Create post from modal
-async function createPostFromModal() {
+function createPostFromModal() {
     const content = modalPostInput.value.trim();
     const isAnonymous = modalAnonymousPost.checked;
     
@@ -542,18 +542,18 @@ async function createPostFromModal() {
     
     console.log('Creating modal post with content:', content, 'isAnonymous:', isAnonymous, 'media:', modalSelectedMedia);
     
-    try {
-        await addPost(content, isAnonymous, modalSelectedMedia);
+    // Use the async addPost function
+    addPost(content, isAnonymous, modalSelectedMedia).then(() => {
         modalPostInput.value = '';
         modalPostInput.style.height = 'auto';
         modalAnonymousPost.checked = false;
         modalSelectedMedia = null;
         updateMediaPreview(modalPostMediaPreview, null);
         closePostModal();
-    } catch (error) {
+    }).catch((error) => {
         console.error('Error in createPostFromModal:', error);
         showNotification('Failed to create post. Please try again.', 'error');
-    }
+    });
 }
 
 // Add new post
