@@ -492,7 +492,7 @@ body::before {
 
 /* --- POST CARDS --- */
 .post {
-    background: rgba(10, 10, 10, 0.15) !important;
+    background: rgba(0,0,0,0.1) !important;
     border-radius: 18px !important;
     box-shadow: 0 2px 16px #a259ff22;
     border: 2px solid rgba(24, 24, 26, 0.3) !important;
