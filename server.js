@@ -110,7 +110,6 @@ app.get('/protected-images/:filename', (req, res) => {
     // Set additional protection headers
     res.setHeader('Content-Disposition', 'inline');
     res.setHeader('X-Content-Protection', 'no-download');
-    res.setHeader('X-Image-Protection', 'watermarked');
     
     res.sendFile(imagePath);
 });

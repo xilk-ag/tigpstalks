@@ -34,24 +34,9 @@ img, video {
     pointer-events: none;
 }
 
-/* Add watermark overlay to images */
+/* Post media styling */
 .post-media {
     position: relative;
-}
-
-.post-media::after {
-    content: 'TIGPS Social';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-45deg);
-    font-size: 24px;
-    font-weight: bold;
-    color: rgba(255, 255, 255, 0.3);
-    pointer-events: none;
-    z-index: 10;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    white-space: nowrap;
 }
 
 /* Screenshot-friendly content (removed visual distortion) */
