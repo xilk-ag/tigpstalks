@@ -758,7 +758,7 @@ function detectTags(e) {
 }
 
 // Create post from main input
-function createPost() {
+async function createPost() {
     const postInput = document.getElementById('postInput');
     const content = postInput.value.trim();
     const isAnonymous = document.getElementById('anonymousPost').checked;
@@ -778,8 +778,32 @@ function createPost() {
     
     console.log('Creating post with content:', content, 'isAnonymous:', isAnonymous, 'media:', selectedMedia, 'gif:', selectedGif);
     
-    // Use the async addPost function with GIF support
-    addPost(content, isAnonymous, selectedMedia, selectedGif).then(() => {
+    try {
+        const user = getCurrentUserForPost(isAnonymous);
+        const tags = extractTags(content);
+        
+        const post = {
+            content: content,
+            author: user.displayName,
+            username: user.username,
+            avatar: user.avatar,
+            timestamp: new Date().toISOString(),
+            likes: 0,
+            comments: [],
+            isAnonymous: isAnonymous,
+            isLiked: false,
+            media: selectedMedia,
+            gif: selectedGif,
+            tags: tags,
+            likedBy: []
+        };
+        
+        await savePostToFirestore(post);
+        
+        // Update local posts array
+        posts.unshift(post);
+        renderPosts();
+        
         console.log('Post created successfully, clearing form...');
         postInput.value = '';
         postInput.style.height = 'auto';
@@ -790,22 +814,51 @@ function createPost() {
         if (postMediaPreview) {
             postMediaPreview.innerHTML = '';
         }
-    }).catch((error) => {
+        
+        showNotification('Post created successfully!', 'success');
+    } catch (error) {
         console.error('Error in createPost:', error);
         showNotification('Failed to create post. Please try again.', 'error');
-    });
+    }
 }
 
 // Create post from modal
-function createPostFromModal() {
+async function createPostFromModal() {
     const postInput = document.getElementById('modalPostInput');
     const content = postInput.value.trim();
     const isAnonymous = document.getElementById('modalAnonymousPost').checked;
+    
     if (!content && !modalSelectedMedia && !modalSelectedGif) {
         showNotification('Please enter some content or add media for your post!', 'error');
         return;
     }
-    addPost(content, isAnonymous, modalSelectedMedia, modalSelectedGif).then(() => {
+    
+    try {
+        const user = getCurrentUserForPost(isAnonymous);
+        const tags = extractTags(content);
+        
+        const post = {
+            content: content,
+            author: user.displayName,
+            username: user.username,
+            avatar: user.avatar,
+            timestamp: new Date().toISOString(),
+            likes: 0,
+            comments: [],
+            isAnonymous: isAnonymous,
+            isLiked: false,
+            media: modalSelectedMedia,
+            gif: modalSelectedGif,
+            tags: tags,
+            likedBy: []
+        };
+        
+        await savePostToFirestore(post);
+        
+        // Update local posts array
+        posts.unshift(post);
+        renderPosts();
+        
         postInput.value = '';
         postInput.style.height = 'auto';
         document.getElementById('modalAnonymousPost').checked = false;
@@ -815,9 +868,13 @@ function createPostFromModal() {
         if (modalPostMediaPreview) {
             modalPostMediaPreview.innerHTML = '';
         }
-    }).catch((error) => {
+        
+        closePostModal();
+        showNotification('Post created successfully!', 'success');
+    } catch (error) {
+        console.error('Error in createPostFromModal:', error);
         showNotification('Failed to create post. Please try again.', 'error');
-    });
+    }
 }
 
 // Add new post
@@ -1224,7 +1281,7 @@ function selectGifFromSearch(gifId) {
         `;
     }
     
-    closeGifSearchModal();
+    closeGifSearch();
 }
 
 // Update image upload logic to only accept images
@@ -2408,8 +2465,7 @@ window.addComment = addComment;
 window.openGifSearch = openGifSearch;
 window.closeGifSearch = closeGifSearch;
 window.searchGifs = searchGifs;
-window.selectGif = selectGif;
-window.selectModalGif = selectModalGif;
+window.selectGifFromSearch = selectGifFromSearch;
 window.removeSelectedGif = removeSelectedGif;
 window.removeModalSelectedGif = removeModalSelectedGif;
 window.openModalGifSearch = openModalGifSearch;
@@ -2417,141 +2473,7 @@ window.openGifModal = openGifModal;
 window.togglePostMenu = togglePostMenu;
 window.deletePost = deletePost; 
 
-// GIF Search Feature - Variables already declared above
-let selectedGif = null;
 
-// Open GIF search modal
-function openGifSearch() {
-    document.getElementById('gifSearchModal').style.display = 'flex';
-    document.getElementById('gifSearchInput').focus();
-    document.getElementById('gifResults').innerHTML = '<div class="gif-loading">Search for GIFs to get started!</div>';
-}
-
-// Close GIF search modal
-function closeGifSearch() {
-    document.getElementById('gifSearchModal').style.display = 'none';
-    document.getElementById('gifSearchInput').value = '';
-    document.getElementById('gifResults').innerHTML = '<div class="gif-loading">Search for GIFs to get started!</div>';
-}
-
-// Search GIFs with debouncing
-function searchGifs(event = null) {
-    if (event && event.key !== 'Enter') return;
-    
-    const query = document.getElementById('gifSearchInput').value.trim();
-    if (!query) return;
-    
-    // Clear previous timeout
-    if (gifSearchTimeout) {
-        clearTimeout(gifSearchTimeout);
-    }
-    
-    // Debounce search
-    gifSearchTimeout = setTimeout(() => {
-        searchTenorGifs(query);
-    }, 300);
-}
-
-// Display GIF search results
-function displayGifResults(gifs) {
-    const resultsContainer = document.getElementById('gifResults');
-    resultsContainer.innerHTML = '';
-    
-    gifs.forEach(gif => {
-        const gifItem = document.createElement('div');
-        gifItem.className = 'gif-item';
-        
-        // Choose the right selection function based on target
-        const selectFunction = gifSearchTarget === 'modal' ? 'selectModalGif' : 'selectGif';
-        gifItem.onclick = () => window[selectFunction](gif);
-        
-        // Use Tenor's media format
-        const mediaUrl = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url;
-        const previewUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
-        
-        gifItem.innerHTML = `
-            <img src="${previewUrl}" 
-                 alt="${gif.title || 'GIF'}" 
-                 data-original="${mediaUrl}"
-                 data-preview="${previewUrl}">
-        `;
-        
-        resultsContainer.appendChild(gifItem);
-    });
-}
-
-// Select a GIF for main post
-function selectGif(gif) {
-    // Use Tenor's media format
-    const mediaUrl = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url;
-    const previewUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
-    
-    selectedGif = {
-        url: mediaUrl,
-        preview: previewUrl,
-        title: gif.title || 'GIF',
-        id: gif.id
-    };
-    
-    // Show selected GIF in post area
-    const postMediaPreview = document.getElementById('postMediaPreview');
-    postMediaPreview.innerHTML = `
-        <div class="selected-gif">
-            <img src="${selectedGif.preview}" alt="${selectedGif.title}">
-            <button class="remove-gif-btn" onclick="removeSelectedGif()">×</button>
-        </div>
-    `;
-    
-    // Close modal
-    closeGifSearch();
-}
-
-// Select a GIF for modal post
-function selectModalGif(gif) {
-    // Use Tenor's media format
-    const mediaUrl = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url;
-    const previewUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
-    
-    modalSelectedGif = {
-        url: mediaUrl,
-        preview: previewUrl,
-        title: gif.title || 'GIF',
-        id: gif.id
-    };
-    
-    // Show selected GIF in modal post area
-    const modalPostMediaPreview = document.getElementById('modalPostMediaPreview');
-    modalPostMediaPreview.innerHTML = `
-        <div class="selected-gif">
-            <img src="${modalSelectedGif.preview}" alt="${modalSelectedGif.title}">
-            <button class="remove-gif-btn" onclick="removeModalSelectedGif()">×</button>
-        </div>
-    `;
-    
-    // Close modal
-    closeGifSearch();
-}
-
-// Remove selected GIF from main post
-function removeSelectedGif() {
-    selectedGif = null;
-    document.getElementById('postMediaPreview').innerHTML = '';
-}
-
-// Remove selected GIF from modal post
-function removeModalSelectedGif() {
-    modalSelectedGif = null;
-    document.getElementById('modalPostMediaPreview').innerHTML = '';
-}
-
-// Open GIF search for modal
-function openModalGifSearch() {
-    document.getElementById('gifSearchModal').style.display = 'flex';
-    document.getElementById('gifSearchInput').focus();
-    document.getElementById('gifResults').innerHTML = '<div class="gif-loading">Search for GIFs to get started!</div>';
-    // Set flag to indicate this is for modal
-    gifSearchTarget = 'modal';
-}
 
 
 
