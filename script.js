@@ -922,20 +922,22 @@ function handleImageUpload(event) {
         return;
     }
     
-    // Check file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-        showNotification('Image is too large (max 5MB).', 'error');
-        return;
-    }
+    // No file size limit - compression will handle any size
+    console.log('File size:', file.size, 'bytes');
     
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
-            // This is for the main post input (not modal)
-            selectedMedia = e.target.result;
-            console.log('Image uploaded for main post, selectedMedia set to:', selectedMedia ? 'data URL' : 'null');
-            updateMediaPreview(postMediaPreview, selectedMedia);
-            showNotification('Image attached successfully!', 'success');
+            // Compress the image before storing - no size limits, compression handles everything
+            compressImage(e.target.result).then(compressedData => {
+                selectedMedia = compressedData;
+                console.log('Image compressed and uploaded for main post');
+                updateMediaPreview(postMediaPreview, selectedMedia);
+                showNotification('Image attached successfully!', 'success');
+            }).catch(error => {
+                console.error('Error compressing image:', error);
+                showNotification('Error processing image: ' + error.message, 'error');
+            });
         } catch (error) {
             console.error('Error processing image:', error);
             showNotification('Error processing image.', 'error');
@@ -957,18 +959,46 @@ function triggerModalImageUpload() {
 
 function handleModalImageUpload(event) {
     const file = event.target.files[0];
-    if (file && (file.type.startsWith('image/') || file.type.startsWith('video/'))) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            // This is for the modal post input
-            modalSelectedMedia = e.target.result;
-            updateMediaPreview(modalPostMediaPreview, modalSelectedMedia);
-            console.log('Media uploaded for modal post:', modalSelectedMedia);
-        };
-        reader.readAsDataURL(file);
-    } else {
-        showNotification('Please select a valid image or video file.', 'error');
+    console.log('Modal file selected:', file);
+    
+    if (!file) {
+        showNotification('No file selected.', 'error');
+        return;
     }
+    
+    if (!file.type.startsWith('image/')) {
+        showNotification('Please select a valid image file.', 'error');
+        return;
+    }
+    
+    // No file size limit - compression will handle any size
+    console.log('Modal file size:', file.size, 'bytes');
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            // Compress the image before storing - no size limits, compression handles everything
+            compressImage(e.target.result).then(compressedData => {
+                modalSelectedMedia = compressedData;
+                console.log('Image compressed and uploaded for modal post');
+                updateMediaPreview(modalPostMediaPreview, modalSelectedMedia);
+                showNotification('Image attached successfully!', 'success');
+            }).catch(error => {
+                console.error('Error compressing image:', error);
+                showNotification('Error processing image: ' + error.message, 'error');
+            });
+        } catch (error) {
+            console.error('Error processing image:', error);
+            showNotification('Error processing image.', 'error');
+        }
+    };
+    
+    reader.onerror = function() {
+        console.error('Error reading file:', reader.error);
+        showNotification('Error reading image file.', 'error');
+    };
+    
+    reader.readAsDataURL(file);
 }
 
 function openModalGifSearch() {
@@ -1545,6 +1575,85 @@ saveProfile = async function() {
 };
 
 // Utility functions
+function compressImage(dataUrl, maxWidth = 1200, maxHeight = 800) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Calculate new dimensions
+            let { width, height } = img;
+            if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+            }
+            if (height > maxHeight) {
+                width = (width * maxHeight) / height;
+                height = maxHeight;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw image
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Smart compression: start with high quality and reduce until it fits
+            let quality = 0.9;
+            let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+            
+            // Firestore document size limit is ~1MB, so we aim for ~800KB to be safe
+            const maxSize = 800 * 1024; // 800KB
+            
+            console.log('Initial compression:', {
+                originalSize: dataUrl.length,
+                compressedSize: compressedDataUrl.length,
+                quality: quality
+            });
+            
+            // If still too large, reduce quality progressively
+            while (compressedDataUrl.length > maxSize && quality > 0.1) {
+                quality -= 0.1;
+                compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                console.log('Reducing quality to', quality, 'Size:', compressedDataUrl.length);
+            }
+            
+            // If still too large, reduce dimensions
+            if (compressedDataUrl.length > maxSize) {
+                console.log('Still too large, reducing dimensions...');
+                let scaleFactor = 0.8;
+                while (compressedDataUrl.length > maxSize && scaleFactor > 0.3) {
+                    const newWidth = Math.floor(width * scaleFactor);
+                    const newHeight = Math.floor(height * scaleFactor);
+                    
+                    canvas.width = newWidth;
+                    canvas.height = newHeight;
+                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                    
+                    compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    console.log('Reduced dimensions to', newWidth, 'x', newHeight, 'Size:', compressedDataUrl.length);
+                    scaleFactor -= 0.1;
+                }
+            }
+            
+            console.log('Final compression result:', {
+                originalSize: dataUrl.length,
+                finalSize: compressedDataUrl.length,
+                compressionRatio: Math.round((1 - compressedDataUrl.length / dataUrl.length) * 100) + '%'
+            });
+            
+            if (compressedDataUrl.length > maxSize) {
+                reject(new Error('Image too large even after maximum compression'));
+            } else {
+                resolve(compressedDataUrl);
+            }
+        };
+        img.onerror = reject;
+        img.src = dataUrl;
+    });
+}
+
 function getTimeAgo(date) {
     // Convert string to Date object if needed
     const dateObj = typeof date === 'string' ? new Date(date) : date;
