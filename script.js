@@ -2545,10 +2545,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 } 
 
-// Loading overlay logic
-let postsLoaded = false;
-let loadingOverlayTimeout = null;
-
 // Post menu functionality
 function togglePostMenu(postId) {
     const menuId = `post-menu-${postId}`;
@@ -2577,26 +2573,6 @@ document.addEventListener('click', function(event) {
         });
     }
 });
-
-function hideLoadingOverlay() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) overlay.classList.add('hide');
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Start 1s timer
-    loadingOverlayTimeout = setTimeout(() => {
-        hideLoadingOverlay();
-    }, 1000);
-});
-
-// Patch initializeAppData to hide overlay after posts load
-const originalInitializeAppData = initializeAppData;
-initializeAppData = async function() {
-    await originalInitializeAppData();
-    postsLoaded = true;
-    // Loading screen will hide after 1 second regardless of posts loading
-};
 
 // Render comments in the modal
 function renderComments(comments) {
