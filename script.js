@@ -1,6 +1,6 @@
-// Giphy API Configuration
-const GIPHY_API_KEY = 'GlVGYHkr3WSBnllca54iNt0yFbjz7L65'; // Free Giphy API key
-const GIPHY_BASE_URL = 'https://api.giphy.com/v1/gifs';
+// Tenor API Configuration
+const TENOR_API_KEY = 'AIzaSyBMTZlitQGyqNx3LO0cNiITBpBHMec8rN8'; // Using the same key for Tenor
+const TENOR_BASE_URL = 'https://tenor.googleapis.com/v2';
 
 // User Profile Data
 let currentUser = {
@@ -1957,7 +1957,6 @@ async function deletePost(postId) {
             
             // Save to Firestore
             try {
-                const db = firebase.firestore();
                 await db.collection('posts').doc(postId.toString()).delete();
                 showNotification('Post deleted successfully!', 'success');
             } catch (error) {
@@ -2120,7 +2119,8 @@ window.removeSelectedGif = removeSelectedGif;
 window.removeModalSelectedGif = removeModalSelectedGif;
 window.openModalGifSearch = openModalGifSearch;
 window.openGifModal = openGifModal;
-window.togglePostMenu = togglePostMenu; 
+window.togglePostMenu = togglePostMenu;
+window.deletePost = deletePost; 
 
 // GIF Search Feature - Variables already declared above
 let selectedGif = null;
@@ -2163,11 +2163,11 @@ async function performGifSearch(query) {
     resultsContainer.innerHTML = '<div class="gif-loading">Searching...</div>';
     
     try {
-        const response = await fetch(`${GIPHY_BASE_URL}/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=20&rating=g`);
+        const response = await fetch(`${TENOR_BASE_URL}/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=20&media_filter=gif`);
         const data = await response.json();
         
-        if (data.data && data.data.length > 0) {
-            displayGifResults(data.data);
+        if (data.results && data.results.length > 0) {
+            displayGifResults(data.results);
         } else {
             resultsContainer.innerHTML = '<div class="gif-loading">No GIFs found. Try a different search term!</div>';
         }
@@ -2190,11 +2190,15 @@ function displayGifResults(gifs) {
         const selectFunction = gifSearchTarget === 'modal' ? 'selectModalGif' : 'selectGif';
         gifItem.onclick = () => window[selectFunction](gif);
         
+        // Use Tenor's media format
+        const mediaUrl = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url;
+        const previewUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
+        
         gifItem.innerHTML = `
-            <img src="${gif.images.fixed_height_small.url}" 
-                 alt="${gif.title}" 
-                 data-original="${gif.images.original.url}"
-                 data-preview="${gif.images.fixed_height_small.url}">
+            <img src="${previewUrl}" 
+                 alt="${gif.title || 'GIF'}" 
+                 data-original="${mediaUrl}"
+                 data-preview="${previewUrl}">
         `;
         
         resultsContainer.appendChild(gifItem);
@@ -2203,10 +2207,14 @@ function displayGifResults(gifs) {
 
 // Select a GIF for main post
 function selectGif(gif) {
+    // Use Tenor's media format
+    const mediaUrl = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url;
+    const previewUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
+    
     selectedGif = {
-        url: gif.images.original.url,
-        preview: gif.images.fixed_height_small.url,
-        title: gif.title,
+        url: mediaUrl,
+        preview: previewUrl,
+        title: gif.title || 'GIF',
         id: gif.id
     };
     
@@ -2225,10 +2233,14 @@ function selectGif(gif) {
 
 // Select a GIF for modal post
 function selectModalGif(gif) {
+    // Use Tenor's media format
+    const mediaUrl = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url;
+    const previewUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
+    
     modalSelectedGif = {
-        url: gif.images.original.url,
-        preview: gif.images.fixed_height_small.url,
-        title: gif.title,
+        url: mediaUrl,
+        preview: previewUrl,
+        title: gif.title || 'GIF',
         id: gif.id
     };
     
