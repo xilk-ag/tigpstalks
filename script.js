@@ -31,13 +31,18 @@ let gifSearchTarget = null; // 'main' or 'modal'
 // --- Google Drive Integration for Admin ---
 let googleAuthInstance = null;
 let googleDriveAccessToken = null;
+let gapiReady = false;
 
 async function loadGoogleApiClient() {
     return new Promise((resolve, reject) => {
         function checkGapi() {
             if (window.gapi && window.gapi.load) {
                 console.log('[GAPI] gapi loaded');
-                window.gapi.load('client:auth2', resolve);
+                window.gapi.load('client:auth2', () => {
+                    gapiReady = true;
+                    enableDriveSignInButtons();
+                    resolve();
+                });
             } else {
                 setTimeout(checkGapi, 100);
             }
@@ -45,6 +50,21 @@ async function loadGoogleApiClient() {
         checkGapi();
     });
 }
+
+function enableDriveSignInButtons() {
+    const adminSignInBtn = document.getElementById('adminSignInBtn');
+    const signInBtn = document.getElementById('signInBtn');
+    if (adminSignInBtn) adminSignInBtn.disabled = false;
+    if (signInBtn) signInBtn.disabled = false;
+}
+function disableDriveSignInButtons() {
+    const adminSignInBtn = document.getElementById('adminSignInBtn');
+    const signInBtn = document.getElementById('signInBtn');
+    if (adminSignInBtn) adminSignInBtn.disabled = true;
+    if (signInBtn) signInBtn.disabled = true;
+}
+
+disableDriveSignInButtons(); // Disable on load
 
 async function initGoogleAuth() {
     await loadGoogleApiClient();
@@ -57,7 +77,7 @@ async function initGoogleAuth() {
         console.log('[GAPI] Initializing Google Auth with client ID:', window.TIGPS_GOOGLE_CLIENT_ID);
         await window.gapi.client.init({
             clientId: window.TIGPS_GOOGLE_CLIENT_ID,
-            scope: 'https://www.googleapis.com/auth/drive.file',
+            scope: 'profile email https://www.googleapis.com/auth/drive.file',
         });
         googleAuthInstance = window.gapi.auth2.getAuthInstance();
         console.log('[GAPI] Google Auth instance initialized');
@@ -911,6 +931,10 @@ function updateAdminDriveStatus() {
 
 // Admin Google Drive functions
 async function adminSignInToGoogleDrive() {
+    if (!gapiReady) {
+        showNotification('Google API not loaded yet. Please wait and try again.', 'error');
+        return;
+    }
     try {
         console.log('[GAPI] Starting sign-in flow');
         await initGoogleAuth();
@@ -921,8 +945,12 @@ async function adminSignInToGoogleDrive() {
         updateAdminDriveStatus();
         showNotification('Google Drive connected successfully!', 'success');
     } catch (e) {
+        if (e && e.error === 'popup_blocked_by_browser') {
+            showNotification('Popup blocked! Please allow popups for Google sign-in.', 'error');
+        } else {
+            showNotification('Google Drive sign-in failed.', 'error');
+        }
         console.error('[GAPI] Sign-in failed:', e);
-        showNotification('Google Drive sign-in failed.', 'error');
     }
 }
 
