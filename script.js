@@ -37,6 +37,7 @@ let nextPostId = 1;
 let nextCommentId = 1;
 let currentPostId = null;
 let selectedMedia = null;
+let selectedGif = null;
 let modalSelectedMedia = null;
 let modalSelectedGif = null;
 
