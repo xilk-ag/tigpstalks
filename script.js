@@ -2675,15 +2675,15 @@ function deleteProfilePost(postId) {
 
 function startPostCooldown() {
   postCooldownActive = true;
-  const postBtn = document.getElementById('postBtn');
+  const postBtn = document.getElementById('postButton');
   if (postBtn) postBtn.disabled = true;
-  const modalPostBtn = document.getElementById('modalPostBtn');
+  const modalPostBtn = document.getElementById('modalPostButton');
   if (modalPostBtn) modalPostBtn.disabled = true;
   setTimeout(() => {
     postCooldownActive = false;
     if (postBtn) postBtn.disabled = false;
     if (modalPostBtn) modalPostBtn.disabled = false;
-  }, 15000);
+  }, 15000); // 15 seconds cooldown
 }
 
 // Add cooldown check to existing createPost function
@@ -2693,24 +2693,18 @@ createPost = async function() {
     showNotification('Please wait before posting again.', 'error');
     return;
   }
-  
   const username = getStoredUsername();
   if (!username) {
     showNotification('Please enter your username before posting.', 'error');
     showUsernameModal();
     return;
   }
-  
-  // Defensive: update currentUser
   currentUser.username = username;
   currentUser.displayName = username;
-  
-  // Defensive: update UI
   const postCreatorName = document.getElementById('postCreatorName');
   const postCreatorDisplayName = document.getElementById('postCreatorDisplayName');
   if (postCreatorName) postCreatorName.textContent = '@' + username;
   if (postCreatorDisplayName) postCreatorDisplayName.textContent = username;
-  
   try {
     await originalCreatePostFunction();
     startPostCooldown();
@@ -2718,7 +2712,36 @@ createPost = async function() {
     showNotification('Failed to create post. Please try again.', 'error');
     console.error('createPost error:', e);
   }
-} 
+}
+
+// Add cooldown to file/image attachment
+let fileAttachCooldownActive = false;
+function startFileAttachCooldown() {
+  fileAttachCooldownActive = true;
+  setTimeout(() => {
+    fileAttachCooldownActive = false;
+  }, 15000); // 15 seconds cooldown
+}
+
+const originalHandleImageUpload = handleImageUpload;
+handleImageUpload = function(event) {
+  if (fileAttachCooldownActive) {
+    showNotification('Please wait before attaching another file.', 'error');
+    return;
+  }
+  startFileAttachCooldown();
+  originalHandleImageUpload(event);
+}
+
+const originalHandleModalImageUpload = handleModalImageUpload;
+handleModalImageUpload = function(event) {
+  if (fileAttachCooldownActive) {
+    showNotification('Please wait before attaching another file.', 'error');
+    return;
+  }
+  startFileAttachCooldown();
+  originalHandleModalImageUpload(event);
+}
 
 // Make all functions globally available
 window.toggleLike = toggleLike;
