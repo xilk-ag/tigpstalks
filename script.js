@@ -1,13 +1,13 @@
 // Emergency error handler - catch all errors
 window.addEventListener('error', function(e) {
     console.error('EMERGENCY ERROR CAUGHT:', e.error);
-    alert('JavaScript Error: ' + e.message + '\nFile: ' + e.filename + '\nLine: ' + e.lineno);
+    // alert('JavaScript Error: ' + e.message + '\nFile: ' + e.filename + '\nLine: ' + e.lineno); // Disabled debug popup
 });
 
 // Emergency unhandled promise rejection handler
 window.addEventListener('unhandledrejection', function(e) {
     console.error('EMERGENCY PROMISE ERROR:', e.reason);
-    alert('Promise Error: ' + e.reason);
+    // alert('Promise Error: ' + e.reason); // Disabled debug popup
 });
 
 console.log('=== SCRIPT LOADING START ===');
