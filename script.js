@@ -2683,14 +2683,14 @@ async function cleanupDuplicatePosts() {
 // Make cleanup function globally available
 window.cleanupDuplicatePosts = cleanupDuplicatePosts;
 
-// Username Modal Logic
+// Username Modal Logic (robust)
 function showUsernameModal() {
   const modal = document.getElementById('usernameModal');
   if (modal) modal.style.display = 'flex';
   const input = document.getElementById('usernameInput');
   if (input) {
     input.value = '';
-    input.focus();
+    setTimeout(() => input.focus(), 100);
   }
 }
 function hideUsernameModal() {
@@ -2709,10 +2709,16 @@ function requireUsername() {
     showUsernameModal();
   } else {
     window.tigpsUsername = username;
+    currentUser.username = username;
+    currentUser.displayName = username;
+    // Update post creator UI
+    const postCreatorName = document.getElementById('postCreatorName');
+    const postCreatorDisplayName = document.getElementById('postCreatorDisplayName');
+    if (postCreatorName) postCreatorName.textContent = '@' + username;
+    if (postCreatorDisplayName) postCreatorDisplayName.textContent = username;
   }
 }
 document.addEventListener('DOMContentLoaded', function() {
-  // ... existing code ...
   requireUsername();
   const usernameInput = document.getElementById('usernameInput');
   const usernameBtn = document.getElementById('usernameSubmitBtn');
@@ -2722,6 +2728,13 @@ document.addEventListener('DOMContentLoaded', function() {
       if (val.length > 0) {
         setStoredUsername(val);
         window.tigpsUsername = val;
+        currentUser.username = val;
+        currentUser.displayName = val;
+        // Update post creator UI
+        const postCreatorName = document.getElementById('postCreatorName');
+        const postCreatorDisplayName = document.getElementById('postCreatorDisplayName');
+        if (postCreatorName) postCreatorName.textContent = '@' + val;
+        if (postCreatorDisplayName) postCreatorDisplayName.textContent = val;
         hideUsernameModal();
       } else {
         usernameInput.focus();
@@ -2732,20 +2745,9 @@ document.addEventListener('DOMContentLoaded', function() {
       if (e.key === 'Enter') usernameBtn.click();
     });
   }
+  // Fallback: if username is still not set, show modal
+  setTimeout(() => {
+    if (!getStoredUsername()) showUsernameModal();
+  }, 1000);
 });
-
-// ... existing code ...
-// After requireUsername() in DOMContentLoaded
-requireUsername();
-// Update currentUser with entered username
-const enteredUsername = getStoredUsername();
-if (enteredUsername) {
-  currentUser.username = enteredUsername;
-  currentUser.displayName = enteredUsername;
-}
-// Update post creator UI
-const postCreatorName = document.getElementById('postCreatorName');
-const postCreatorDisplayName = document.getElementById('postCreatorDisplayName');
-if (postCreatorName) postCreatorName.textContent = '@' + (enteredUsername || 'username');
-if (postCreatorDisplayName) postCreatorDisplayName.textContent = enteredUsername || 'Username';
 // ... existing code ...
