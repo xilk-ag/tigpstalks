@@ -2208,12 +2208,16 @@ function updateDriveStatus() {
 
 // --- Simple Username Login Logic ---
 function showLoginModal() {
-    document.getElementById('loginModal').style.display = 'block';
-    document.querySelector('.app').style.display = 'none';
+    var loginModal = document.getElementById('loginModal');
+    if (loginModal) loginModal.style.display = 'block';
+    var appDiv = document.querySelector('.app');
+    if (appDiv) appDiv.style.display = 'none';
 }
 function hideLoginModal() {
-    document.getElementById('loginModal').style.display = 'none';
-    document.querySelector('.app').style.display = '';
+    var loginModal = document.getElementById('loginModal');
+    if (loginModal) loginModal.style.display = 'none';
+    var appDiv = document.querySelector('.app');
+    if (appDiv) appDiv.style.display = '';
 }
 function loginUser() {
     const displayName = document.getElementById('loginDisplayName').value.trim();
@@ -2456,7 +2460,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close profile menu when clicking outside
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.user-menu')) {
-            document.getElementById('profileMenu').classList.remove('show');
+            const profileMenu = document.getElementById('profileMenu');
+            if (profileMenu) profileMenu.classList.remove('show');
         }
     });
 
