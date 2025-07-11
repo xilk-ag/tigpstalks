@@ -181,6 +181,33 @@ body::before {
     gap: 12px;
 }
 
+/* BETA Badge */
+.beta-badge {
+    background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    animation: pulse 2s infinite;
+    margin-right: 8px;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 12px rgba(255, 107, 107, 0.5);
+    }
+    100% {
+        box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    }
+}
+
 /* Hamburger menu */
 .hamburger-menu {
     cursor: pointer;
