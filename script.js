@@ -1230,6 +1230,11 @@ function closeGifSearch() {
     closeGifSearchModal();
 }
 
+// Alias for openGifSearch
+function openGifSearch() {
+    openGifSearchModal('main');
+}
+
 // Make functions globally available
 window.openGifSearchModal = openGifSearchModal;
 window.closeGifSearchModal = closeGifSearchModal;
@@ -1273,6 +1278,21 @@ async function searchTenorGifs(query) {
     } catch (error) {
         console.error('Error searching Tenor GIFs:', error);
         resultsContainer.innerHTML = '<div class="gif-loading">Error loading GIFs. Please try again.</div>';
+    }
+}
+
+// Alias for searchGifs function
+function searchGifs(event) {
+    if (event && event.key === 'Enter') {
+        const query = event.target.value.trim();
+        if (query) {
+            searchTenorGifs(query);
+        }
+    } else if (!event) {
+        const query = document.getElementById('gifSearchInput').value.trim();
+        if (query) {
+            searchTenorGifs(query);
+        }
     }
 }
 
@@ -2564,6 +2584,23 @@ function openGifModal(gifUrl) {
     `;
     
     document.body.appendChild(modal);
+}
+
+// Remove selected GIF functions
+function removeSelectedGif() {
+    selectedGif = null;
+    const postMediaPreview = document.getElementById('postMediaPreview');
+    if (postMediaPreview) {
+        postMediaPreview.innerHTML = '';
+    }
+}
+
+function removeModalSelectedGif() {
+    modalSelectedGif = null;
+    const modalPostMediaPreview = document.getElementById('modalPostMediaPreview');
+    if (modalPostMediaPreview) {
+        modalPostMediaPreview.innerHTML = '';
+    }
 }
 
 // Helper function to escape HTML
