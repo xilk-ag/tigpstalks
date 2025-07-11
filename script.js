@@ -873,6 +873,11 @@ async function createPost() {
 
 // Create post from modal
 async function createPostFromModal() {
+    if (postCooldownActive) {
+        showNotification('Please wait before posting again.', 'error');
+        return;
+    }
+    
     const postInput = document.getElementById('modalPostInput');
     const content = postInput.value.trim();
     const isAnonymous = document.getElementById('modalAnonymousPost').checked;
@@ -920,6 +925,7 @@ async function createPostFromModal() {
         
         closePostModal();
         showNotification('Post created successfully!', 'success');
+        startPostCooldown();
     } catch (error) {
         console.error('Error in createPostFromModal:', error);
         showNotification('Failed to create post. Please try again.', 'error');
@@ -2073,10 +2079,25 @@ function getCurrentUserForPost(isAnonymous) {
 }
 // addPost function is already defined with Firestore integration above
 // Patch saveProfile to update localStorage
-const originalSaveProfile = saveProfile;
 saveProfile = async function() {
-    await originalSaveProfile.apply(this, arguments);
+    const displayName = document.getElementById('profileDisplayName').value;
+    const username = document.getElementById('profileUsername').value;
+    const bio = document.getElementById('profileBio').value;
+    const location = document.getElementById('profileLocation').value;
+    
+    currentUser = { ...currentUser, displayName, username, bio, location };
+    updateProfileDisplay();
+    closeProfileModal();
+    
+    // Save to localStorage
     localStorage.setItem('tigpsUser', JSON.stringify(currentUser));
+    
+    // Save to Google Drive if admin is logged in
+    if (isAdminLoggedIn && googleDriveManager) {
+        await googleDriveManager.saveUserProfile(currentUser);
+    }
+    
+    showNotification('Profile updated successfully!', 'success');
 };
 
 // Utility functions
@@ -2404,25 +2425,7 @@ function handleProfilePicUpload(event) {
   reader.readAsDataURL(file);
 }
 
-function saveProfile() {
-  currentUser.displayName = document.getElementById('profileNameInput').value.trim();
-  currentUser.username = document.getElementById('profileUsernameInput').value.trim();
-  currentUser.bio = document.getElementById('profileBioInput').value.trim();
-  currentUser.avatar = document.getElementById('profilePicLarge').src;
-  // Save to Firestore
-  db.collection('profiles').doc(currentUser.username).set({
-    displayName: currentUser.displayName,
-    username: currentUser.username,
-    bio: currentUser.bio,
-    avatar: currentUser.avatar
-  }).then(() => {
-    showNotification('Profile updated!', 'success');
-    closeProfileModal();
-    updateProfileDisplay && updateProfileDisplay();
-  }).catch(err => {
-    showNotification('Error saving profile: ' + err.message, 'error');
-  });
-}
+
 
 function renderProfilePosts() {
   const list = document.getElementById('profilePostsList');
@@ -2462,13 +2465,7 @@ function deleteProfilePost(postId) {
   });
 }
 
-// Add to global for menu
-window.openProfileModal = openProfileModal;
-window.closeProfileModal = closeProfileModal;
-window.triggerProfilePicUpload = triggerProfilePicUpload;
-window.handleProfilePicUpload = handleProfilePicUpload;
-window.saveProfile = saveProfile;
-window.deleteProfilePost = deleteProfilePost; 
+ 
 
 // --- Post Cooldown Logic ---
 let postCooldownActive = false;
@@ -2486,29 +2483,41 @@ function startPostCooldown() {
   }, 15000);
 }
 
-// Patch createPost and createPostFromModal to use cooldown
-const originalCreatePost = createPost;
-createPost = function() {
+// Add cooldown check to existing createPost function
+const originalCreatePostFunction = createPost;
+createPost = async function() {
   if (postCooldownActive) {
     showNotification('Please wait before posting again.', 'error');
     return;
   }
-  originalCreatePost();
-  startPostCooldown();
-}
-
-if (typeof createPostFromModal === 'function') {
-  const originalCreatePostFromModal = createPostFromModal;
-  createPostFromModal = function() {
-    if (postCooldownActive) {
-      showNotification('Please wait before posting again.', 'error');
-      return;
-    }
-    originalCreatePostFromModal();
+  
+  const username = getStoredUsername();
+  if (!username) {
+    showNotification('Please enter your username before posting.', 'error');
+    showUsernameModal();
+    return;
+  }
+  
+  // Defensive: update currentUser
+  currentUser.username = username;
+  currentUser.displayName = username;
+  
+  // Defensive: update UI
+  const postCreatorName = document.getElementById('postCreatorName');
+  const postCreatorDisplayName = document.getElementById('postCreatorDisplayName');
+  if (postCreatorName) postCreatorName.textContent = '@' + username;
+  if (postCreatorDisplayName) postCreatorDisplayName.textContent = username;
+  
+  try {
+    await originalCreatePostFunction();
     startPostCooldown();
+  } catch (e) {
+    showNotification('Failed to create post. Please try again.', 'error');
+    console.error('createPost error:', e);
   }
 } 
 
+// Make all functions globally available
 window.toggleLike = toggleLike;
 window.showComments = showComments;
 window.sharePost = sharePost;
@@ -2522,56 +2531,24 @@ window.removeModalSelectedGif = removeModalSelectedGif;
 window.openModalGifSearch = openModalGifSearch;
 window.openGifModal = openGifModal;
 window.togglePostMenu = togglePostMenu;
-window.deletePost = deletePost; 
+window.deletePost = deletePost;
+window.createTestPost = createTestPost;
+window.debugFetchPosts = debugFetchPosts;
+window.forceLoadPosts = forceLoadPosts;
+window.openProfileModal = openProfileModal;
+window.closeProfileModal = closeProfileModal;
+window.triggerProfilePicUpload = triggerProfilePicUpload;
+window.handleProfilePicUpload = handleProfilePicUpload;
+window.saveProfile = saveProfile;
+window.deleteProfilePost = deleteProfilePost; 
 
 
 
 
 
-// Add event listeners for post content changes
-document.addEventListener('DOMContentLoaded', function() {
-    const postContent = document.getElementById('postContent');
-    if (postContent) {
-        postContent.addEventListener('input', updatePostButton);
-    }
-});
 
-// Update post rendering to include GIFs
-function renderPost(post, postId) {
-    const postElement = document.createElement('div');
-    postElement.className = 'post';
-    postElement.id = `post-${postId}`;
-    
-    let postContent = `
-        <div class="post-header">
-            <div class="post-user-info">
-                <div class="post-username">@${post.username}</div>
-                <div class="post-time">${formatTime(post.timestamp)}</div>
-            </div>
-            ${isAdmin ? `<button class="delete-post-btn" onclick="deletePost('${postId}')">🗑️</button>` : ''}
-        </div>
-        <div class="post-content">
-            ${post.content ? `<p>${escapeHtml(post.content)}</p>` : ''}
-            ${post.gif ? `<div class="post-gif"><img src="${post.gif.preview}" alt="${post.gif.title}" onclick="openGifModal('${post.gif.url}')"></div>` : ''}
-        </div>
-        <div class="post-actions">
-            <button onclick="likePost('${postId}')" class="action-btn ${post.likedBy && post.likedBy.includes(currentUser) ? 'liked' : ''}">
-                👍 ${post.likes || 0}
-            </button>
-            <button onclick="showComments('${postId}')" class="action-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;">
-                    <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/>
-                </svg> ${post.comments ? post.comments.length : 0}
-            </button>
-            <button onclick="sharePost('${postId}')" class="action-btn">
-                🔄 ${post.shares || 0}
-            </button>
-        </div>
-    `;
-    
-    postElement.innerHTML = postContent;
-    return postElement;
-}
+
+
 
 // Open GIF in modal for full view
 function openGifModal(gifUrl) {
@@ -2800,30 +2777,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Patch createPost to robustly check username and show errors
-const originalCreatePost = createPost;
-createPost = async function() {
-  const username = getStoredUsername();
-  if (!username) {
-    showNotification('Please enter your username before posting.', 'error');
-    showUsernameModal();
-    return;
-  }
-  // Defensive: update currentUser
-  currentUser.username = username;
-  currentUser.displayName = username;
-  // Defensive: update UI
-  const postCreatorName = document.getElementById('postCreatorName');
-  const postCreatorDisplayName = document.getElementById('postCreatorDisplayName');
-  if (postCreatorName) postCreatorName.textContent = '@' + username;
-  if (postCreatorDisplayName) postCreatorDisplayName.textContent = username;
-  try {
-    await originalCreatePost();
-  } catch (e) {
-    showNotification('Failed to create post. Please try again.', 'error');
-    console.error('createPost error:', e);
-  }
-}
+
 // ... existing code ...
 
 // Test post function for debugging
@@ -2881,9 +2835,6 @@ async function createTestPost() {
     console.log('=== CREATE TEST POST END ===');
 }
 
-// Make test post function globally available
-window.createTestPost = createTestPost;
-
 // Debug function to fetch and display posts
 async function debugFetchPosts() {
     console.log('=== DEBUG FETCH POSTS START ===');
@@ -2907,9 +2858,6 @@ async function debugFetchPosts() {
     }
     console.log('=== DEBUG FETCH POSTS END ===');
 }
-
-// Make debug function globally available
-window.debugFetchPosts = debugFetchPosts;
 
 // Ensure posts are loaded on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -2961,5 +2909,3 @@ async function forceLoadPosts() {
     console.log('=== FORCE LOAD POSTS END ===');
 }
 
-// Make force load function globally available
-window.forceLoadPosts = forceLoadPosts;
