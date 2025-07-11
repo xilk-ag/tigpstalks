@@ -1,3 +1,17 @@
+// Emergency error handler - catch all errors
+window.addEventListener('error', function(e) {
+    console.error('EMERGENCY ERROR CAUGHT:', e.error);
+    alert('JavaScript Error: ' + e.message + '\nFile: ' + e.filename + '\nLine: ' + e.lineno);
+});
+
+// Emergency unhandled promise rejection handler
+window.addEventListener('unhandledrejection', function(e) {
+    console.error('EMERGENCY PROMISE ERROR:', e.reason);
+    alert('Promise Error: ' + e.reason);
+});
+
+console.log('=== SCRIPT LOADING START ===');
+
 // Tenor API Configuration
 const TENOR_API_KEY = 'AIzaSyBMTZlitQGyqNx3LO0cNiITBpBHMec8rN8'; // Tenor API key
 const TENOR_BASE_URL = 'https://tenor.googleapis.com/v2';
