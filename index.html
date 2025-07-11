@@ -225,6 +225,7 @@
                                 <button class="btn-secondary" onclick="createTestPost()" style="margin-left:10px;">Test Post</button>
                                 <button class="btn-secondary" onclick="debugFetchPosts()" style="margin-left:10px;">Debug Posts</button>
                                 <button class="btn-secondary" onclick="forceLoadPosts()" style="margin-left:10px;background:#ff6b6b;">Force Load Posts</button>
+                                <button class="btn-secondary" onclick="alert('Button clicked!')" style="margin-left:10px;background:#ff0000;">Test Click</button>
                             </div>
                         </div>
                     </div>
@@ -501,6 +502,15 @@ window.TIGPS_GOOGLE_CLIENT_ID = '363283261404-0bopi877ikv148a43vo6rhcnit3r85ei.a
 </script>
     <!-- Only one script.js, loaded after Firebase SDKs -->
     <script src="script.js" defer></script>
+    <script>
+        // Simple test to verify script loading
+        console.log('HTML script loaded');
+        if (typeof createTestPost === 'function') {
+            console.log('✓ createTestPost function is available');
+        } else {
+            console.log('❌ createTestPost function is NOT available');
+        }
+    </script>
     <script>
 // Starfield: white, subtle, animated
 (function() {
