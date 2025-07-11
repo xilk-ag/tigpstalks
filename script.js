@@ -48,6 +48,22 @@ function checkAdminState() {
 document.addEventListener('DOMContentLoaded', function() {
     checkAdminState();
     setupContentProtection();
+    
+    // Initialize app data (loads posts)
+    initializeAppData();
+    
+    // Load posts after a short delay as backup
+    setTimeout(async function() {
+        console.log('Loading posts on page load...');
+        try {
+            posts = await fetchPostsFromFirestore();
+            console.log('Posts loaded:', posts.length);
+            renderPosts();
+        } catch (error) {
+            console.error('Error loading posts:', error);
+            showNotification('Failed to load posts: ' + error.message, 'error');
+        }
+    }, 1000);
 });
 
 // Content protection functions
@@ -2821,3 +2837,47 @@ async function createTestPost() {
 
 // Make test post function globally available
 window.createTestPost = createTestPost;
+
+// Debug function to fetch and display posts
+async function debugFetchPosts() {
+    console.log('Debug: Fetching posts...');
+    try {
+        // Fetch posts from Firestore
+        posts = await fetchPostsFromFirestore();
+        console.log('Debug: Posts fetched:', posts);
+        
+        // Render posts
+        renderPosts();
+        console.log('Debug: Posts rendered');
+        
+        showNotification(`Fetched ${posts.length} posts`, 'success');
+    } catch (error) {
+        console.error('Debug: Error fetching posts:', error);
+        showNotification('Error fetching posts: ' + error.message, 'error');
+    }
+}
+
+// Make debug function globally available
+window.debugFetchPosts = debugFetchPosts;
+
+// Ensure posts are loaded on page load
+document.addEventListener('DOMContentLoaded', function() {
+    checkAdminState();
+    setupContentProtection();
+    
+    // Initialize app data (loads posts)
+    initializeAppData();
+    
+    // Load posts after a short delay as backup
+    setTimeout(async function() {
+        console.log('Loading posts on page load...');
+        try {
+            posts = await fetchPostsFromFirestore();
+            console.log('Posts loaded:', posts.length);
+            renderPosts();
+        } catch (error) {
+            console.error('Error loading posts:', error);
+            showNotification('Failed to load posts: ' + error.message, 'error');
+        }
+    }, 1000);
+});
