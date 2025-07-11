@@ -414,7 +414,9 @@ async function fetchPostsFromFirestore() {
         isAnonymous: data.isAnonymous || false,
         isLiked: data.isLiked || false,
         media: data.media || null,
-        tags: data.tags || []
+        tags: data.tags || [],
+        likedBy: data.likedBy || [],
+        isLiked: currentUser && currentUser.username && data.likedBy && data.likedBy.includes(currentUser.username)
       };
     });
     
@@ -1250,7 +1252,7 @@ function createPostElement(post, index) {
             </button>
         </div>
         <div class="instagram-stats">
-            <span>${safePost.likes} likes</span>
+            <span>${safePost.likedBy.length} likes</span>
             <span>${safePost.comments.length} comments</span>
         </div>
     `;
@@ -3128,26 +3130,18 @@ let currentInstagramPostId = null;
 // Instagram-style like function
 function instagramLike(postId) {
     const post = posts.find(p => p.id === postId);
-    if (!post) return;
-    
-    if (post.isLiked) {
-        post.likes--;
-        post.isLiked = false;
-        if (post.likedBy && currentUser && currentUser.username) {
-            post.likedBy = post.likedBy.filter(username => username !== currentUser.username);
-        }
+    if (!post || !currentUser || !currentUser.username) return;
+    if (!post.likedBy) post.likedBy = [];
+    const userIndex = post.likedBy.indexOf(currentUser.username);
+    if (userIndex !== -1) {
+        // Unlike
+        post.likedBy.splice(userIndex, 1);
     } else {
-        post.likes++;
-        post.isLiked = true;
-        if (!post.likedBy) post.likedBy = [];
-        if (currentUser && currentUser.username) {
-            post.likedBy.push(currentUser.username);
-        }
+        // Like
+        post.likedBy.push(currentUser.username);
     }
-    
     // Update in Firestore
     updatePostInFirestore(post);
-    
     // Re-render posts
     renderPosts();
 }
@@ -3300,8 +3294,6 @@ async function updatePostInFirestore(post) {
     try {
         if (db) {
             await db.collection("posts").doc(post.id).update({
-                likes: post.likes,
-                isLiked: post.isLiked,
                 likedBy: post.likedBy || [],
                 comments: post.comments || []
             });
