@@ -48,27 +48,6 @@ function checkAdminState() {
 document.addEventListener('DOMContentLoaded', function() {
     checkAdminState();
     setupContentProtection();
-    
-    // Hide loading screen after 1 second
-    setTimeout(function() {
-        const loadingScreen = document.getElementById('loadingScreen');
-        if (loadingScreen) {
-            loadingScreen.style.opacity = '0';
-            setTimeout(function() {
-                loadingScreen.style.display = 'none';
-            }, 500);
-        }
-    }, 1000);
-
-    // Fallback: force hide loading screen after 3 seconds
-    setTimeout(function() {
-        const loadingScreen = document.getElementById('loadingScreen');
-        if (loadingScreen && loadingScreen.style.display !== 'none') {
-            console.log('Forcing loading screen to hide');
-            loadingScreen.style.opacity = '0';
-            loadingScreen.style.display = 'none';
-        }
-    }, 3000);
 });
 
 // Content protection functions
@@ -2797,3 +2776,48 @@ createPost = async function() {
   }
 }
 // ... existing code ...
+
+// Test post function for debugging
+async function createTestPost() {
+    console.log('Creating test post...');
+    const username = getStoredUsername();
+    if (!username) {
+        showNotification('Please enter your username first!', 'error');
+        showUsernameModal();
+        return;
+    }
+    
+    try {
+        const testPost = {
+            content: "This is a test post from " + username + " at " + new Date().toLocaleTimeString(),
+            author: username,
+            username: username,
+            avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face",
+            timestamp: new Date().toISOString(),
+            likes: 0,
+            comments: [],
+            isAnonymous: false,
+            isLiked: false,
+            media: null,
+            gif: null,
+            tags: ["test", "debug"],
+            likedBy: []
+        };
+        
+        console.log('Test post object:', testPost);
+        await savePostToFirestore(testPost);
+        
+        // Update local posts array
+        posts.unshift(testPost);
+        renderPosts();
+        
+        showNotification('Test post created successfully!', 'success');
+        console.log('Test post created and rendered');
+    } catch (error) {
+        console.error('Error creating test post:', error);
+        showNotification('Failed to create test post: ' + error.message, 'error');
+    }
+}
+
+// Make test post function globally available
+window.createTestPost = createTestPost;
