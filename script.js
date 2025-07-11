@@ -293,14 +293,32 @@ const firebaseConfig = {
   appId: "1:242470054512:web:47b3aed365f6534c8aa2b5",
   measurementId: "G-LNH8BXWW83"
 };
-if (!window.firebase.apps.length) {
-  window.firebase.initializeApp(firebaseConfig);
+
+let db = null;
+
+// Initialize Firebase safely
+try {
+  if (typeof window !== 'undefined' && window.firebase) {
+    if (!window.firebase.apps.length) {
+      window.firebase.initializeApp(firebaseConfig);
+    }
+    db = window.firebase.firestore();
+    console.log('Firebase initialized successfully');
+  } else {
+    console.warn('Firebase not available in this environment');
+  }
+} catch (error) {
+  console.error('Error initializing Firebase:', error);
 }
-const db = window.firebase.firestore();
 
 // Firestore CRUD for posts
 async function fetchPostsFromFirestore() {
   try {
+    if (!db) {
+      console.warn('Firestore not initialized, returning empty array');
+      return [];
+    }
+    
     console.log('Starting fetchPostsFromFirestore...');
     const postsCol = db.collection("posts");
     console.log('Posts collection reference:', postsCol);
