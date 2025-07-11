@@ -46,24 +46,43 @@ function checkAdminState() {
 
 // Call this function when the page loads
 document.addEventListener('DOMContentLoaded', function() {
-    checkAdminState();
-    setupContentProtection();
-    
-    // Initialize app data (loads posts)
-    initializeAppData();
-    
-    // Load posts after a short delay as backup
-    setTimeout(async function() {
-        console.log('Loading posts on page load...');
-        try {
-            posts = await fetchPostsFromFirestore();
-            console.log('Posts loaded:', posts.length);
-            renderPosts();
-        } catch (error) {
-            console.error('Error loading posts:', error);
-            showNotification('Failed to load posts: ' + error.message, 'error');
-        }
-    }, 1000);
+    console.log('=== DOMContentLoaded START ===');
+    try {
+        checkAdminState();
+        console.log('✓ Admin state checked');
+        
+        setupContentProtection();
+        console.log('✓ Content protection setup');
+        
+        // Initialize app data (loads posts)
+        console.log('🔄 Starting initializeAppData...');
+        initializeAppData().then(() => {
+            console.log('✓ initializeAppData completed');
+        }).catch(error => {
+            console.error('❌ initializeAppData failed:', error);
+            showNotification('App initialization failed: ' + error.message, 'error');
+        });
+        
+        // Load posts after a short delay as backup
+        setTimeout(async function() {
+            console.log('🔄 Backup post loading...');
+            try {
+                posts = await fetchPostsFromFirestore();
+                console.log('✓ Backup posts loaded:', posts.length);
+                renderPosts();
+                console.log('✓ Backup posts rendered');
+            } catch (error) {
+                console.error('❌ Backup post loading failed:', error);
+                showNotification('Backup post loading failed: ' + error.message, 'error');
+            }
+        }, 2000);
+        
+        console.log('✓ DOMContentLoaded completed');
+    } catch (error) {
+        console.error('❌ DOMContentLoaded error:', error);
+        showNotification('Page initialization failed: ' + error.message, 'error');
+    }
+    console.log('=== DOMContentLoaded END ===');
 });
 
 // Content protection functions
@@ -2795,15 +2814,20 @@ createPost = async function() {
 
 // Test post function for debugging
 async function createTestPost() {
-    console.log('Creating test post...');
-    const username = getStoredUsername();
-    if (!username) {
-        showNotification('Please enter your username first!', 'error');
-        showUsernameModal();
-        return;
-    }
-    
+    console.log('=== CREATE TEST POST START ===');
     try {
+        console.log('🔄 Getting stored username...');
+        const username = getStoredUsername();
+        console.log('✓ Username:', username);
+        
+        if (!username) {
+            console.log('❌ No username found, showing modal');
+            showNotification('Please enter your username first!', 'error');
+            showUsernameModal();
+            return;
+        }
+        
+        console.log('🔄 Creating test post object...');
         const testPost = {
             content: "This is a test post from " + username + " at " + new Date().toLocaleTimeString(),
             author: username,
@@ -2820,19 +2844,27 @@ async function createTestPost() {
             likedBy: []
         };
         
-        console.log('Test post object:', testPost);
-        await savePostToFirestore(testPost);
+        console.log('✓ Test post object created:', testPost);
         
-        // Update local posts array
+        console.log('🔄 Saving to Firestore...');
+        await savePostToFirestore(testPost);
+        console.log('✓ Test post saved to Firestore');
+        
+        console.log('🔄 Updating local posts array...');
         posts.unshift(testPost);
+        console.log('✓ Local posts array updated, length:', posts.length);
+        
+        console.log('🔄 Rendering posts...');
         renderPosts();
+        console.log('✓ Posts rendered');
         
         showNotification('Test post created successfully!', 'success');
-        console.log('Test post created and rendered');
+        console.log('✓ Test post creation completed');
     } catch (error) {
-        console.error('Error creating test post:', error);
+        console.error('❌ Test post creation error:', error);
         showNotification('Failed to create test post: ' + error.message, 'error');
     }
+    console.log('=== CREATE TEST POST END ===');
 }
 
 // Make test post function globally available
@@ -2840,21 +2872,26 @@ window.createTestPost = createTestPost;
 
 // Debug function to fetch and display posts
 async function debugFetchPosts() {
-    console.log('Debug: Fetching posts...');
+    console.log('=== DEBUG FETCH POSTS START ===');
     try {
-        // Fetch posts from Firestore
-        posts = await fetchPostsFromFirestore();
-        console.log('Debug: Posts fetched:', posts);
+        console.log('🔄 Fetching posts from Firestore...');
+        const fetchedPosts = await fetchPostsFromFirestore();
+        console.log('✓ Posts fetched:', fetchedPosts);
         
-        // Render posts
+        console.log('🔄 Updating posts array...');
+        posts = fetchedPosts || [];
+        console.log('✓ Posts array updated, length:', posts.length);
+        
+        console.log('🔄 Rendering posts...');
         renderPosts();
-        console.log('Debug: Posts rendered');
+        console.log('✓ Posts rendered');
         
-        showNotification(`Fetched ${posts.length} posts`, 'success');
+        showNotification(`Debug: Fetched ${posts.length} posts`, 'success');
     } catch (error) {
-        console.error('Debug: Error fetching posts:', error);
-        showNotification('Error fetching posts: ' + error.message, 'error');
+        console.error('❌ Debug fetch error:', error);
+        showNotification('Debug fetch failed: ' + error.message, 'error');
     }
+    console.log('=== DEBUG FETCH POSTS END ===');
 }
 
 // Make debug function globally available
@@ -2881,3 +2918,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 1000);
 });
+
+// Simple force load posts function
+async function forceLoadPosts() {
+    console.log('=== FORCE LOAD POSTS START ===');
+    try {
+        console.log('🔄 Clearing existing posts...');
+        posts = [];
+        console.log('✓ Posts cleared');
+        
+        console.log('🔄 Fetching fresh posts...');
+        const fetchedPosts = await fetchPostsFromFirestore();
+        console.log('✓ Fresh posts fetched:', fetchedPosts);
+        
+        console.log('🔄 Updating posts array...');
+        posts = fetchedPosts || [];
+        console.log('✓ Posts array updated, length:', posts.length);
+        
+        console.log('🔄 Rendering posts...');
+        renderPosts();
+        console.log('✓ Posts rendered');
+        
+        showNotification(`Force loaded ${posts.length} posts!`, 'success');
+    } catch (error) {
+        console.error('❌ Force load error:', error);
+        showNotification('Force load failed: ' + error.message, 'error');
+    }
+    console.log('=== FORCE LOAD POSTS END ===');
+}
+
+// Make force load function globally available
+window.forceLoadPosts = forceLoadPosts;
