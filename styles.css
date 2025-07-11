@@ -2372,3 +2372,46 @@ body::before {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 } 
+
+/* Username Modal Customization */
+#usernameModal .modal-content {
+  animation: modalPop 0.3s;
+  background: #181818;
+  color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+}
+#usernameModal .modal-header h2 {
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+#usernameModal input[type="text"] {
+  background: #222;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+#usernameModal input[type="text"]:focus {
+  outline: 2px solid #667eea;
+  border-color: #667eea;
+}
+#usernameModal .btn-primary {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#usernameModal .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+} 

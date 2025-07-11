@@ -2682,3 +2682,70 @@ async function cleanupDuplicatePosts() {
 
 // Make cleanup function globally available
 window.cleanupDuplicatePosts = cleanupDuplicatePosts;
+
+// Username Modal Logic
+function showUsernameModal() {
+  const modal = document.getElementById('usernameModal');
+  if (modal) modal.style.display = 'flex';
+  const input = document.getElementById('usernameInput');
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+}
+function hideUsernameModal() {
+  const modal = document.getElementById('usernameModal');
+  if (modal) modal.style.display = 'none';
+}
+function getStoredUsername() {
+  return localStorage.getItem('tigps_username') || '';
+}
+function setStoredUsername(username) {
+  localStorage.setItem('tigps_username', username);
+}
+function requireUsername() {
+  let username = getStoredUsername();
+  if (!username) {
+    showUsernameModal();
+  } else {
+    window.tigpsUsername = username;
+  }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  // ... existing code ...
+  requireUsername();
+  const usernameInput = document.getElementById('usernameInput');
+  const usernameBtn = document.getElementById('usernameSubmitBtn');
+  if (usernameBtn && usernameInput) {
+    usernameBtn.onclick = function() {
+      const val = usernameInput.value.trim();
+      if (val.length > 0) {
+        setStoredUsername(val);
+        window.tigpsUsername = val;
+        hideUsernameModal();
+      } else {
+        usernameInput.focus();
+        usernameInput.style.borderColor = '#e74c3c';
+      }
+    };
+    usernameInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') usernameBtn.click();
+    });
+  }
+});
+
+// ... existing code ...
+// After requireUsername() in DOMContentLoaded
+requireUsername();
+// Update currentUser with entered username
+const enteredUsername = getStoredUsername();
+if (enteredUsername) {
+  currentUser.username = enteredUsername;
+  currentUser.displayName = enteredUsername;
+}
+// Update post creator UI
+const postCreatorName = document.getElementById('postCreatorName');
+const postCreatorDisplayName = document.getElementById('postCreatorDisplayName');
+if (postCreatorName) postCreatorName.textContent = '@' + (enteredUsername || 'username');
+if (postCreatorDisplayName) postCreatorDisplayName.textContent = enteredUsername || 'Username';
+// ... existing code ...
