@@ -12,6 +12,54 @@ window.addEventListener('unhandledrejection', function(e) {
 
 console.log('=== SCRIPT LOADING START ===');
 
+// Global test function for debugging
+window.testTIGPS = function() {
+    console.log('=== TIGPS SYSTEM TEST ===');
+    
+    // Test 1: Check if basic functions exist
+    console.log('Test 1: Function availability');
+    console.log('createPost:', typeof createPost);
+    console.log('createTestPost:', typeof createTestPost);
+    console.log('debugFetchPosts:', typeof debugFetchPosts);
+    console.log('forceLoadPosts:', typeof forceLoadPosts);
+    console.log('showNotification:', typeof showNotification);
+    
+    // Test 2: Check if DOM elements exist
+    console.log('Test 2: DOM elements');
+    console.log('postButton:', document.getElementById('postButton'));
+    console.log('testPostButton:', document.getElementById('testPostButton'));
+    console.log('debugPostsButton:', document.getElementById('debugPostsButton'));
+    console.log('forceLoadButton:', document.getElementById('forceLoadButton'));
+    console.log('postInput:', document.getElementById('postInput'));
+    console.log('postsFeed:', document.getElementById('postsFeed'));
+    
+    // Test 3: Check Firebase status
+    console.log('Test 3: Firebase status');
+    console.log('window.firebase:', typeof window.firebase);
+    console.log('db:', db);
+    
+    // Test 4: Check localStorage
+    console.log('Test 4: localStorage');
+    console.log('tigpsPosts:', localStorage.getItem('tigpsPosts'));
+    console.log('tigpsUsername:', localStorage.getItem('tigpsUsername'));
+    
+    // Test 5: Check global variables
+    console.log('Test 5: Global variables');
+    console.log('posts:', posts);
+    console.log('currentUser:', currentUser);
+    
+    // Test 6: Try to create a test notification
+    console.log('Test 6: Notification system');
+    try {
+        showNotification('Test notification - system is working!', 'success');
+        console.log('✓ Notification system works');
+    } catch (error) {
+        console.error('❌ Notification system failed:', error);
+    }
+    
+    console.log('=== TIGPS SYSTEM TEST COMPLETE ===');
+};
+
 // Tenor API Configuration
 const TENOR_API_KEY = 'AIzaSyBMTZlitQGyqNx3LO0cNiITBpBHMec8rN8'; // Tenor API key
 const TENOR_BASE_URL = 'https://tenor.googleapis.com/v2';
@@ -63,6 +111,11 @@ function checkAdminState() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('=== DOMContentLoaded START ===');
     try {
+        // Initialize Firebase first
+        console.log('🔄 Initializing Firebase...');
+        const firebaseInitialized = initializeFirebase();
+        console.log('✓ Firebase initialization:', firebaseInitialized ? 'success' : 'failed');
+        
         checkAdminState();
         console.log('✓ Admin state checked');
         
@@ -307,26 +360,32 @@ const firebaseConfig = {
 let db = null;
 
 // Initialize Firebase safely
-try {
-  if (typeof window !== 'undefined' && window.firebase) {
-    if (!window.firebase.apps.length) {
-      window.firebase.initializeApp(firebaseConfig);
+function initializeFirebase() {
+  try {
+    if (typeof window !== 'undefined' && window.firebase) {
+      if (!window.firebase.apps.length) {
+        window.firebase.initializeApp(firebaseConfig);
+      }
+      db = window.firebase.firestore();
+      console.log('Firebase initialized successfully');
+      return true;
+    } else {
+      console.warn('Firebase not available in this environment');
+      return false;
     }
-    db = window.firebase.firestore();
-    console.log('Firebase initialized successfully');
-  } else {
-    console.warn('Firebase not available in this environment');
+  } catch (error) {
+    console.error('Error initializing Firebase:', error);
+    return false;
   }
-} catch (error) {
-  console.error('Error initializing Firebase:', error);
 }
 
 // Firestore CRUD for posts
 async function fetchPostsFromFirestore() {
   try {
     if (!db) {
-      console.warn('Firestore not initialized, returning empty array');
-      return [];
+      console.warn('Firestore not initialized, using localStorage fallback');
+      const storedPosts = localStorage.getItem('tigpsPosts');
+      return storedPosts ? JSON.parse(storedPosts) : [];
     }
     
     console.log('Starting fetchPostsFromFirestore...');
@@ -362,11 +421,31 @@ async function fetchPostsFromFirestore() {
     return postsArr;
   } catch (error) {
     console.error('Error in fetchPostsFromFirestore:', error);
-    return [];
+    // Fallback to localStorage
+    const storedPosts = localStorage.getItem('tigpsPosts');
+    return storedPosts ? JSON.parse(storedPosts) : [];
   }
 }
 async function savePostToFirestore(post) {
-  await db.collection("posts").add(post);
+  try {
+    if (!db) {
+      console.warn('Firestore not initialized, using localStorage fallback');
+      const storedPosts = localStorage.getItem('tigpsPosts');
+      const posts = storedPosts ? JSON.parse(storedPosts) : [];
+      post.id = Date.now().toString();
+      posts.unshift(post);
+      localStorage.setItem('tigpsPosts', JSON.stringify(posts));
+      return;
+    }
+    await db.collection("posts").add(post);
+  } catch (error) {
+    console.error('Error saving post to Firestore, using localStorage fallback:', error);
+    const storedPosts = localStorage.getItem('tigpsPosts');
+    const posts = storedPosts ? JSON.parse(storedPosts) : [];
+    post.id = Date.now().toString();
+    posts.unshift(post);
+    localStorage.setItem('tigpsPosts', JSON.stringify(posts));
+  }
 }
 // Firestore CRUD for profiles
 async function fetchProfileFromFirestore(username) {

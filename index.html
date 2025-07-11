@@ -19,6 +19,7 @@
         <button onclick="console.log('Console test')" style="background:#4ecdc4; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Console</button>
         <button onclick="document.body.style.background='red'" style="background:#45b7d1; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Red BG</button>
         <button onclick="location.reload()" style="background:#96ceb4; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Reload</button>
+        <button onclick="testTIGPS()" style="background:#ffa726; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Test System</button>
     </div>
 
     <!-- Username Modal -->
@@ -224,10 +225,10 @@
                             </div>
                             <div class="post-submit">
                                 <div class="char-count" id="charCount">0/500</div>
-                                <button class="btn-post" onclick="createPost()" id="postBtn">Post</button>
-                                <button class="btn-secondary" onclick="createTestPost()" style="margin-left:10px;">Test Post</button>
-                                <button class="btn-secondary" onclick="debugFetchPosts()" style="margin-left:10px;">Debug Posts</button>
-                                <button class="btn-secondary" onclick="forceLoadPosts()" style="margin-left:10px;background:#ff6b6b;">Force Load Posts</button>
+                                <button class="btn-post" onclick="createPost()" id="postButton">Post</button>
+                                <button class="btn-secondary" onclick="createTestPost()" id="testPostButton" style="margin-left:10px;">Test Post</button>
+                                <button class="btn-secondary" onclick="debugFetchPosts()" id="debugPostsButton" style="margin-left:10px;">Debug Posts</button>
+                                <button class="btn-secondary" onclick="forceLoadPosts()" id="forceLoadButton" style="margin-left:10px;background:#ff6b6b;">Force Load Posts</button>
                                 <button class="btn-secondary" onclick="alert('Button clicked!')" style="margin-left:10px;background:#ff0000;">Test Click</button>
                             </div>
                         </div>
@@ -295,7 +296,7 @@
                         </div>
                         <div class="post-submit">
                             <div class="char-count" id="modalCharCount">0/500</div>
-                            <button class="btn-post" onclick="createPostFromModal()" id="modalPostBtn">Post</button>
+                            <button class="btn-post" onclick="createPostFromModal()" id="modalPostButton">Post</button>
                         </div>
                     </div>
                 </div>
@@ -532,79 +533,6 @@ window.TIGPS_GOOGLE_CLIENT_ID = '363283261404-0bopi877ikv148a43vo6rhcnit3r85ei.a
   }
 })();
 </script>
-    <!-- Username Modal -->
-    <div id="usernameModal" class="modal" style="display:none;">
-      <div class="modal-content" style="max-width:350px;text-align:center;">
-        <div class="modal-header">
-          <h2>Enter Username</h2>
-        </div>
-        <div class="modal-body">
-          <input type="text" id="usernameInput" class="modal-post-input" placeholder="Your username" maxlength="20" autocomplete="off" style="width:100%;margin-bottom:1rem;">
-          <button id="usernameSubmitBtn" class="btn-primary" style="width:100%;">Continue</button>
-        </div>
-      </div>
-    </div>
-    <!-- Login Modal (Simple Username) -->
-    <div class="modal" id="loginModal">
-        <div class="modal-content profile-modal">
-            <div class="modal-header">
-                <h2>Login</h2>
-            </div>
-            <div class="modal-body">
-                <div class="profile-edit-section">
-                    <div class="profile-fields">
-                        <div class="input-group">
-                            <label>Display Name</label>
-                            <input type="text" id="loginDisplayName" placeholder="Your display name">
-                        </div>
-                        <div class="input-group">
-                            <label>Username (@username)</label>
-                            <input type="text" id="loginUsername" placeholder="username">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn-primary" onclick="loginUser()">Login</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Instagram-style Profile Modal -->
-    <div class="modal" id="profileModal">
-      <div class="modal-content profile-modal">
-        <div class="modal-header">
-          <h2>Edit Profile</h2>
-          <button class="close-btn" onclick="closeProfileModal()">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="profile-pic-section">
-            <img src="" alt="Profile" class="profile-pic-large" id="profilePicLarge">
-            <button class="change-pic-btn" onclick="triggerProfilePicUpload()">Change Photo</button>
-            <input type="file" id="profilePicUpload" accept="image/*" style="display: none;" onchange="handleProfilePicUpload(event)">
-          </div>
-          <div class="profile-fields">
-            <div class="input-group">
-              <label>Name</label>
-              <input type="text" id="profileNameInput" maxlength="30">
-            </div>
-            <div class="input-group">
-              <label>Username</label>
-              <input type="text" id="profileUsernameInput" maxlength="15">
-            </div>
-            <div class="input-group">
-              <label>Bio</label>
-              <textarea id="profileBioInput" maxlength="150"></textarea>
-            </div>
-          </div>
-          <div class="modal-actions">
-            <button class="btn-primary" onclick="saveProfile()">Save</button>
-            <button class="btn-secondary" onclick="closeProfileModal()">Cancel</button>
-          </div>
-          <hr style="margin:2rem 0;">
-          <h3>My Posts</h3>
-          <div id="profilePostsList" style="max-height:300px;overflow-y:auto;"></div>
-        </div>
-      </div>
-    </div>
+
 </body>
 </html> 
