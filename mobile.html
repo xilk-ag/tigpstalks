@@ -441,6 +441,28 @@
         </div>
     </div>
 
+    <!-- Instagram-style Comment Modal -->
+    <div id="instagramCommentModal" class="instagram-comment-modal" style="display:none;">
+        <div class="instagram-comment-content">
+            <div class="instagram-comment-header">
+                <h3>Comments</h3>
+                <button class="instagram-close-btn" onclick="closeInstagramCommentModal()">×</button>
+            </div>
+            <div class="instagram-comment-post" id="instagramCommentPost">
+                <!-- Post content will be inserted here -->
+            </div>
+            <div class="instagram-comments-list" id="instagramCommentsList">
+                <!-- Comments will be loaded here -->
+            </div>
+            <div class="instagram-comment-input-section">
+                <div class="instagram-comment-input-container">
+                    <textarea class="instagram-comment-input" id="instagramCommentInput" placeholder="Add a comment..." maxlength="200" rows="1"></textarea>
+                    <button class="instagram-comment-submit" id="instagramCommentSubmit" onclick="addInstagramComment()">Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Hidden file input for media upload -->
     <input type="file" id="fileInput" accept="image/*,video/*" style="display:none;" onchange="handleFileSelect(event)">
 

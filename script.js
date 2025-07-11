@@ -849,25 +849,20 @@ function setupEventListeners() {
         console.error('❌ Force load button not found!');
     }
     
-    // Post action buttons event delegation
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('post-action-btn')) {
-            const postId = parseInt(e.target.getAttribute('data-post-id'));
-            const action = e.target.getAttribute('data-action');
-            
-            switch(action) {
-                case 'like':
-                    toggleLike(postId);
-                    break;
-                case 'comment':
-                    showComments(postId);
-                    break;
-                case 'share':
-                    sharePost(postId);
-                    break;
+    // Instagram-style comment input event listeners
+    const instagramCommentInput = document.getElementById('instagramCommentInput');
+    if (instagramCommentInput) {
+        instagramCommentInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                addInstagramComment();
             }
-        }
-    });
+        });
+        
+        instagramCommentInput.addEventListener('input', function(e) {
+            autoResizeTextarea(e);
+        });
+    }
 
     // Character count updates
     const postInput = document.getElementById('postInput');
@@ -1236,31 +1231,27 @@ function createPostElement(post, index) {
         ${mediaHtml}
         ${gifHtml}
         ${tagsHtml}
-        <div class="post-actions-bar">
-            <div class="post-stats">
-                <span>${safePost.likes} likes</span>
-                <span>${safePost.comments.length} comments</span>
-            </div>
-            <div class="post-actions">
-                <button class="post-action-btn ${hasLiked ? 'liked' : ''}" data-post-id="${safePost.id}" data-action="like">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 6px;">
-                        <path d="${hasLiked ? 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' : 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'}"/>
-                    </svg>
-                    Like
-                </button>
-                <button class="post-action-btn" data-post-id="${safePost.id}" data-action="comment">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 6px;">
-                        <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-                    </svg>
-                    Comment
-                </button>
-                <button class="post-action-btn" data-post-id="${safePost.id}" data-action="share">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 6px;">
-                        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
-                    </svg>
-                    Share
-                </button>
-            </div>
+        <!-- Instagram-style Actions -->
+        <div class="instagram-actions">
+            <button class="instagram-action-btn ${hasLiked ? 'liked' : ''}" onclick="instagramLike('${safePost.id}')">
+                <svg viewBox="0 0 24 24" fill="${hasLiked ? '#e31b23' : 'currentColor'}">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </button>
+            <button class="instagram-action-btn" onclick="instagramComment('${safePost.id}')">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                </svg>
+            </button>
+            <button class="instagram-action-btn" onclick="instagramShare('${safePost.id}')">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="instagram-stats">
+            <span>${safePost.likes} likes</span>
+            <span>${safePost.comments.length} comments</span>
         </div>
     `;
     
@@ -3129,5 +3120,194 @@ async function forceLoadPosts() {
         showNotification('Force load failed: ' + error.message, 'error');
     }
     console.log('=== FORCE LOAD POSTS END ===');
+}
+
+// Instagram-style functionality
+let currentInstagramPostId = null;
+
+// Instagram-style like function
+function instagramLike(postId) {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    if (post.isLiked) {
+        post.likes--;
+        post.isLiked = false;
+        if (post.likedBy && currentUser && currentUser.username) {
+            post.likedBy = post.likedBy.filter(username => username !== currentUser.username);
+        }
+    } else {
+        post.likes++;
+        post.isLiked = true;
+        if (!post.likedBy) post.likedBy = [];
+        if (currentUser && currentUser.username) {
+            post.likedBy.push(currentUser.username);
+        }
+    }
+    
+    // Update in Firestore
+    updatePostInFirestore(post);
+    
+    // Re-render posts
+    renderPosts();
+}
+
+// Instagram-style comment function
+function instagramComment(postId) {
+    currentInstagramPostId = postId;
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    // Populate the Instagram comment modal
+    const modal = document.getElementById('instagramCommentModal');
+    const postContainer = document.getElementById('instagramCommentPost');
+    
+    postContainer.innerHTML = `
+        <div class="instagram-comment-post-header">
+            <img src="${post.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'}" alt="Profile" class="instagram-comment-post-avatar">
+            <div class="instagram-comment-post-author">${post.isAnonymous ? 'Anonymous' : post.author}</div>
+        </div>
+        <div class="instagram-comment-post-content">${post.content}</div>
+        ${post.media ? `<div class="instagram-comment-post-media"><img src="${post.media}" alt="Post media" style="max-width: 100%; border-radius: 8px;"></div>` : ''}
+        <div class="instagram-comment-post-actions">
+            <button class="instagram-action-btn ${post.isLiked ? 'liked' : ''}" onclick="instagramLike('${post.id}')">
+                <svg viewBox="0 0 24 24" fill="${post.isLiked ? '#e31b23' : 'currentColor'}">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </button>
+            <button class="instagram-action-btn" onclick="instagramComment('${post.id}')">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                </svg>
+            </button>
+            <button class="instagram-action-btn" onclick="instagramShare('${post.id}')">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+                </svg>
+            </button>
+        </div>
+    `;
+    
+    // Load comments
+    loadInstagramComments(postId);
+    
+    // Show modal
+    modal.style.display = 'flex';
+}
+
+// Load Instagram comments
+async function loadInstagramComments(postId) {
+    try {
+        const comments = await fetchCommentsFromFirestore(postId);
+        const commentsList = document.getElementById('instagramCommentsList');
+        
+        if (comments.length === 0) {
+            commentsList.innerHTML = '<div style="text-align: center; color: #8e8e93; padding: 20px;">No comments yet. Be the first to comment!</div>';
+            return;
+        }
+        
+        commentsList.innerHTML = comments.map(comment => `
+            <div class="instagram-comment-item">
+                <img src="${comment.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'}" alt="Profile" class="instagram-comment-avatar">
+                <div class="instagram-comment-content">
+                    <div class="instagram-comment-author">${comment.author}</div>
+                    <div class="instagram-comment-text">${comment.content}</div>
+                    <div class="instagram-comment-time">${getTimeAgo(comment.timestamp)}</div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading Instagram comments:', error);
+        document.getElementById('instagramCommentsList').innerHTML = '<div style="text-align: center; color: #8e8e93; padding: 20px;">Error loading comments</div>';
+    }
+}
+
+// Add Instagram comment
+async function addInstagramComment() {
+    const input = document.getElementById('instagramCommentInput');
+    const content = input.value.trim();
+    
+    if (!content || !currentInstagramPostId) return;
+    
+    const comment = {
+        content: content,
+        author: currentUser.displayName || 'Anonymous',
+        username: currentUser.username || 'anonymous',
+        avatar: currentUser.avatar,
+        timestamp: new Date().toISOString()
+    };
+    
+    try {
+        // Save to Firestore
+        await db.collection("posts").doc(currentInstagramPostId).collection("comments").add(comment);
+        
+        // Clear input
+        input.value = '';
+        
+        // Reload comments
+        await loadInstagramComments(currentInstagramPostId);
+        
+        // Update post comment count
+        const post = posts.find(p => p.id === currentInstagramPostId);
+        if (post) {
+            if (!post.comments) post.comments = [];
+            post.comments.push(comment);
+            await updatePostInFirestore(post);
+            renderPosts();
+        }
+        
+        showNotification('Comment added!', 'success');
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        showNotification('Failed to add comment', 'error');
+    }
+}
+
+// Close Instagram comment modal
+function closeInstagramCommentModal() {
+    document.getElementById('instagramCommentModal').style.display = 'none';
+    currentInstagramPostId = null;
+    document.getElementById('instagramCommentInput').value = '';
+}
+
+// Instagram share function
+function instagramShare(postId) {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const shareText = `${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}`;
+    const shareUrl = window.location.href;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'TIGPS TALKS',
+            text: shareText,
+            url: shareUrl
+        });
+    } else {
+        // Fallback: copy to clipboard
+        const textToCopy = `${shareText}\n\n${shareUrl}`;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            showNotification('Link copied to clipboard!', 'success');
+        }).catch(() => {
+            showNotification('Failed to copy link', 'error');
+        });
+    }
+}
+
+// Update post in Firestore
+async function updatePostInFirestore(post) {
+    try {
+        if (db) {
+            await db.collection("posts").doc(post.id).update({
+                likes: post.likes,
+                isLiked: post.isLiked,
+                likedBy: post.likedBy || [],
+                comments: post.comments || []
+            });
+        }
+    } catch (error) {
+        console.error('Error updating post in Firestore:', error);
+    }
 }
 
