@@ -12,16 +12,6 @@
 </head>
 <body>
     
-    <!-- Emergency Debug Section -->
-    <div style="position:fixed; top:10px; right:10px; z-index:10000; background:#000; color:#fff; padding:10px; border-radius:5px; font-size:12px;">
-        <div>Emergency Debug:</div>
-        <button onclick="alert('Basic JS works!')" style="background:#ff6b6b; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Test JS</button>
-        <button onclick="console.log('Console test')" style="background:#4ecdc4; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Console</button>
-        <button onclick="document.body.style.background='red'" style="background:#45b7d1; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Red BG</button>
-        <button onclick="location.reload()" style="background:#96ceb4; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Reload</button>
-        <button onclick="testTIGPS()" style="background:#ffa726; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Test System</button>
-    </div>
-
     <!-- Username Modal -->
     <div id="usernameModal" class="modal" style="display:none;">
       <div class="modal-content" style="max-width:350px;text-align:center;">
@@ -215,15 +205,8 @@
                             rows="3"
                         ></textarea>
                         
-                        <!-- Media Preview -->
-                        <div class="post-media-preview" id="postMediaPreview">
-                            <div class="media-preview" id="mediaPreview"></div>
-                            <button class="remove-media-btn" id="removeMediaBtn" onclick="removeSelectedMedia()">×</button>
-                        </div>
-                    </div>
-                    
-                    <div class="post-actions">
-                        <div class="post-options">
+                        <!-- Media and Action Buttons neatly grouped below input -->
+                        <div class="post-actions reorganized-actions">
                             <button class="media-btn" onclick="openFileInput()" title="Add Media">
                                 <div class="media-btn-content">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -231,7 +214,6 @@
                                     </svg>
                                 </div>
                             </button>
-                            
                             <button class="media-btn gif-btn" onclick="openGifModal()" title="Add GIF">
                                 <div class="media-btn-content">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -239,18 +221,19 @@
                                     </svg>
                                 </div>
                             </button>
-                            
                             <div class="checkbox-container">
                                 <input type="checkbox" id="anonymousCheck" class="anonymous-checkbox">
                                 <label for="anonymousCheck" class="checkmark">Anonymous</label>
                             </div>
-                        </div>
-                        
-                        <div class="post-submit">
                             <span class="char-count" id="charCount">280</span>
                             <button class="btn-post" id="postButton" onclick="createPost()">Post</button>
                         </div>
                     </div>
+                    
+                    <div class="post-media-preview" id="postMediaPreview">
+                            <div class="media-preview" id="mediaPreview"></div>
+                            <button class="remove-media-btn" id="removeMediaBtn" onclick="removeSelectedMedia()">×</button>
+                        </div>
                 </div>
 
                 <!-- Posts Feed -->
