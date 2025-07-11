@@ -9,6 +9,7 @@
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="mobile.js"></script>
 </head>
 <body>
     
@@ -26,11 +27,25 @@
     <div id="usernameModal" class="modal" style="display:none;">
       <div class="modal-content" style="max-width:350px;text-align:center;">
         <div class="modal-header">
-          <h2>Enter Username</h2>
+          <h2>Enter Your Details</h2>
         </div>
         <div class="modal-body">
+          <input type="text" id="displayNameInput" class="modal-post-input" placeholder="Your name" maxlength="30" autocomplete="off" style="width:100%;margin-bottom:1rem;">
           <input type="text" id="usernameInput" class="modal-post-input" placeholder="Your username" maxlength="20" autocomplete="off" style="width:100%;margin-bottom:1rem;">
           <button id="usernameSubmitBtn" class="btn-primary" style="width:100%;">Continue</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beta Modal -->
+    <div id="betaModal" class="modal" style="display:none;">
+      <div class="modal-content" style="max-width:350px;text-align:center;position:relative;">
+        <button id="closeBetaModal" style="position:absolute;top:10px;right:10px;background:none;border:none;font-size:1.5rem;cursor:pointer;">×</button>
+        <div class="modal-header">
+          <h2 style="color:#f7b500;">BETA VERSION</h2>
+        </div>
+        <div class="modal-body">
+          <p style="color:#333;font-size:1.1rem;">This is a <b>beta</b> version of TIGPS TALKS.<br>Testing is ongoing. Features may change or break.<br>Thank you for helping us improve!</p>
         </div>
       </div>
     </div>
@@ -63,8 +78,8 @@
                 </div>
                 
                 <div class="header-right">
-                    <!-- BETA Badge -->
-                    <div class="beta-badge">BETA</div>
+                    <!-- Yellow Beta Button -->
+                    <button id="betaButton" style="background:#f7b500;color:#222;font-weight:700;border:none;padding:6px 18px;border-radius:16px;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-right:12px;cursor:pointer;transition:background 0.2s;">BETA</button>
                     
                     <!-- Mail button -->
                     <button class="btn-mail" onclick="openMail()" title="Contact Us">

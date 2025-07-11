@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>TIGPS TALKS - Mobile</title>
+    <link rel="stylesheet" href="mobile-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    
+    <!-- Emergency Debug Section -->
+    <div style="position:fixed; top:10px; right:10px; z-index:10000; background:#000; color:#fff; padding:10px; border-radius:5px; font-size:12px;">
+        <div>Emergency Debug:</div>
+        <button onclick="alert('Basic JS works!')" style="background:#ff6b6b; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Test JS</button>
+        <button onclick="console.log('Console test')" style="background:#4ecdc4; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Console</button>
+        <button onclick="document.body.style.background='red'" style="background:#45b7d1; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Red BG</button>
+        <button onclick="location.reload()" style="background:#96ceb4; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Reload</button>
+        <button onclick="testTIGPS()" style="background:#ffa726; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Test System</button>
+    </div>
+
+    <!-- Username Modal -->
+    <div id="usernameModal" class="modal" style="display:none;">
+      <div class="modal-content" style="max-width:350px;text-align:center;">
+        <div class="modal-header">
+          <h2>Enter Your Details</h2>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="displayNameInput" class="modal-post-input" placeholder="Your name" maxlength="30" autocomplete="off" style="width:100%;margin-bottom:1rem;">
+          <input type="text" id="usernameInput" class="modal-post-input" placeholder="Your username" maxlength="20" autocomplete="off" style="width:100%;margin-bottom:1rem;">
+          <button id="usernameSubmitBtn" class="btn-primary" style="width:100%;">Continue</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beta Modal -->
+    <div id="betaModal" class="modal" style="display:none;">
+      <div class="modal-content" style="max-width:350px;text-align:center;position:relative;">
+        <button id="closeBetaModal" style="position:absolute;top:10px;right:10px;background:none;border:none;font-size:1.5rem;cursor:pointer;">×</button>
+        <div class="modal-header">
+          <h2 style="color:#f7b500;">BETA VERSION</h2>
+        </div>
+        <div class="modal-body">
+          <p style="color:#333;font-size:1.1rem;">This is a <b>beta</b> version of TIGPS TALKS.<br>Testing is ongoing. Features may change or break.<br>Thank you for helping us improve!</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stars"></div>
+    <div class="stars-container">
+        <div class="stars"></div>
+        <div class="twinkling"></div>
+        <div class="glitter"></div>
+    </div>
+
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <!-- Hamburger menu (three lines only) on the left -->
+                    <div class="hamburger-menu" id="hamburgerMenu" onclick="console.log('Hamburger clicked'); toggleHamburgerMenu();">
+                        <span class="hamburger-icon">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 12h18M3 6h18M3 18h18"/>
+                          </svg>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Centered TIGPS logo -->
+                <div class="header-center">
+                    <img src="tigps.png" alt="TIGPS" class="tigps-logo">
+                </div>
+                
+                <div class="header-right">
+                    <!-- Yellow Beta Button -->
+                    <button id="betaButton" style="background:#f7b500;color:#222;font-weight:700;border:none;padding:6px 18px;border-radius:16px;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-right:12px;cursor:pointer;transition:background 0.2s;">BETA</button>
+                    
+                    <!-- Mail button -->
+                    <button class="btn-mail" onclick="openMail()" title="Contact Us">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- Profile picture with dropdown menu on the right -->
+                    <div class="user-menu" onclick="console.log('Profile clicked'); toggleProfileMenu();">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Profile" class="profile-pic" id="headerProfilePic">
+                        <div class="profile-menu" id="profileMenu">
+                            <div class="profile-menu-item" onclick="openAccountDashboard(event)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                                Account
+                            </div>
+                            <div class="profile-menu-item" onclick="openProfileModal()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                </svg>
+                                Edit Profile
+                            </div>
+                            <div class="profile-menu-item" onclick="openSettingsModal()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                                </svg>
+                                Settings
+                            </div>
+                            <div class="profile-menu-item" onclick="openMail()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                                </svg>
+                                Contact Us
+                            </div>
+                            <div class="profile-menu-item" onclick="openAdminModal()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z"/>
+                                </svg>
+                                Admin
+                            </div>
+                            <div class="profile-menu-item" onclick="window.open('privacy-policy.html', '_blank')">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                                </svg>
+                                Privacy Policy
+                            </div>
+                            <div class="profile-menu-item" onclick="window.open('terms-conditions.html', '_blank')">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                                </svg>
+                                Terms & Conditions
+                            </div>
+                            <div class="profile-menu-item" onclick="logout()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                                </svg>
+                                Logout
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar Menu (for hamburger menu) -->
+        <div class="sidebar-menu" id="sidebarMenu">
+            <div class="sidebar-header" style="display:flex;flex-direction:column;align-items:center;">
+                <img src="tigps.png" alt="TIGPS" class="tigps-logo" style="height:80px;width:auto;margin-bottom:1rem;">
+                <button class="close-sidebar-btn" onclick="toggleHamburgerMenu()">×</button>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-item" onclick="openAccountDashboard(event)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                    Edit Account
+                </div>
+                <div class="sidebar-item" onclick="openProfileModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                    </svg>
+                    Edit Profile
+                </div>
+                <div class="sidebar-item" onclick="openAdminModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z"/>
+                    </svg>
+                    Admin Page
+                </div>
+                <div class="sidebar-item" onclick="openSettingsModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                    </svg>
+                    Settings
+                </div>
+                <div class="sidebar-item" onclick="openMail()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                    </svg>
+                    Contact Us
+                </div>
+                <div class="sidebar-item" onclick="logout()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                    </svg>
+                    Logout
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleHamburgerMenu()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Post Creation Area -->
+                <div class="post-creator">
+                    <div class="post-input-container">
+                        <div class="post-header-section">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Profile" class="post-avatar" id="postCreatorAvatar">
+                            <div class="post-creator-info">
+                                <div class="post-creator-name" id="postCreatorName">Your Name</div>
+                                <div class="post-creator-display-name" id="postCreatorDisplayName">@username</div>
+                            </div>
+                        </div>
+                        <textarea 
+                            class="post-input" 
+                            id="postInput" 
+                            placeholder="What's happening?" 
+                            maxlength="280"
+                            rows="3"
+                        ></textarea>
+                        
+                        <!-- Media Preview -->
+                        <div class="post-media-preview" id="postMediaPreview">
+                            <div class="media-preview" id="mediaPreview"></div>
+                            <button class="remove-media-btn" id="removeMediaBtn" onclick="removeSelectedMedia()">×</button>
+                        </div>
+                    </div>
+                    
+                    <div class="post-actions">
+                        <div class="post-options">
+                            <button class="media-btn" onclick="openFileInput()" title="Add Media">
+                                <div class="media-btn-content">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                    </svg>
+                                </div>
+                            </button>
+                            
+                            <button class="media-btn gif-btn" onclick="openGifModal()" title="Add GIF">
+                                <div class="media-btn-content">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                    </svg>
+                                </div>
+                            </button>
+                            
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="anonymousCheck" class="anonymous-checkbox">
+                                <label for="anonymousCheck" class="checkmark">Anonymous</label>
+                            </div>
+                        </div>
+                        
+                        <div class="post-submit">
+                            <span class="char-count" id="charCount">280</span>
+                            <button class="btn-post" id="postButton" onclick="createPost()">Post</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Posts Feed -->
+                <div class="posts-feed" id="postsFeed">
+                    <!-- Posts will be loaded here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- GIF Modal -->
+    <div id="gifModal" class="modal gif-modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add GIF</h2>
+                <button class="close-btn" onclick="closeGifModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="gif-search-container">
+                    <div class="gif-search-input">
+                        <input type="text" id="gifSearchInput" placeholder="Search for GIFs..." maxlength="50">
+                        <button class="search-gif-btn" onclick="searchGifs()">Search</button>
+                    </div>
+                </div>
+                <div class="gif-results" id="gifResults">
+                    <!-- GIF results will be loaded here -->
+                </div>
+                <div class="selected-gif" id="selectedGif" style="display:none;">
+                    <img id="selectedGifImg" src="" alt="Selected GIF">
+                    <button class="remove-gif-btn" onclick="removeSelectedGif()">Remove</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal profile-modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Profile</h2>
+                <button class="close-btn" onclick="closeProfileModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-edit-section">
+                    <div class="profile-pic-section">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="Profile" class="profile-pic-large" id="profilePicLarge">
+                        <button class="change-pic-btn">Change Picture</button>
+                    </div>
+                    <div class="profile-fields">
+                        <div class="input-group">
+                            <label for="profileName">Display Name</label>
+                            <input type="text" id="profileName" placeholder="Your display name" maxlength="30">
+                        </div>
+                        <div class="input-group">
+                            <label for="profileUsername">Username</label>
+                            <input type="text" id="profileUsername" placeholder="Your username" maxlength="20">
+                        </div>
+                        <div class="input-group">
+                            <label for="profileBio">Bio</label>
+                            <textarea id="profileBio" placeholder="Tell us about yourself..." maxlength="150" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-primary" onclick="saveProfile()">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-btn" onclick="closeSettingsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>Drive Status</h3>
+                    <div class="drive-status" id="driveStatus">
+                        <span class="status-indicator" id="statusIndicator">●</span>
+                        <span id="statusText">Checking...</span>
+                    </div>
+                    <div class="drive-controls">
+                        <button onclick="syncDrive()">Sync Now</button>
+                        <button onclick="backupData()">Backup Data</button>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3>Admin Controls</h3>
+                    <div class="admin-controls">
+                        <button onclick="openAdminModal()">Admin Panel</button>
+                        <button onclick="clearAllData()">Clear All Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="modal admin-modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Admin Dashboard</h2>
+                <button class="close-btn" onclick="closeAdminModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="admin-section">
+                    <div class="admin-card">
+                        <h4>System Status</h4>
+                        <div class="drive-status-admin">
+                            <span class="status-indicator" id="adminStatusIndicator">●</span>
+                            <span id="adminStatusText">Checking...</span>
+                        </div>
+                        <div class="drive-actions">
+                            <button onclick="adminSyncDrive()">Sync Drive</button>
+                            <button onclick="adminBackupData()">Backup</button>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <h4>Statistics</h4>
+                        <div class="admin-stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number" id="totalPosts">0</div>
+                                <div class="stat-label">Total Posts</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="totalUsers">0</div>
+                                <div class="stat-label">Total Users</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <h4>Data Management</h4>
+                        <div class="data-management-actions">
+                            <button onclick="exportData()">Export Data</button>
+                            <button onclick="importData()">Import Data</button>
+                            <button onclick="clearAllData()">Clear All Data</button>
+                        </div>
+                        <div class="last-sync-info">
+                            <p>Last sync: <span id="lastSyncTime">Never</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Modal -->
+    <div id="commentsModal" class="modal comments-modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Comments</h2>
+                <button class="close-btn" onclick="closeCommentsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="comments-list" id="commentsList">
+                    <!-- Comments will be loaded here -->
+                </div>
+                <div class="comment-input-section">
+                    <div class="comment-input-container">
+                        <textarea class="comment-input" id="commentInput" placeholder="Write a comment..." maxlength="200" rows="2"></textarea>
+                        <button class="btn-comment" onclick="addComment()">Comment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Dashboard Modal -->
+    <div id="accountDashboardModal" class="modal" style="display:none;">
+        <div class="modal-content profile-modal">
+            <div class="modal-header">
+                <h2>Account Dashboard</h2>
+                <button class="close-btn" onclick="closeAccountDashboard()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-edit-section">
+                    <div class="profile-pic-section">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="Profile" class="profile-pic-large" id="dashboardProfilePic">
+                        <button class="change-pic-btn">Change Picture</button>
+                    </div>
+                    <div class="profile-fields">
+                        <div class="input-group">
+                            <label for="dashboardName">Display Name</label>
+                            <input type="text" id="dashboardName" placeholder="Your display name" maxlength="30">
+                        </div>
+                        <div class="input-group">
+                            <label for="dashboardUsername">Username</label>
+                            <input type="text" id="dashboardUsername" placeholder="Your username" maxlength="20">
+                        </div>
+                        <div class="input-group">
+                            <label for="dashboardBio">Bio</label>
+                            <textarea id="dashboardBio" placeholder="Tell us about yourself..." maxlength="150" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-primary" onclick="saveDashboardProfile()">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for media upload -->
+    <input type="file" id="fileInput" accept="image/*,video/*" style="display:none;" onchange="handleFileSelect(event)">
+
+    <script src="script.js"></script>
+</body>
+</html> 
