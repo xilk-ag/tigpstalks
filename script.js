@@ -59,6 +59,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 500);
         }
     }, 1000);
+
+    // Fallback: force hide loading screen after 3 seconds
+    setTimeout(function() {
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen && loadingScreen.style.display !== 'none') {
+            console.log('Forcing loading screen to hide');
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.display = 'none';
+        }
+    }, 3000);
 });
 
 // Content protection functions
