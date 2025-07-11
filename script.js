@@ -88,6 +88,7 @@ let selectedMedia = null;
 let selectedGif = null;
 let modalSelectedMedia = null;
 let modalSelectedGif = null;
+let postCooldownActive = false;
 
 // Google Drive integration
 let googleDriveManager = null;
@@ -2673,7 +2674,6 @@ function deleteProfilePost(postId) {
  
 
 // --- Post Cooldown Logic ---
-let postCooldownActive = false;
 
 function startPostCooldown() {
   postCooldownActive = true;
