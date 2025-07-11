@@ -69,6 +69,16 @@ document.addEventListener('DOMContentLoaded', function() {
         setupContentProtection();
         console.log('✓ Content protection setup');
         
+        // Setup event listeners immediately
+        console.log('🔄 Setting up event listeners...');
+        setupEventListeners();
+        console.log('✓ Event listeners setup completed');
+        
+        // Check username requirement
+        console.log('🔄 Checking username requirement...');
+        requireUsername();
+        console.log('✓ Username requirement checked');
+        
         // Initialize app data (loads posts)
         console.log('🔄 Starting initializeAppData...');
         initializeAppData().then(() => {
@@ -713,6 +723,52 @@ function loadSampleData() {
 
 // Setup event listeners
 function setupEventListeners() {
+    console.log('🔄 Setting up event listeners...');
+    
+    // Main post button
+    const postButton = document.getElementById('postButton');
+    if (postButton) {
+        console.log('✓ Found post button, adding click listener');
+        postButton.addEventListener('click', createPost);
+    } else {
+        console.error('❌ Post button not found!');
+    }
+    
+    // Modal post button
+    const modalPostButton = document.getElementById('modalPostButton');
+    if (modalPostButton) {
+        console.log('✓ Found modal post button, adding click listener');
+        modalPostButton.addEventListener('click', createPostFromModal);
+    } else {
+        console.error('❌ Modal post button not found!');
+    }
+    
+    // Test post button
+    const testPostButton = document.getElementById('testPostButton');
+    if (testPostButton) {
+        console.log('✓ Found test post button, adding click listener');
+        testPostButton.addEventListener('click', createTestPost);
+    } else {
+        console.error('❌ Test post button not found!');
+    }
+    
+    // Debug buttons
+    const debugPostsButton = document.getElementById('debugPostsButton');
+    if (debugPostsButton) {
+        console.log('✓ Found debug posts button, adding click listener');
+        debugPostsButton.addEventListener('click', debugFetchPosts);
+    } else {
+        console.error('❌ Debug posts button not found!');
+    }
+    
+    const forceLoadButton = document.getElementById('forceLoadButton');
+    if (forceLoadButton) {
+        console.log('✓ Found force load button, adding click listener');
+        forceLoadButton.addEventListener('click', forceLoadPosts);
+    } else {
+        console.error('❌ Force load button not found!');
+    }
+    
     // Post action buttons event delegation
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('post-action-btn')) {
@@ -790,6 +846,37 @@ function setupEventListeners() {
     if (adminPassword) {
         adminPassword.addEventListener('keydown', handleAdminPasswordEnter);
     }
+    
+    // Username modal functionality
+    const usernameModal = document.getElementById('usernameModal');
+    const usernameInput = document.getElementById('usernameInput');
+    const usernameSubmitBtn = document.getElementById('usernameSubmitBtn');
+    
+    if (usernameSubmitBtn) {
+        console.log('✓ Found username submit button, adding click listener');
+        usernameSubmitBtn.addEventListener('click', function() {
+            const username = usernameInput.value.trim();
+            if (username) {
+                setStoredUsername(username);
+                hideUsernameModal();
+                showNotification('Username set successfully!', 'success');
+            } else {
+                showNotification('Please enter a username!', 'error');
+            }
+        });
+    } else {
+        console.error('❌ Username submit button not found!');
+    }
+    
+    if (usernameInput) {
+        usernameInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                usernameSubmitBtn.click();
+            }
+        });
+    }
+    
+    console.log('✓ Event listeners setup completed');
 }
 
 // Auto-resize textarea
