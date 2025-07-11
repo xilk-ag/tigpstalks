@@ -2749,5 +2749,41 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(() => {
     if (!getStoredUsername()) showUsernameModal();
   }, 1000);
+
+  // --- Post Button Enable/Disable Logic ---
+  const postInput = document.getElementById('postInput');
+  const postBtn = document.getElementById('postBtn');
+  if (postInput && postBtn) {
+    postInput.addEventListener('input', function() {
+      postBtn.disabled = postInput.value.trim().length === 0;
+    });
+    // Initial state
+    postBtn.disabled = postInput.value.trim().length === 0;
+  }
 });
+
+// Patch createPost to robustly check username and show errors
+const originalCreatePost = createPost;
+createPost = async function() {
+  const username = getStoredUsername();
+  if (!username) {
+    showNotification('Please enter your username before posting.', 'error');
+    showUsernameModal();
+    return;
+  }
+  // Defensive: update currentUser
+  currentUser.username = username;
+  currentUser.displayName = username;
+  // Defensive: update UI
+  const postCreatorName = document.getElementById('postCreatorName');
+  const postCreatorDisplayName = document.getElementById('postCreatorDisplayName');
+  if (postCreatorName) postCreatorName.textContent = '@' + username;
+  if (postCreatorDisplayName) postCreatorDisplayName.textContent = username;
+  try {
+    await originalCreatePost();
+  } catch (e) {
+    showNotification('Failed to create post. Please try again.', 'error');
+    console.error('createPost error:', e);
+  }
+}
 // ... existing code ...
