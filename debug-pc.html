@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIGPS PC Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .debug-section {
+            background: #2a2a2a;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-button.success {
+            background: #28a745;
+        }
+        .test-button.error {
+            background: #dc3545;
+        }
+        .test-button.warning {
+            background: #ffc107;
+            color: #000;
+        }
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .status {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #444;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #28a745);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 TIGPS PC Version Debug Test</h1>
+    
+    <div class="debug-section">
+        <h2>📊 Test Progress</h2>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div id="progressText">0% Complete</div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🚀 System Initialization</h2>
+        <button class="test-button" onclick="testSystemInit()">Test System Initialization</button>
+        <button class="test-button" onclick="testFirebaseConfig()">Test Firebase Configuration</button>
+        <button class="test-button" onclick="testDOMElements()">Test DOM Elements</button>
+        <button class="test-button" onclick="testGlobalVariables()">Test Global Variables</button>
+        <div id="systemLog" class="log"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>👤 User Management</h2>
+        <button class="test-button" onclick="testUserManagement()">Test User Management</button>
+        <button class="test-button" onclick="testUsernameRequirement()">Test Username Requirement</button>
+        <button class="test-button" onclick="testProfileFunctions()">Test Profile Functions</button>
+        <div id="userLog" class="log"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>📝 Posting System</h2>
+        <button class="test-button" onclick="testPostCreation()">Test Post Creation</button>
+        <button class="test-button" onclick="testPostRendering()">Test Post Rendering</button>
+        <button class="test-button" onclick="testLikeSystem()">Test Like System</button>
+        <button class="test-button" onclick="testCommentSystem()">Test Comment System</button>
+        <div id="postLog" class="log"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🖼️ Media Handling</h2>
+        <button class="test-button" onclick="testImageUpload()">Test Image Upload</button>
+        <button class="test-button" onclick="testGifSearch()">Test GIF Search</button>
+        <button class="test-button" onclick="testMediaPreview()">Test Media Preview</button>
+        <div id="mediaLog" class="log"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🔔 Notifications & UI</h2>
+        <button class="test-button" onclick="testNotifications()">Test Notifications</button>
+        <button class="test-button" onclick="testModals()">Test Modals</button>
+        <button class="test-button" onclick="testEventListeners()">Test Event Listeners</button>
+        <div id="uiLog" class="log"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>💾 Data Management</h2>
+        <button class="test-button" onclick="testLocalStorage()">Test LocalStorage</button>
+        <button class="test-button" onclick="testFirestore()">Test Firestore</button>
+        <button class="test-button" onclick="testDataSync()">Test Data Sync</button>
+        <div id="dataLog" class="log"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🛡️ Security & Protection</h2>
+        <button class="test-button" onclick="testContentProtection()">Test Content Protection</button>
+        <button class="test-button" onclick="testAdminFunctions()">Test Admin Functions</button>
+        <div id="securityLog" class="log"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🎯 Comprehensive Test</h2>
+        <button class="test-button success" onclick="runAllTests()">Run All Tests</button>
+        <button class="test-button warning" onclick="clearAllLogs()">Clear All Logs</button>
+        <div id="comprehensiveLog" class="log"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>📋 Test Results Summary</h2>
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        // Test results tracking
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            total: 0
+        };
+
+        function log(message, logElement = 'comprehensiveLog') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById(logElement);
+            if (logDiv) {
+                logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+                logDiv.scrollTop = logDiv.scrollHeight;
+            }
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function updateProgress() {
+            const percentage = Math.round((testResults.passed / testResults.total) * 100) || 0;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${percentage}% Complete (${testResults.passed}/${testResults.total} passed)`;
+        }
+
+        function addTestResult(testName, passed, message) {
+            testResults.total++;
+            if (passed) {
+                testResults.passed++;
+                log(`✅ ${testName}: PASSED - ${message}`, 'comprehensiveLog');
+            } else {
+                testResults.failed++;
+                log(`❌ ${testName}: FAILED - ${message}`, 'comprehensiveLog');
+            }
+            updateProgress();
+        }
+
+        // Test System Initialization
+        function testSystemInit() {
+            log('=== Testing System Initialization ===', 'systemLog');
+            
+            try {
+                // Test if script.js is loaded
+                if (typeof createPost === 'function') {
+                    addTestResult('Script Loading', true, 'script.js functions available');
+                    log('✓ Script functions loaded', 'systemLog');
+                } else {
+                    addTestResult('Script Loading', false, 'script.js functions not available');
+                    log('✗ Script functions not loaded', 'systemLog');
+                }
+
+                // Test if Firebase is available
+                if (typeof firebase !== 'undefined') {
+                    addTestResult('Firebase Availability', true, 'Firebase SDK loaded');
+                    log('✓ Firebase SDK available', 'systemLog');
+                } else {
+                    addTestResult('Firebase Availability', false, 'Firebase SDK not loaded');
+                    log('✗ Firebase SDK not available', 'systemLog');
+                }
+
+                // Test if DOM is ready
+                if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                    addTestResult('DOM Ready', true, 'DOM is ready');
+                    log('✓ DOM is ready', 'systemLog');
+                } else {
+                    addTestResult('DOM Ready', false, 'DOM not ready');
+                    log('✗ DOM not ready', 'systemLog');
+                }
+
+            } catch (error) {
+                addTestResult('System Init', false, error.message);
+                log(`✗ System initialization error: ${error.message}`, 'systemLog');
+            }
+        }
+
+        // Test Firebase Configuration
+        function testFirebaseConfig() {
+            log('=== Testing Firebase Configuration ===', 'systemLog');
+            
+            try {
+                if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
+                    addTestResult('Firebase App', true, 'Firebase app initialized');
+                    log('✓ Firebase app initialized', 'systemLog');
+                } else {
+                    addTestResult('Firebase App', false, 'Firebase app not initialized');
+                    log('✗ Firebase app not initialized', 'systemLog');
+                }
+
+                if (typeof db !== 'undefined') {
+                    addTestResult('Firestore DB', true, 'Firestore database available');
+                    log('✓ Firestore database available', 'systemLog');
+                } else {
+                    addTestResult('Firestore DB', false, 'Firestore database not available');
+                    log('✗ Firestore database not available', 'systemLog');
+                }
+
+            } catch (error) {
+                addTestResult('Firebase Config', false, error.message);
+                log(`✗ Firebase configuration error: ${error.message}`, 'systemLog');
+            }
+        }
+
+        // Test DOM Elements
+        function testDOMElements() {
+            log('=== Testing DOM Elements ===', 'systemLog');
+            
+            const elements = [
+                'postInput', 'postButton', 'postsFeed', 'postCreatorAvatar',
+                'postCreatorName', 'postCreatorDisplayName', 'charCount'
+            ];
+
+            elements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    addTestResult(`DOM Element: ${elementId}`, true, 'Element found');
+                    log(`✓ ${elementId} found`, 'systemLog');
+                } else {
+                    addTestResult(`DOM Element: ${elementId}`, false, 'Element not found');
+                    log(`✗ ${elementId} not found`, 'systemLog');
+                }
+            });
+        }
+
+        // Test Global Variables
+        function testGlobalVariables() {
+            log('=== Testing Global Variables ===', 'systemLog');
+            
+            const variables = ['posts', 'currentUser', 'nextPostId', 'gifSearchResults'];
+            
+            variables.forEach(varName => {
+                if (typeof window[varName] !== 'undefined') {
+                    addTestResult(`Global Variable: ${varName}`, true, 'Variable defined');
+                    log(`✓ ${varName} defined`, 'systemLog');
+                } else {
+                    addTestResult(`Global Variable: ${varName}`, false, 'Variable not defined');
+                    log(`✗ ${varName} not defined`, 'systemLog');
+                }
+            });
+        }
+
+        // Test User Management
+        function testUserManagement() {
+            log('=== Testing User Management ===', 'userLog');
+            
+            try {
+                if (typeof getStoredUsername === 'function') {
+                    addTestResult('Username Storage', true, 'Username functions available');
+                    log('✓ Username functions available', 'userLog');
+                } else {
+                    addTestResult('Username Storage', false, 'Username functions not available');
+                    log('✗ Username functions not available', 'userLog');
+                }
+
+                if (typeof currentUser === 'object' && currentUser !== null) {
+                    addTestResult('Current User', true, 'Current user object exists');
+                    log('✓ Current user object exists', 'userLog');
+                } else {
+                    addTestResult('Current User', false, 'Current user object not found');
+                    log('✗ Current user object not found', 'userLog');
+                }
+
+            } catch (error) {
+                addTestResult('User Management', false, error.message);
+                log(`✗ User management error: ${error.message}`, 'userLog');
+            }
+        }
+
+        // Test Username Requirement
+        function testUsernameRequirement() {
+            log('=== Testing Username Requirement ===', 'userLog');
+            
+            try {
+                if (typeof requireUsername === 'function') {
+                    addTestResult('Username Requirement', true, 'Username requirement function available');
+                    log('✓ Username requirement function available', 'userLog');
+                } else {
+                    addTestResult('Username Requirement', false, 'Username requirement function not available');
+                    log('✗ Username requirement function not available', 'userLog');
+                }
+
+                const storedUsername = localStorage.getItem('tigpsUsername');
+                if (storedUsername) {
+                    addTestResult('Stored Username', true, `Username stored: ${storedUsername}`);
+                    log(`✓ Username stored: ${storedUsername}`, 'userLog');
+                } else {
+                    addTestResult('Stored Username', false, 'No username stored');
+                    log('✗ No username stored', 'userLog');
+                }
+
+            } catch (error) {
+                addTestResult('Username Requirement', false, error.message);
+                log(`✗ Username requirement error: ${error.message}`, 'userLog');
+            }
+        }
+
+        // Test Profile Functions
+        function testProfileFunctions() {
+            log('=== Testing Profile Functions ===', 'userLog');
+            
+            const profileFunctions = ['openProfileModal', 'closeProfileModal', 'saveProfile', 'updateProfileDisplay'];
+            
+            profileFunctions.forEach(funcName => {
+                if (typeof window[funcName] === 'function') {
+                    addTestResult(`Profile Function: ${funcName}`, true, 'Function available');
+                    log(`✓ ${funcName} available`, 'userLog');
+                } else {
+                    addTestResult(`Profile Function: ${funcName}`, false, 'Function not available');
+                    log(`✗ ${funcName} not available`, 'userLog');
+                }
+            });
+        }
+
+        // Test Post Creation
+        function testPostCreation() {
+            log('=== Testing Post Creation ===', 'postLog');
+            
+            try {
+                if (typeof createPost === 'function') {
+                    addTestResult('Create Post Function', true, 'Create post function available');
+                    log('✓ Create post function available', 'postLog');
+                } else {
+                    addTestResult('Create Post Function', false, 'Create post function not available');
+                    log('✗ Create post function not available', 'postLog');
+                }
+
+                if (typeof createTestPost === 'function') {
+                    addTestResult('Test Post Function', true, 'Test post function available');
+                    log('✓ Test post function available', 'postLog');
+                } else {
+                    addTestResult('Test Post Function', false, 'Test post function not available');
+                    log('✗ Test post function not available', 'postLog');
+                }
+
+                if (typeof extractTags === 'function') {
+                    addTestResult('Tag Extraction', true, 'Tag extraction function available');
+                    log('✓ Tag extraction function available', 'postLog');
+                } else {
+                    addTestResult('Tag Extraction', false, 'Tag extraction function not available');
+                    log('✗ Tag extraction function not available', 'postLog');
+                }
+
+            } catch (error) {
+                addTestResult('Post Creation', false, error.message);
+                log(`✗ Post creation error: ${error.message}`, 'postLog');
+            }
+        }
+
+        // Test Post Rendering
+        function testPostRendering() {
+            log('=== Testing Post Rendering ===', 'postLog');
+            
+            try {
+                if (typeof renderPosts === 'function') {
+                    addTestResult('Render Posts Function', true, 'Render posts function available');
+                    log('✓ Render posts function available', 'postLog');
+                } else {
+                    addTestResult('Render Posts Function', false, 'Render posts function not available');
+                    log('✗ Render posts function not available', 'postLog');
+                }
+
+                if (typeof createPostElement === 'function') {
+                    addTestResult('Create Post Element', true, 'Create post element function available');
+                    log('✓ Create post element function available', 'postLog');
+                } else {
+                    addTestResult('Create Post Element', false, 'Create post element function not available');
+                    log('✗ Create post element function not available', 'postLog');
+                }
+
+                if (typeof formatContent === 'function') {
+                    addTestResult('Format Content', true, 'Format content function available');
+                    log('✓ Format content function available', 'postLog');
+                } else {
+                    addTestResult('Format Content', false, 'Format content function not available');
+                    log('✗ Format content function not available', 'postLog');
+                }
+
+            } catch (error) {
+                addTestResult('Post Rendering', false, error.message);
+                log(`✗ Post rendering error: ${error.message}`, 'postLog');
+            }
+        }
+
+        // Test Like System
+        function testLikeSystem() {
+            log('=== Testing Like System ===', 'postLog');
+            
+            try {
+                if (typeof toggleLike === 'function') {
+                    addTestResult('Toggle Like Function', true, 'Toggle like function available');
+                    log('✓ Toggle like function available', 'postLog');
+                } else {
+                    addTestResult('Toggle Like Function', false, 'Toggle like function not available');
+                    log('✗ Toggle like function not available', 'postLog');
+                }
+
+                if (typeof instagramLike === 'function') {
+                    addTestResult('Instagram Like Function', true, 'Instagram like function available');
+                    log('✓ Instagram like function available', 'postLog');
+                } else {
+                    addTestResult('Instagram Like Function', false, 'Instagram like function not available');
+                    log('✗ Instagram like function not available', 'postLog');
+                }
+
+            } catch (error) {
+                addTestResult('Like System', false, error.message);
+                log(`✗ Like system error: ${error.message}`, 'postLog');
+            }
+        }
+
+        // Test Comment System
+        function testCommentSystem() {
+            log('=== Testing Comment System ===', 'postLog');
+            
+            try {
+                if (typeof showComments === 'function') {
+                    addTestResult('Show Comments Function', true, 'Show comments function available');
+                    log('✓ Show comments function available', 'postLog');
+                } else {
+                    addTestResult('Show Comments Function', false, 'Show comments function not available');
+                    log('✗ Show comments function not available', 'postLog');
+                }
+
+                if (typeof addComment === 'function') {
+                    addTestResult('Add Comment Function', true, 'Add comment function available');
+                    log('✓ Add comment function available', 'postLog');
+                } else {
+                    addTestResult('Add Comment Function', false, 'Add comment function not available');
+                    log('✗ Add comment function not available', 'postLog');
+                }
+
+                if (typeof renderComments === 'function') {
+                    addTestResult('Render Comments Function', true, 'Render comments function available');
+                    log('✓ Render comments function available', 'postLog');
+                } else {
+                    addTestResult('Render Comments Function', false, 'Render comments function not available');
+                    log('✗ Render comments function not available', 'postLog');
+                }
+
+            } catch (error) {
+                addTestResult('Comment System', false, error.message);
+                log(`✗ Comment system error: ${error.message}`, 'postLog');
+            }
+        }
+
+        // Test Image Upload
+        function testImageUpload() {
+            log('=== Testing Image Upload ===', 'mediaLog');
+            
+            try {
+                if (typeof triggerImageUpload === 'function') {
+                    addTestResult('Trigger Image Upload', true, 'Trigger image upload function available');
+                    log('✓ Trigger image upload function available', 'mediaLog');
+                } else {
+                    addTestResult('Trigger Image Upload', false, 'Trigger image upload function not available');
+                    log('✗ Trigger image upload function not available', 'mediaLog');
+                }
+
+                if (typeof handleImageUpload === 'function') {
+                    addTestResult('Handle Image Upload', true, 'Handle image upload function available');
+                    log('✓ Handle image upload function available', 'mediaLog');
+                } else {
+                    addTestResult('Handle Image Upload', false, 'Handle image upload function not available');
+                    log('✗ Handle image upload function not available', 'mediaLog');
+                }
+
+                if (typeof compressImage === 'function') {
+                    addTestResult('Image Compression', true, 'Image compression function available');
+                    log('✓ Image compression function available', 'mediaLog');
+                } else {
+                    addTestResult('Image Compression', false, 'Image compression function not available');
+                    log('✗ Image compression function not available', 'mediaLog');
+                }
+
+            } catch (error) {
+                addTestResult('Image Upload', false, error.message);
+                log(`✗ Image upload error: ${error.message}`, 'mediaLog');
+            }
+        }
+
+        // Test GIF Search
+        function testGifSearch() {
+            log('=== Testing GIF Search ===', 'mediaLog');
+            
+            try {
+                if (typeof openGifSearch === 'function') {
+                    addTestResult('Open GIF Search', true, 'Open GIF search function available');
+                    log('✓ Open GIF search function available', 'mediaLog');
+                } else {
+                    addTestResult('Open GIF Search', false, 'Open GIF search function not available');
+                    log('✗ Open GIF search function not available', 'mediaLog');
+                }
+
+                if (typeof searchTenorGifs === 'function') {
+                    addTestResult('Tenor GIF Search', true, 'Tenor GIF search function available');
+                    log('✓ Tenor GIF search function available', 'mediaLog');
+                } else {
+                    addTestResult('Tenor GIF Search', false, 'Tenor GIF search function not available');
+                    log('✗ Tenor GIF search function not available', 'mediaLog');
+                }
+
+                if (typeof selectGifFromSearch === 'function') {
+                    addTestResult('Select GIF', true, 'Select GIF function available');
+                    log('✓ Select GIF function available', 'mediaLog');
+                } else {
+                    addTestResult('Select GIF', false, 'Select GIF function not available');
+                    log('✗ Select GIF function not available', 'mediaLog');
+                }
+
+            } catch (error) {
+                addTestResult('GIF Search', false, error.message);
+                log(`✗ GIF search error: ${error.message}`, 'mediaLog');
+            }
+        }
+
+        // Test Media Preview
+        function testMediaPreview() {
+            log('=== Testing Media Preview ===', 'mediaLog');
+            
+            try {
+                if (typeof updateMediaPreview === 'function') {
+                    addTestResult('Update Media Preview', true, 'Update media preview function available');
+                    log('✓ Update media preview function available', 'mediaLog');
+                } else {
+                    addTestResult('Update Media Preview', false, 'Update media preview function not available');
+                    log('✗ Update media preview function not available', 'mediaLog');
+                }
+
+                if (typeof removeMedia === 'function') {
+                    addTestResult('Remove Media', true, 'Remove media function available');
+                    log('✓ Remove media function available', 'mediaLog');
+                } else {
+                    addTestResult('Remove Media', false, 'Remove media function not available');
+                    log('✗ Remove media function not available', 'mediaLog');
+                }
+
+            } catch (error) {
+                addTestResult('Media Preview', false, error.message);
+                log(`✗ Media preview error: ${error.message}`, 'mediaLog');
+            }
+        }
+
+        // Test Notifications
+        function testNotifications() {
+            log('=== Testing Notifications ===', 'uiLog');
+            
+            try {
+                if (typeof showNotification === 'function') {
+                    addTestResult('Show Notification', true, 'Show notification function available');
+                    log('✓ Show notification function available', 'uiLog');
+                    
+                    // Test actual notification
+                    try {
+                        showNotification('Test notification from debug', 'info');
+                        addTestResult('Notification Display', true, 'Notification displayed successfully');
+                        log('✓ Notification displayed successfully', 'uiLog');
+                    } catch (error) {
+                        addTestResult('Notification Display', false, error.message);
+                        log(`✗ Notification display failed: ${error.message}`, 'uiLog');
+                    }
+                } else {
+                    addTestResult('Show Notification', false, 'Show notification function not available');
+                    log('✗ Show notification function not available', 'uiLog');
+                }
+
+            } catch (error) {
+                addTestResult('Notifications', false, error.message);
+                log(`✗ Notifications error: ${error.message}`, 'uiLog');
+            }
+        }
+
+        // Test Modals
+        function testModals() {
+            log('=== Testing Modals ===', 'uiLog');
+            
+            const modalFunctions = [
+                'openProfileModal', 'closeProfileModal',
+                'openAdminModal', 'closeAdminModal',
+                'openSettingsModal', 'closeSettingsModal',
+                'openPostModal', 'closePostModal'
+            ];
+            
+            modalFunctions.forEach(funcName => {
+                if (typeof window[funcName] === 'function') {
+                    addTestResult(`Modal Function: ${funcName}`, true, 'Function available');
+                    log(`✓ ${funcName} available`, 'uiLog');
+                } else {
+                    addTestResult(`Modal Function: ${funcName}`, false, 'Function not available');
+                    log(`✗ ${funcName} not available`, 'uiLog');
+                }
+            });
+        }
+
+        // Test Event Listeners
+        function testEventListeners() {
+            log('=== Testing Event Listeners ===', 'uiLog');
+            
+            try {
+                if (typeof setupEventListeners === 'function') {
+                    addTestResult('Setup Event Listeners', true, 'Setup event listeners function available');
+                    log('✓ Setup event listeners function available', 'uiLog');
+                } else {
+                    addTestResult('Setup Event Listeners', false, 'Setup event listeners function not available');
+                    log('✗ Setup event listeners function not available', 'uiLog');
+                }
+
+                if (typeof autoResizeTextarea === 'function') {
+                    addTestResult('Auto Resize Textarea', true, 'Auto resize textarea function available');
+                    log('✓ Auto resize textarea function available', 'uiLog');
+                } else {
+                    addTestResult('Auto Resize Textarea', false, 'Auto resize textarea function not available');
+                    log('✗ Auto resize textarea function not available', 'uiLog');
+                }
+
+                if (typeof updateCharCount === 'function') {
+                    addTestResult('Update Char Count', true, 'Update char count function available');
+                    log('✓ Update char count function available', 'uiLog');
+                } else {
+                    addTestResult('Update Char Count', false, 'Update char count function not available');
+                    log('✗ Update char count function not available', 'uiLog');
+                }
+
+            } catch (error) {
+                addTestResult('Event Listeners', false, error.message);
+                log(`✗ Event listeners error: ${error.message}`, 'uiLog');
+            }
+        }
+
+        // Test LocalStorage
+        function testLocalStorage() {
+            log('=== Testing LocalStorage ===', 'dataLog');
+            
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    addTestResult('LocalStorage API', true, 'LocalStorage API available');
+                    log('✓ LocalStorage API available', 'dataLog');
+                    
+                    // Test localStorage operations
+                    try {
+                        localStorage.setItem('testKey', 'testValue');
+                        const testValue = localStorage.getItem('testKey');
+                        localStorage.removeItem('testKey');
+                        
+                        if (testValue === 'testValue') {
+                            addTestResult('LocalStorage Operations', true, 'LocalStorage operations work');
+                            log('✓ LocalStorage operations work', 'dataLog');
+                        } else {
+                            addTestResult('LocalStorage Operations', false, 'LocalStorage operations failed');
+                            log('✗ LocalStorage operations failed', 'dataLog');
+                        }
+                    } catch (error) {
+                        addTestResult('LocalStorage Operations', false, error.message);
+                        log(`✗ LocalStorage operations error: ${error.message}`, 'dataLog');
+                    }
+                } else {
+                    addTestResult('LocalStorage API', false, 'LocalStorage API not available');
+                    log('✗ LocalStorage API not available', 'dataLog');
+                }
+
+            } catch (error) {
+                addTestResult('LocalStorage', false, error.message);
+                log(`✗ LocalStorage error: ${error.message}`, 'dataLog');
+            }
+        }
+
+        // Test Firestore
+        function testFirestore() {
+            log('=== Testing Firestore ===', 'dataLog');
+            
+            try {
+                if (typeof fetchPostsFromFirestore === 'function') {
+                    addTestResult('Fetch Posts from Firestore', true, 'Fetch posts function available');
+                    log('✓ Fetch posts function available', 'dataLog');
+                } else {
+                    addTestResult('Fetch Posts from Firestore', false, 'Fetch posts function not available');
+                    log('✗ Fetch posts function not available', 'dataLog');
+                }
+
+                if (typeof savePostToFirestore === 'function') {
+                    addTestResult('Save Post to Firestore', true, 'Save post function available');
+                    log('✓ Save post function available', 'dataLog');
+                } else {
+                    addTestResult('Save Post to Firestore', false, 'Save post function not available');
+                    log('✗ Save post function not available', 'dataLog');
+                }
+
+                if (typeof updatePostInFirestore === 'function') {
+                    addTestResult('Update Post in Firestore', true, 'Update post function available');
+                    log('✓ Update post function available', 'dataLog');
+                } else {
+                    addTestResult('Update Post in Firestore', false, 'Update post function not available');
+                    log('✗ Update post function not available', 'dataLog');
+                }
+
+            } catch (error) {
+                addTestResult('Firestore', false, error.message);
+                log(`✗ Firestore error: ${error.message}`, 'dataLog');
+            }
+        }
+
+        // Test Data Sync
+        function testDataSync() {
+            log('=== Testing Data Sync ===', 'dataLog');
+            
+            try {
+                if (typeof initializeAppData === 'function') {
+                    addTestResult('Initialize App Data', true, 'Initialize app data function available');
+                    log('✓ Initialize app data function available', 'dataLog');
+                } else {
+                    addTestResult('Initialize App Data', false, 'Initialize app data function not available');
+                    log('✗ Initialize app data function not available', 'dataLog');
+                }
+
+                if (typeof syncData === 'function') {
+                    addTestResult('Sync Data', true, 'Sync data function available');
+                    log('✓ Sync data function available', 'dataLog');
+                } else {
+                    addTestResult('Sync Data', false, 'Sync data function not available');
+                    log('✗ Sync data function not available', 'dataLog');
+                }
+
+                if (typeof exportData === 'function') {
+                    addTestResult('Export Data', true, 'Export data function available');
+                    log('✓ Export data function available', 'dataLog');
+                } else {
+                    addTestResult('Export Data', false, 'Export data function not available');
+                    log('✗ Export data function not available', 'dataLog');
+                }
+
+            } catch (error) {
+                addTestResult('Data Sync', false, error.message);
+                log(`✗ Data sync error: ${error.message}`, 'dataLog');
+            }
+        }
+
+        // Test Content Protection
+        function testContentProtection() {
+            log('=== Testing Content Protection ===', 'securityLog');
+            
+            try {
+                if (typeof setupContentProtection === 'function') {
+                    addTestResult('Setup Content Protection', true, 'Setup content protection function available');
+                    log('✓ Setup content protection function available', 'securityLog');
+                } else {
+                    addTestResult('Setup Content Protection', false, 'Setup content protection function not available');
+                    log('✗ Setup content protection function not available', 'securityLog');
+                }
+
+                // Test if right-click is disabled
+                document.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    addTestResult('Right-click Protection', true, 'Right-click is disabled');
+                    log('✓ Right-click is disabled', 'securityLog');
+                });
+
+            } catch (error) {
+                addTestResult('Content Protection', false, error.message);
+                log(`✗ Content protection error: ${error.message}`, 'securityLog');
+            }
+        }
+
+        // Test Admin Functions
+        function testAdminFunctions() {
+            log('=== Testing Admin Functions ===', 'securityLog');
+            
+            try {
+                if (typeof loginAdmin === 'function') {
+                    addTestResult('Login Admin', true, 'Login admin function available');
+                    log('✓ Login admin function available', 'securityLog');
+                } else {
+                    addTestResult('Login Admin', false, 'Login admin function not available');
+                    log('✗ Login admin function not available', 'securityLog');
+                }
+
+                if (typeof logoutAdmin === 'function') {
+                    addTestResult('Logout Admin', true, 'Logout admin function available');
+                    log('✓ Logout admin function available', 'securityLog');
+                } else {
+                    addTestResult('Logout Admin', false, 'Logout admin function not available');
+                    log('✗ Logout admin function not available', 'securityLog');
+                }
+
+                if (typeof updateAdminStats === 'function') {
+                    addTestResult('Update Admin Stats', true, 'Update admin stats function available');
+                    log('✓ Update admin stats function available', 'securityLog');
+                } else {
+                    addTestResult('Update Admin Stats', false, 'Update admin stats function not available');
+                    log('✗ Update admin stats function not available', 'securityLog');
+                }
+
+            } catch (error) {
+                addTestResult('Admin Functions', false, error.message);
+                log(`✗ Admin functions error: ${error.message}`, 'securityLog');
+            }
+        }
+
+        // Run All Tests
+        function runAllTests() {
+            log('🚀 Starting comprehensive PC version test...', 'comprehensiveLog');
+            
+            // Reset test results
+            testResults = { passed: 0, failed: 0, total: 0 };
+            
+            // Run all test functions
+            setTimeout(() => testSystemInit(), 100);
+            setTimeout(() => testFirebaseConfig(), 200);
+            setTimeout(() => testDOMElements(), 300);
+            setTimeout(() => testGlobalVariables(), 400);
+            setTimeout(() => testUserManagement(), 500);
+            setTimeout(() => testUsernameRequirement(), 600);
+            setTimeout(() => testProfileFunctions(), 700);
+            setTimeout(() => testPostCreation(), 800);
+            setTimeout(() => testPostRendering(), 900);
+            setTimeout(() => testLikeSystem(), 1000);
+            setTimeout(() => testCommentSystem(), 1100);
+            setTimeout(() => testImageUpload(), 1200);
+            setTimeout(() => testGifSearch(), 1300);
+            setTimeout(() => testMediaPreview(), 1400);
+            setTimeout(() => testNotifications(), 1500);
+            setTimeout(() => testModals(), 1600);
+            setTimeout(() => testEventListeners(), 1700);
+            setTimeout(() => testLocalStorage(), 1800);
+            setTimeout(() => testFirestore(), 1900);
+            setTimeout(() => testDataSync(), 2000);
+            setTimeout(() => testContentProtection(), 2100);
+            setTimeout(() => testAdminFunctions(), 2200);
+            
+            // Final summary after all tests
+            setTimeout(() => {
+                const percentage = Math.round((testResults.passed / testResults.total) * 100);
+                log(`🎯 COMPREHENSIVE TEST COMPLETE!`, 'comprehensiveLog');
+                log(`📊 Results: ${testResults.passed}/${testResults.total} tests passed (${percentage}%)`, 'comprehensiveLog');
+                
+                if (percentage >= 90) {
+                    log(`🎉 EXCELLENT! PC version is working perfectly!`, 'comprehensiveLog');
+                } else if (percentage >= 75) {
+                    log(`✅ GOOD! PC version is mostly working with minor issues.`, 'comprehensiveLog');
+                } else if (percentage >= 50) {
+                    log(`⚠️ FAIR! PC version has some issues that need attention.`, 'comprehensiveLog');
+                } else {
+                    log(`❌ POOR! PC version has significant issues that need immediate attention.`, 'comprehensiveLog');
+                }
+                
+                updateTestResultsSummary();
+            }, 2500);
+        }
+
+        // Clear All Logs
+        function clearAllLogs() {
+            const logElements = ['systemLog', 'userLog', 'postLog', 'mediaLog', 'uiLog', 'dataLog', 'securityLog', 'comprehensiveLog'];
+            logElements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.innerHTML = '';
+                }
+            });
+            
+            testResults = { passed: 0, failed: 0, total: 0 };
+            updateProgress();
+            updateTestResultsSummary();
+        }
+
+        // Update Test Results Summary
+        function updateTestResultsSummary() {
+            const resultsDiv = document.getElementById('testResults');
+            const percentage = Math.round((testResults.passed / testResults.total) * 100) || 0;
+            
+            let statusClass = 'error';
+            let statusText = '❌ FAILED';
+            
+            if (percentage >= 90) {
+                statusClass = 'success';
+                statusText = '🎉 EXCELLENT';
+            } else if (percentage >= 75) {
+                statusClass = 'success';
+                statusText = '✅ GOOD';
+            } else if (percentage >= 50) {
+                statusClass = 'warning';
+                statusText = '⚠️ FAIR';
+            }
+            
+            resultsDiv.innerHTML = `
+                <div class="status ${statusClass}">
+                    <h3>${statusText}</h3>
+                    <p><strong>Test Results:</strong> ${testResults.passed} passed, ${testResults.failed} failed out of ${testResults.total} total tests</p>
+                    <p><strong>Success Rate:</strong> ${percentage}%</p>
+                    <p><strong>Status:</strong> ${testResults.failed === 0 ? 'All tests passed! 🎉' : `${testResults.failed} issues detected`}</p>
+                </div>
+            `;
+        }
+
+        // Initialize debug page
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🔧 PC Debug Test Page Loaded', 'comprehensiveLog');
+            log('Ready to run comprehensive tests on PC version...', 'comprehensiveLog');
+            updateTestResultsSummary();
+        });
+    </script>
+</body>
+</html> 

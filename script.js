@@ -412,7 +412,6 @@ async function fetchPostsFromFirestore() {
         likes: data.likes || 0,
         comments: data.comments || [],
         isAnonymous: data.isAnonymous || false,
-        isLiked: data.isLiked || false,
         media: data.media || null,
         tags: data.tags || [],
         likedBy: data.likedBy || [],
