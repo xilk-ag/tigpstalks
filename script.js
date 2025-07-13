@@ -979,31 +979,7 @@ function setupEventListeners() {
         console.error('❌ Modal post button not found!');
     }
     
-    // Test post button
-    const testPostButton = document.getElementById('testPostButton');
-    if (testPostButton) {
-        console.log('✓ Found test post button, adding click listener');
-        testPostButton.addEventListener('click', createTestPost);
-    } else {
-        console.error('❌ Test post button not found!');
-    }
-    
-    // Debug buttons
-    const debugPostsButton = document.getElementById('debugPostsButton');
-    if (debugPostsButton) {
-        console.log('✓ Found debug posts button, adding click listener');
-        debugPostsButton.addEventListener('click', debugFetchPosts);
-    } else {
-        console.error('❌ Debug posts button not found!');
-    }
-    
-    const forceLoadButton = document.getElementById('forceLoadButton');
-    if (forceLoadButton) {
-        console.log('✓ Found force load button, adding click listener');
-        forceLoadButton.addEventListener('click', forceLoadPosts);
-    } else {
-        console.error('❌ Force load button not found!');
-    }
+
     
     // Instagram-style comment input event listeners
     const instagramCommentInput = document.getElementById('instagramCommentInput');
@@ -1165,24 +1141,28 @@ function detectTags(e) {
 
 // Create post from main input
 async function createPost() {
+    // Check cooldown first
+    if (postCooldownActive) {
+        showNotification('Please wait 15 seconds before posting again.', 'error');
+        return;
+    }
+    
+    // Check username requirement
+    const username = getStoredUsername();
+    if (!username) {
+        showNotification('Please enter your username before posting.', 'error');
+        showUsernameModal();
+        return;
+    }
+    
     const postInput = document.getElementById('postInput');
     const content = postInput.value.trim();
     const isAnonymous = document.getElementById('anonymousPost').checked;
-    
-    console.log('createPost called with:', {
-        content: content,
-        isAnonymous: isAnonymous,
-        selectedMedia: selectedMedia ? 'has media' : 'no media',
-        selectedGif: selectedGif ? 'has gif' : 'no gif',
-        mediaType: selectedMedia ? typeof selectedMedia : 'none'
-    });
     
     if (!content && !selectedMedia && !selectedGif) {
         showNotification('Please enter some content or add media for your post!', 'error');
         return;
     }
-    
-    console.log('Creating post with content:', content, 'isAnonymous:', isAnonymous, 'media:', selectedMedia, 'gif:', selectedGif);
     
     try {
         const user = getCurrentUserForPost(isAnonymous);
@@ -1210,7 +1190,7 @@ async function createPost() {
         posts.unshift(post);
         renderPosts();
         
-        console.log('Post created successfully, clearing form...');
+        // Clear form
         postInput.value = '';
         postInput.style.height = 'auto';
         document.getElementById('anonymousPost').checked = false;
@@ -1220,6 +1200,9 @@ async function createPost() {
         if (postMediaPreview) {
             postMediaPreview.innerHTML = '';
         }
+        
+        // Start cooldown
+        startPostCooldown();
         
         showNotification('Post created successfully!', 'success');
     } catch (error) {
@@ -1606,12 +1589,20 @@ async function searchTenorGifs(query) {
     resultsContainer.innerHTML = '<div class="gif-loading">Searching...</div>';
     
     try {
-        const response = await fetch(`${TENOR_BASE_URL}/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=8&media_filter=gif`);
+        const response = await fetch(`${TENOR_BASE_URL}/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=8&media_filter=tinygif`);
         const data = await response.json();
         
+        // Handle both old and new API response structures
+        let results = [];
         if (data.results && data.results.length > 0) {
-            gifSearchResults = data.results;
-            displayGifResults(data.results);
+            results = data.results;
+        } else if (data.data && data.data.length > 0) {
+            results = data.data;
+        }
+        
+        if (results.length > 0) {
+            gifSearchResults = results;
+            displayGifResults(results);
         } else {
             resultsContainer.innerHTML = '<div class="gif-loading">No GIFs found. Try a different search term!</div>';
         }
@@ -2847,33 +2838,7 @@ function startPostCooldown() {
   }, 15000); // 15 seconds cooldown
 }
 
-// Add cooldown check to existing createPost function
-const originalCreatePostFunction = createPost;
-createPost = async function() {
-  if (postCooldownActive) {
-    showNotification('Please wait before posting again.', 'error');
-    return;
-  }
-  const username = getStoredUsername();
-  if (!username) {
-    showNotification('Please enter your username before posting.', 'error');
-    showUsernameModal();
-    return;
-  }
-  currentUser.username = username;
-  currentUser.displayName = username;
-  const postCreatorName = document.getElementById('postCreatorName');
-  const postCreatorDisplayName = document.getElementById('postCreatorDisplayName');
-  if (postCreatorName) postCreatorName.textContent = '@' + username;
-  if (postCreatorDisplayName) postCreatorDisplayName.textContent = username;
-  try {
-    await originalCreatePostFunction();
-    startPostCooldown();
-  } catch (e) {
-    showNotification('Failed to create post. Please try again.', 'error');
-    console.error('createPost error:', e);
-  }
-}
+
 
 // Add cooldown to file/image attachment
 let fileAttachCooldownActive = false;
@@ -2920,10 +2885,7 @@ window.openModalGifSearch = openModalGifSearch;
 window.openGifModal = openGifModal;
 window.togglePostMenu = togglePostMenu;
 window.deletePost = deletePost;
-window.createTestPost = createTestPost;
-window.debugFetchPosts = debugFetchPosts;
-window.forceLoadPosts = forceLoadPosts;
-window.debugFixEverything = debugFixEverything;
+
 window.openProfileModal = openProfileModal;
 window.closeProfileModal = closeProfileModal;
 window.triggerProfilePicUpload = triggerProfilePicUpload;

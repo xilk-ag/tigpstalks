@@ -1201,6 +1201,6 @@ window.exportData = exportData;
 window.importData = importData;
 window.saveDashboardProfile = saveDashboardProfile;
 window.addInstagramComment = addInstagramComment;
-window.debugFixEverything = debugFixEverything;
+
 
 console.log('=== MOBILE SCRIPT LOADING END ==='); 

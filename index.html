@@ -250,10 +250,8 @@
                             <div class="post-submit">
                                 <div class="char-count" id="charCount">0/500</div>
                                 <button class="btn-post" onclick="createPost()" id="postButton">Post</button>
-                                <button class="btn-secondary" onclick="createTestPost()" id="testPostButton" style="margin-left:10px;">Test Post</button>
-                                <!-- <button class="btn-secondary" onclick="debugFetchPosts()" id="debugPostsButton" style="margin-left:10px;">Debug Posts</button> -->
-                                <button class="btn-secondary" onclick="forceLoadPosts()" id="forceLoadButton" style="margin-left:10px;background:#ff6b6b;">Force Load Posts</button>
-                                <button class="btn-secondary" onclick="debugFixEverything()" id="debugFixButton" style="margin-left:10px;background:#00ff00;color:#000;font-weight:bold;">🔧 DEBUG FIX</button>
+
+    
                                 <button class="btn-secondary" onclick="alert('Button clicked!')" style="margin-left:10px;background:#ff0000;">Test Click</button>
                             </div>
                         </div>
@@ -571,11 +569,7 @@ window.TIGPS_GOOGLE_CLIENT_ID = '363283261404-0bopi877ikv148a43vo6rhcnit3r85ei.a
     <script>
         // Simple test to verify script loading
         console.log('HTML script loaded');
-        if (typeof createTestPost === 'function') {
-            console.log('✓ createTestPost function is available');
-        } else {
-            console.log('❌ createTestPost function is NOT available');
-        }
+
     </script>
     <script>
 // Starfield: white, subtle, animated
