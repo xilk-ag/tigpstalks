@@ -19,6 +19,27 @@ window.addEventListener('unhandledrejection', function(e) {
 
 console.log('=== MOBILE SCRIPT LOADING START ===');
 
+// Define openTwitterProfile function immediately for global access
+function openTwitterProfile() {
+    const modal = document.getElementById('profileDashboardModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        loadTwitterProfileData();
+        loadTwitterPosts();
+    }
+}
+
+function closeTwitterProfile() {
+    const modal = document.getElementById('profileDashboardModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Make functions globally available immediately
+window.openTwitterProfile = openTwitterProfile;
+window.closeTwitterProfile = closeTwitterProfile;
+
 // Tenor API Configuration
 const TENOR_API_KEY = 'LIVDSRZULELA'; // Tenor API demo key
 const TENOR_BASE_URL = 'https://tenor.googleapis.com/v2'; // Updated to new Google API
@@ -45,7 +66,7 @@ let currentUser = {
     id: 1,
     displayName: "Alex Chen",
     username: "alexchen",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face",
+    avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%2325D366'/%3E%3Cpath d='M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z' fill='%23fff'/%3E%3C/svg%3E",
     bio: "Computer Science student at TIGPS. Love coding and coffee! ☕",
     location: "TIGPS Campus"
 };
@@ -142,7 +163,8 @@ function setupEventListeners() {
         postInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                createPost();
+                // Don't call createPost() here to prevent double posting
+                // The button click will handle posting
             }
         });
     }
@@ -291,30 +313,22 @@ function updateProfileDisplay() {
 async function fetchPostsFromFirestore() {
     try {
         if (!db) {
-            console.warn('Firestore not initialized, using localStorage fallback');
             const storedPosts = localStorage.getItem('tigpsPosts');
             return storedPosts ? JSON.parse(storedPosts) : [];
         }
         
-        console.log('Starting fetchPostsFromFirestore...');
         const postsCol = db.collection("posts");
-        console.log('Posts collection reference:', postsCol);
-        
         const postSnapshot = await postsCol.orderBy("timestamp", "desc").get();
-        console.log('Post snapshot:', postSnapshot);
-        console.log('Snapshot empty:', postSnapshot.empty);
-        console.log('Snapshot size:', postSnapshot.size);
         
         const postsArr = postSnapshot.docs.map(doc => {
             const data = doc.data();
-            console.log('Document ID:', doc.id, 'Data:', data);
             // Ensure all required fields are present
             return {
                 id: doc.id,
                 content: data.content || '',
                 author: data.author || 'Unknown',
                 username: data.username || 'unknown',
-                avatar: data.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face',
+                avatar: data.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%2325D366'/%3E%3Cpath d='M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z' fill='%23fff'/%3E%3C/svg%3E",
                 timestamp: data.timestamp || new Date().toISOString(),
                 likes: data.likes || 0,
                 comments: data.comments || [],
@@ -327,10 +341,8 @@ async function fetchPostsFromFirestore() {
             };
         });
         
-        console.log('Final posts array (sorted by date):', postsArr);
         return postsArr;
     } catch (error) {
-        console.error('Error in fetchPostsFromFirestore:', error);
         // Fallback to localStorage
         const storedPosts = localStorage.getItem('tigpsPosts');
         return storedPosts ? JSON.parse(storedPosts) : [];
@@ -340,7 +352,6 @@ async function fetchPostsFromFirestore() {
 async function savePostToFirestore(post) {
     try {
         if (!db) {
-            console.warn('Firestore not initialized, using localStorage fallback');
             const storedPosts = localStorage.getItem('tigpsPosts');
             const posts = storedPosts ? JSON.parse(storedPosts) : [];
             post.id = Date.now().toString();
@@ -349,10 +360,8 @@ async function savePostToFirestore(post) {
             return true;
         }
         await db.collection("posts").add(post);
-        console.log('✓ Post saved to Firestore');
         return true;
     } catch (error) {
-        console.error('Error saving post to Firestore, using localStorage fallback:', error);
         const storedPosts = localStorage.getItem('tigpsPosts');
         const posts = storedPosts ? JSON.parse(storedPosts) : [];
         post.id = Date.now().toString();
@@ -365,7 +374,7 @@ async function savePostToFirestore(post) {
 // Post creation
 async function createPost() {
     if (postCooldownActive) {
-        showNotification('Please wait before posting again.', 'warning');
+        showNotification('Please wait 15 seconds before posting again.', 'warning');
         return;
     }
     
@@ -444,7 +453,7 @@ function getCurrentUserForPost(isAnonymous) {
             id: 'anonymous',
             displayName: 'Anonymous',
             username: 'anonymous',
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face'
+            avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%2325D366'/%3E%3Cpath d='M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z' fill='%23fff'/%3E%3C/svg%3E"
         };
     }
     
@@ -504,17 +513,27 @@ function createPostElement(post, index) {
                 ${mediaHtml}
                 ${gifHtml}
             </div>
-            <div class="post-actions">
-                <button class="action-btn like-btn ${post.isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
-                    <span class="action-icon">❤️</span>
+            <div class="instagram-actions">
+                <button class="instagram-action-btn ${post.isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')" title="Like">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="${post.isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 21C12 21 4 13.36 4 8.5C4 5.42 6.42 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.58 3 24 5.42 24 8.5C24 13.36 16 21 16 21H12Z"/>
+                    </svg>
                     <span class="action-count">${post.likes}</span>
                 </button>
-                <button class="action-btn comment-btn" onclick="showComments('${post.id}')">
-                    <span class="action-icon">💬</span>
+                <button class="instagram-action-btn" onclick="instagramComment('${post.id}')" title="Comment">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
                     <span class="action-count">${post.comments.length}</span>
                 </button>
-                <button class="action-btn share-btn" onclick="sharePost('${post.id}')">
-                    <span class="action-icon">📤</span>
+                <button class="instagram-action-btn" onclick="instagramShare('${post.id}')" title="Share">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="18" cy="5" r="3"/>
+                        <circle cx="6" cy="12" r="3"/>
+                        <circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    </svg>
                 </button>
             </div>
         </div>
@@ -594,10 +613,16 @@ async function toggleLike(postId) {
 }
 
 async function showComments(postId) {
-    const post = posts.find(p => p.id === postId);
-    if (post) {
-        currentPostId = postId;
-        showNotification('Comments feature coming soon!', 'info');
+    currentPostId = postId;
+    try {
+        console.log('Loading comments for post:', postId);
+        const comments = await fetchCommentsFromFirestore(postId.toString());
+        console.log('Comments loaded:', comments);
+        renderComments(comments);
+        document.getElementById('commentsModal').style.display = 'flex';
+    } catch (e) {
+        console.error('Error loading comments:', e);
+        showNotification('Failed to load comments.', 'error');
     }
 }
 
@@ -773,10 +798,12 @@ function toggleHamburgerMenu() {
         
         if (isOpen) {
             sidebar.classList.remove('open');
-            overlay.classList.remove('open');
+            overlay.classList.remove('show');
+            document.body.style.overflow = '';
         } else {
             sidebar.classList.add('open');
-            overlay.classList.add('open');
+            overlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
         }
     }
 }
@@ -847,7 +874,7 @@ function logout() {
         id: 1,
         displayName: "Alex Chen",
         username: "alexchen",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face",
+        avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%2325D366'/%3E%3Cpath d='M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z' fill='%23fff'/%3E%3C/svg%3E",
         bio: "Computer Science student at TIGPS. Love coding and coffee! ☕",
         location: "TIGPS Campus"
     };
@@ -870,13 +897,22 @@ function startPostCooldown() {
     
     if (postButton) {
         postButton.disabled = true;
-        postButton.textContent = 'Posting...';
         
-        setTimeout(() => {
-            postCooldownActive = false;
-            postButton.disabled = false;
-            postButton.textContent = 'Post';
-        }, 3000);
+        // Create countdown timer
+        let timeLeft = 15;
+        const updateCountdown = () => {
+            if (timeLeft > 0) {
+                postButton.textContent = `Please wait ${timeLeft}s...`;
+                timeLeft--;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                postCooldownActive = false;
+                postButton.disabled = false;
+                postButton.textContent = 'Post';
+            }
+        };
+        
+        updateCountdown();
     }
 }
 
@@ -954,16 +990,14 @@ async function initializeAppData() {
         
         // Load posts from Firestore
         posts = await fetchPostsFromFirestore();
-        console.log('✓ Posts loaded:', posts.length);
         
         // If no posts exist, create a test post
         if (posts.length === 0) {
-            console.log('No posts found, creating test post...');
             const testPost = {
                 content: "Welcome to TIGPS TALKS! This is a test post to get things started. 🎉",
                 author: "TIGPS Team",
                 username: "tigps_team",
-                avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face",
+                avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%2325D366'/%3E%3Cpath d='M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z' fill='%23fff'/%3E%3C/svg%3E",
                 isAnonymous: false,
                 media: null,
                 timestamp: new Date().toISOString(),
@@ -975,77 +1009,71 @@ async function initializeAppData() {
             };
             await savePostToFirestore(testPost);
             posts = await fetchPostsFromFirestore();
-            console.log('Test post created, posts now:', posts.length);
         }
         
         // Render posts
         renderPosts();
-        console.log('✓ Posts rendered');
         
         // Update profile display
         updateProfileDisplay();
-        console.log('✓ Profile display updated');
         
     } catch (error) {
-        console.error('❌ Error initializing app data:', error);
         showNotification('Failed to initialize app: ' + error.message, 'error');
     }
 }
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== MOBILE DOMContentLoaded START ===');
     try {
         // Initialize Firebase first
-        console.log('🔄 Initializing Firebase...');
         const firebaseInitialized = initializeFirebase();
-        console.log('✓ Firebase initialization:', firebaseInitialized ? 'success' : 'failed');
         
         checkAdminState();
-        console.log('✓ Admin state checked');
-        
         setupContentProtection();
-        console.log('✓ Content protection setup');
-        
-        // Setup event listeners immediately
-        console.log('🔄 Setting up event listeners...');
         setupEventListeners();
-        console.log('✓ Event listeners setup completed');
-        
-        // Check username requirement
-        console.log('🔄 Checking username requirement...');
         requireUsername();
-        console.log('✓ Username requirement checked');
         
         // Initialize app data (loads posts)
-        console.log('🔄 Starting initializeAppData...');
         initializeAppData().then(() => {
-            console.log('✓ initializeAppData completed');
+            // Posts loaded successfully
         }).catch(error => {
-            console.error('❌ initializeAppData failed:', error);
             showNotification('App initialization failed: ' + error.message, 'error');
         });
         
         // Load posts after a short delay as backup
         setTimeout(async function() {
-            console.log('🔄 Backup post loading...');
             try {
                 posts = await fetchPostsFromFirestore();
-                console.log('✓ Backup posts loaded:', posts.length);
                 renderPosts();
-                console.log('✓ Backup posts rendered');
             } catch (error) {
-                console.error('❌ Backup post loading failed:', error);
                 showNotification('Backup post loading failed: ' + error.message, 'error');
+                
+                // Final fallback: create a test post in localStorage
+                const fallbackPost = {
+                    id: Date.now().toString(),
+                    content: "Welcome to TIGPS TALKS! This is a fallback test post. 🎉",
+                    author: "TIGPS Team",
+                    username: "tigps_team",
+                    avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%2325D366'/%3E%3Cpath d='M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z' fill='%23fff'/%3E%3C/svg%3E",
+                    isAnonymous: false,
+                    media: null,
+                    timestamp: new Date().toISOString(),
+                    likes: 5,
+                    comments: [],
+                    isLiked: false,
+                    tags: ["welcome", "test", "fallback"],
+                    likedBy: []
+                };
+                
+                posts = [fallbackPost];
+                localStorage.setItem('tigpsPosts', JSON.stringify(posts));
+                renderPosts();
             }
         }, 2000);
         
-        console.log('✓ DOMContentLoaded completed');
     } catch (error) {
-        console.error('❌ DOMContentLoaded error:', error);
         showNotification('Page initialization failed: ' + error.message, 'error');
     }
-    console.log('=== MOBILE DOMContentLoaded END ===');
 });
 
 // Missing functions that are called from HTML
@@ -1122,6 +1150,29 @@ function addInstagramComment() {
     showNotification('Instagram comment feature coming soon!', 'info');
 }
 
+// Navigation functions for X-style bottom nav
+function focusPostInput() {
+    const postInput = document.getElementById('postInput');
+    if (postInput) {
+        postInput.focus();
+        postInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function navigateToHome() {
+    // Scroll to top of the page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Update active state if needed
+    const navItems = document.querySelectorAll('.x-nav-item');
+    navItems.forEach(item => item.classList.remove('active'));
+    
+    // Find home button and make it active
+    const homeButton = document.querySelector('.x-nav-item:nth-child(2)');
+    if (homeButton) {
+        homeButton.classList.add('active');
+    }
+}
 
 
 // Make functions globally available
@@ -1161,6 +1212,594 @@ window.exportData = exportData;
 window.importData = importData;
 window.saveDashboardProfile = saveDashboardProfile;
 window.addInstagramComment = addInstagramComment;
+window.focusPostInput = focusPostInput;
+window.navigateToHome = navigateToHome;
+window.showComments = showComments;
+window.addComment = addComment;
+window.renderComments = renderComments;
+window.instagramComment = instagramComment;
+window.addInstagramComment = addInstagramComment;
+window.closeInstagramCommentModal = closeInstagramCommentModal;
+window.instagramLike = instagramLike;
+window.instagramShare = instagramShare;
+
+// Twitter Profile Functions
+window.openTwitterProfile = openTwitterProfile;
+window.closeTwitterProfile = closeTwitterProfile;
+window.switchTwitterTab = switchTwitterTab;
+window.openTwitterProfileEdit = openTwitterProfileEdit;
+window.closeTwitterProfileEdit = closeTwitterProfileEdit;
+window.saveTwitterProfile = saveTwitterProfile;
+window.triggerAvatarUpload = triggerAvatarUpload;
+window.triggerCoverUpload = triggerCoverUpload;
 
 
 console.log('=== MOBILE SCRIPT LOADING END ==='); 
+
+// Comment functions (exactly like PC version)
+function renderComments(comments) {
+    const commentsList = document.getElementById('commentsList');
+    if (!commentsList) {
+        console.error('Comments list element not found');
+        return;
+    }
+    
+    if (!comments || comments.length === 0) {
+        commentsList.innerHTML = '<div class="empty-comments">No comments yet. Be the first to comment!</div>';
+        return;
+    }
+    
+    commentsList.innerHTML = comments.map(comment => `
+        <div class="comment">
+            <img src="${comment.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%2325D366'/%3E%3Cpath d='M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z' fill='%23fff'/%3E%3C/svg%3E"}" alt="Profile" class="comment-avatar">
+            <div class="comment-content">
+                <div class="comment-header">
+                    <span class="comment-author">${comment.author}</span>
+                    <span class="comment-username">@${comment.username}</span>
+                    <span class="comment-time">${getTimeAgo(comment.timestamp)}</span>
+                </div>
+                <div class="comment-text">${escapeHtml(comment.content)}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function addComment() {
+    const commentInput = document.getElementById('commentInput');
+    const content = commentInput.value.trim();
+    if (!content) return;
+    
+    const user = getCurrentUserForPost(false);
+    const comment = {
+        author: user.displayName,
+        username: user.username,
+        avatar: user.avatar,
+        content,
+        timestamp: new Date().toISOString()
+    };
+    
+    try {
+        await saveCommentToFirestore(currentPostId.toString(), comment);
+        const comments = await fetchCommentsFromFirestore(currentPostId.toString());
+        renderComments(comments);
+        commentInput.value = '';
+        showNotification('Comment added!', 'success');
+    } catch (e) {
+        console.error('Error adding comment:', e);
+        showNotification('Failed to add comment.', 'error');
+    }
+}
+
+async function fetchCommentsFromFirestore(postId) {
+    try {
+        if (!db) {
+            console.warn('Firestore not initialized');
+            return [];
+        }
+        
+        const commentsSnapshot = await db.collection("posts").doc(postId).collection("comments").orderBy("timestamp", "desc").get();
+        const comments = [];
+        
+        commentsSnapshot.forEach(doc => {
+            comments.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        return comments;
+    } catch (error) {
+        console.error('Error fetching comments from Firestore:', error);
+        return [];
+    }
+}
+
+async function saveCommentToFirestore(postId, comment) {
+    try {
+        if (!db) {
+            console.warn('Firestore not initialized');
+            return;
+        }
+        
+        await db.collection("posts").doc(postId).collection("comments").add(comment);
+        console.log('Comment saved to Firestore');
+    } catch (error) {
+        console.error('Error saving comment to Firestore:', error);
+        throw error;
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Instagram-style comment functions
+let currentInstagramPostId = null;
+
+function instagramComment(postId) {
+    currentInstagramPostId = postId;
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    // Populate the Instagram comment modal
+    const modal = document.getElementById('instagramCommentModal');
+    const postContainer = document.getElementById('instagramCommentPost');
+    
+    postContainer.innerHTML = `
+        <div class="instagram-comment-post-header">
+                            <img src="${post.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%2325D366'/%3E%3Cpath d='M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z' fill='%23fff'/%3E%3C/svg%3E"}" alt="Profile" class="instagram-comment-post-avatar">
+            <div class="instagram-comment-post-author">${post.isAnonymous ? 'Anonymous' : post.author}</div>
+        </div>
+        <div class="instagram-comment-post-content">${post.content}</div>
+        ${post.media ? `<div class="instagram-comment-post-media"><img src="${post.media}" alt="Post media" style="max-width: 100%; border-radius: 8px;"></div>` : ''}
+        <div class="instagram-comment-post-actions">
+            <button class="instagram-action-btn ${post.isLiked ? 'liked' : ''}" onclick="instagramLike('${post.id}')">
+                <svg viewBox="0 0 24 24" fill="${post.isLiked ? '#e31b23' : 'currentColor'}">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </button>
+            <button class="instagram-action-btn" onclick="instagramComment('${post.id}')">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                </svg>
+            </button>
+            <button class="instagram-action-btn" onclick="instagramShare('${post.id}')">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+                </svg>
+            </button>
+        </div>
+    `;
+    
+    // Load comments
+    loadInstagramComments(postId);
+    
+    // Show modal
+    modal.style.display = 'flex';
+}
+
+async function loadInstagramComments(postId) {
+    try {
+        const comments = await fetchCommentsFromFirestore(postId);
+        const commentsList = document.getElementById('instagramCommentsList');
+        
+        if (comments.length === 0) {
+            commentsList.innerHTML = '<div style="text-align: center; color: #8e8e93; padding: 20px;">No comments yet. Be the first to comment!</div>';
+            return;
+        }
+        
+        commentsList.innerHTML = comments.map(comment => `
+            <div class="instagram-comment-item">
+                <img src="${comment.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%2325D366'/%3E%3Cpath d='M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z' fill='%23fff'/%3E%3C/svg%3E"}" alt="Profile" class="instagram-comment-avatar">
+                <div class="instagram-comment-content">
+                    <div class="instagram-comment-author">${comment.author}</div>
+                    <div class="instagram-comment-text">${comment.content}</div>
+                    <div class="instagram-comment-time">${getTimeAgo(comment.timestamp)}</div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading Instagram comments:', error);
+        document.getElementById('instagramCommentsList').innerHTML = '<div style="text-align: center; color: #8e8e93; padding: 20px;">Error loading comments</div>';
+    }
+}
+
+async function addInstagramComment() {
+    const input = document.getElementById('instagramCommentInput');
+    const content = input.value.trim();
+    
+    if (!content || !currentInstagramPostId) return;
+    
+    const comment = {
+        content: content,
+        author: currentUser.displayName || 'Anonymous',
+        username: currentUser.username || 'anonymous',
+        avatar: currentUser.avatar,
+        timestamp: new Date().toISOString()
+    };
+    
+    try {
+        // Save to Firestore
+        await db.collection("posts").doc(currentInstagramPostId).collection("comments").add(comment);
+        
+        // Clear input
+        input.value = '';
+        
+        // Reload comments
+        await loadInstagramComments(currentInstagramPostId);
+        
+        // Update post comment count
+        const post = posts.find(p => p.id === currentInstagramPostId);
+        if (post) {
+            if (!post.comments) post.comments = [];
+            post.comments.push(comment);
+            await updatePostInFirestore(post);
+            renderPosts();
+        }
+        
+        showNotification('Comment added!', 'success');
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        showNotification('Failed to add comment', 'error');
+    }
+}
+
+function closeInstagramCommentModal() {
+    document.getElementById('instagramCommentModal').style.display = 'none';
+    currentInstagramPostId = null;
+    document.getElementById('instagramCommentInput').value = '';
+}
+
+function instagramLike(postId) {
+    const post = posts.find(p => p.id === postId);
+    if (!post || !currentUser || !currentUser.username) return;
+    if (!post.likedBy) post.likedBy = [];
+    const userIndex = post.likedBy.indexOf(currentUser.username);
+    if (userIndex !== -1) {
+        // Unlike
+        post.likedBy.splice(userIndex, 1);
+    } else {
+        // Like
+        post.likedBy.push(currentUser.username);
+    }
+    // Update in Firestore
+    updatePostInFirestore(post);
+    // Re-render posts
+    renderPosts();
+}
+
+function instagramShare(postId) {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const shareText = `${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}`;
+    const shareUrl = window.location.href;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'TIGPS TALKS',
+            text: shareText,
+            url: shareUrl
+        });
+    } else {
+        // Fallback: copy to clipboard
+        const textToCopy = `${shareText}\n\n${shareUrl}`;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            showNotification('Link copied to clipboard!', 'success');
+        }).catch(() => {
+            showNotification('Failed to copy link', 'error');
+        });
+    }
+} 
+
+// Twitter/X-style Profile Dashboard Functions
+// Functions are now defined at the top of the file for immediate global access
+
+function loadTwitterProfileData() {
+    console.log('loadTwitterProfileData called');
+    console.log('currentUser:', currentUser);
+    
+    // Load user profile data
+    const nameElement = document.getElementById('twitterProfileName');
+    const usernameElement = document.getElementById('twitterProfileUsername');
+    const bioElement = document.getElementById('twitterProfileBio');
+    
+    console.log('Elements found:', { nameElement, usernameElement, bioElement });
+    
+    if (nameElement) nameElement.textContent = currentUser.displayName || 'User';
+    if (usernameElement) usernameElement.textContent = '@' + (currentUser.username || 'user');
+    if (bioElement) bioElement.textContent = currentUser.bio || 'No bio yet.';
+    
+    // Update avatar
+    const avatar = document.getElementById('twitterProfileAvatar');
+    if (avatar) {
+        avatar.src = currentUser.avatar || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"%3E%3Ccircle cx="60" cy="60" r="60" fill="%2325D366"/%3E%3Cpath d="M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z" fill="%23fff"/%3E%3C/svg%3E';
+    }
+    
+    // Update stats
+    updateTwitterStats();
+}
+
+function updateTwitterStats() {
+    // Count user's posts
+    const userPosts = posts.filter(post => post.username === currentUser.username);
+    document.getElementById('twitterPostsCount').textContent = userPosts.length;
+    
+    // For now, set following/followers to 0 (can be implemented later)
+    document.getElementById('twitterFollowingCount').textContent = '0';
+    document.getElementById('twitterFollowersCount').textContent = '0';
+}
+
+function loadTwitterPosts() {
+    const container = document.getElementById('twitterPostsContainer');
+    const userPosts = posts.filter(post => post.username === currentUser.username);
+    
+    if (userPosts.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No posts yet</h3>
+                <p>When you post, it'll show up here.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = userPosts.map(post => createTwitterPostElement(post)).join('');
+}
+
+function createTwitterPostElement(post) {
+    const timeAgo = getTimeAgo(post.timestamp);
+    const mediaHtml = post.media ? `
+        <div class="twitter-post-media">
+            <img src="${post.media}" alt="Post media">
+        </div>
+    ` : '';
+    
+    return `
+        <div class="twitter-post" data-post-id="${post.id}">
+            <div class="twitter-post-header">
+                <img src="${post.avatar || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"%3E%3Ccircle cx="60" cy="60" r="60" fill="%2325D366"/%3E%3Cpath d="M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z" fill="%23fff"/%3E%3C/svg%3E'}" alt="Profile" class="twitter-post-avatar">
+                <div class="twitter-post-info">
+                    <div class="twitter-post-author">${post.isAnonymous ? 'Anonymous' : post.author}</div>
+                    <div class="twitter-post-username">@${post.username}</div>
+                    <span class="twitter-post-time">${timeAgo}</span>
+                </div>
+            </div>
+            <div class="twitter-post-content">${escapeHtml(post.content)}</div>
+            ${mediaHtml}
+            <div class="twitter-post-actions">
+                <div class="twitter-post-action comment" onclick="instagramComment('${post.id}')">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.96-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"/>
+                    </svg>
+                    <span>${post.comments ? post.comments.length : 0}</span>
+                </div>
+                <div class="twitter-post-action retweet">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46L19 15.55V8c0-1.1-.896-2-2-2z"/>
+                    </svg>
+                    <span>0</span>
+                </div>
+                <div class="twitter-post-action like ${post.isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
+                    <svg viewBox="0 0 24 24" fill="${post.isLiked ? '#f91880' : 'currentColor'}">
+                        <path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"/>
+                    </svg>
+                    <span>${post.likes || 0}</span>
+                </div>
+                <div class="twitter-post-action share" onclick="instagramShare('${post.id}')">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function switchTwitterTab(tab) {
+    // Update navigation
+    const navItems = document.querySelectorAll('.twitter-nav-item');
+    navItems.forEach(item => item.classList.remove('active'));
+    
+    const activeNavItem = document.querySelector(`.twitter-nav-item[onclick*="${tab}"]`);
+    if (activeNavItem) {
+        activeNavItem.classList.add('active');
+    }
+    
+    // Hide all containers
+    const containers = [
+        'twitterPostsContainer',
+        'twitterRepliesContainer', 
+        'twitterMediaContainer',
+        'twitterLikesContainer'
+    ];
+    
+    containers.forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.style.display = 'none';
+        }
+    });
+    
+    // Show selected container
+    const selectedContainer = document.getElementById(`twitter${tab.charAt(0).toUpperCase() + tab.slice(1)}Container`);
+    if (selectedContainer) {
+        selectedContainer.style.display = 'block';
+    }
+    
+    // Load content based on tab
+    switch(tab) {
+        case 'posts':
+            loadTwitterPosts();
+            break;
+        case 'replies':
+            // Load replies (can be implemented later)
+            break;
+        case 'media':
+            loadTwitterMedia();
+            break;
+        case 'likes':
+            loadTwitterLikes();
+            break;
+    }
+}
+
+function loadTwitterMedia() {
+    const container = document.getElementById('twitterMediaContainer');
+    const userPosts = posts.filter(post => post.username === currentUser.username && (post.media || post.gif));
+    
+    if (userPosts.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No media yet</h3>
+                <p>When you post media, it'll show up here.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = userPosts.map(post => createTwitterPostElement(post)).join('');
+}
+
+function loadTwitterLikes() {
+    const container = document.getElementById('twitterLikesContainer');
+    const likedPosts = posts.filter(post => post.likedBy && post.likedBy.includes(currentUser.username));
+    
+    if (likedPosts.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No likes yet</h3>
+                <p>Posts you like will show up here.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = likedPosts.map(post => createTwitterPostElement(post)).join('');
+}
+
+// Profile Edit Functions
+function openTwitterProfileEdit() {
+    const modal = document.getElementById('twitterProfileEditModal');
+    if (modal) {
+        // Populate form with current data
+        document.getElementById('twitterEditName').value = currentUser.displayName || '';
+        document.getElementById('twitterEditUsername').value = currentUser.username || '';
+        document.getElementById('twitterEditBio').value = currentUser.bio || '';
+        document.getElementById('twitterEditLocation').value = currentUser.location || '';
+        document.getElementById('twitterEditWebsite').value = currentUser.website || '';
+        
+        modal.style.display = 'flex';
+    }
+}
+
+function closeTwitterProfileEdit() {
+    const modal = document.getElementById('twitterProfileEditModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+async function saveTwitterProfile() {
+    const name = document.getElementById('twitterEditName').value.trim();
+    const username = document.getElementById('twitterEditUsername').value.trim();
+    const bio = document.getElementById('twitterEditBio').value.trim();
+    const location = document.getElementById('twitterEditLocation').value.trim();
+    const website = document.getElementById('twitterEditWebsite').value.trim();
+    
+    if (!name || !username) {
+        showNotification('Name and username are required.', 'error');
+        return;
+    }
+    
+    // Update current user
+    currentUser.displayName = name;
+    currentUser.username = username;
+    currentUser.bio = bio;
+    currentUser.location = location;
+    currentUser.website = website;
+    
+    try {
+        // Save to Firestore if available
+        if (typeof saveProfileToFirestore === 'function') {
+            await saveProfileToFirestore(currentUser);
+        } else {
+            // Fallback: save to localStorage
+            localStorage.setItem('tigpsUserProfile', JSON.stringify(currentUser));
+        }
+        
+        // Update UI
+        loadTwitterProfileData();
+        closeTwitterProfileEdit();
+        showNotification('Profile updated successfully!', 'success');
+    } catch (error) {
+        console.error('Error saving profile:', error);
+        showNotification('Failed to update profile.', 'error');
+    }
+}
+
+// Upload Functions
+function triggerAvatarUpload() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = handleAvatarUpload;
+    input.click();
+}
+
+function triggerCoverUpload() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = handleCoverUpload;
+    input.click();
+}
+
+function handleAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('Image size must be less than 5MB.', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        currentUser.avatar = e.target.result;
+        document.getElementById('twitterProfileAvatar').src = e.target.result;
+        showNotification('Avatar updated!', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleCoverUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('Image size must be less than 5MB.', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('twitterCoverImage').src = e.target.result;
+        showNotification('Cover image updated!', 'success');
+    };
+    reader.readAsDataURL(file);
+} 
+
+// Make Twitter Profile functions globally available
+window.openTwitterProfile = openTwitterProfile;
+window.closeTwitterProfile = closeTwitterProfile;
+window.switchTwitterTab = switchTwitterTab;
+window.openTwitterProfileEdit = openTwitterProfileEdit;
+window.closeTwitterProfileEdit = closeTwitterProfileEdit;
+window.saveTwitterProfile = saveTwitterProfile;
+window.triggerAvatarUpload = triggerAvatarUpload;
+window.triggerCoverUpload = triggerCoverUpload;
+window.handleAvatarUpload = handleAvatarUpload;
+window.handleCoverUpload = handleCoverUpload; 

@@ -293,69 +293,95 @@ body {
     padding: 0 16px;
 }
 
-/* Post Creator - Mobile Optimized */
+/* Post Creator - Mobile Optimized (PC-style frosted glass) */
 .post-creator {
-    background: #18191c;
-    border: 1.5px solid #333;
-    border-radius: 18px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-    padding: 16px;
+    background: rgba(36, 40, 60, 0.15);
+    border: 1.5px solid rgba(0, 255, 247, 0.3);
+    box-shadow: 0 4px 32px rgba(0, 255, 247, 0.2), 0 0 8px rgba(162, 89, 255, 0.2);
+    border-radius: 20px;
+    padding: 1.5rem;
+    transition: box-shadow 0.3s, border 0.3s, transform 0.2s;
+    backdrop-filter: blur(10px);
     margin-bottom: 18px;
     margin-top: 8px;
 }
 
 .post-input-container {
-    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .post-header-section {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 1rem;
 }
 
 .post-avatar {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Account Avatar (WhatsApp-style) */
+.account-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.account-avatar svg {
+    width: 28px;
+    height: 28px;
 }
 
 .post-creator-info {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .post-creator-name {
     font-weight: 600;
-    font-size: 14px;
-    color: #fff;
+    color: #667eea;
+    font-size: 0.9rem;
 }
 
 .post-creator-display-name {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.6);
+    font-weight: 700;
+    color: white;
+    font-size: 1.1rem;
 }
 
 .post-input {
-    width: 100%;
-    min-height: 80px;
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 16px;
-    line-height: 1.5;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 1rem;
+    color: white;
+    font-size: 1rem;
     resize: none;
+    min-height: 100px;
+    transition: all 0.3s ease;
     outline: none;
     font-family: inherit;
 }
 
 .post-input:focus {
     outline: none;
+    border-color: rgba(102, 126, 234, 0.5);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .post-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.6);
 }
 
 /* Post Media Preview - Mobile Optimized */
@@ -421,29 +447,33 @@ body {
     gap: 8px;
 }
 
-.media-btn {
+.post-submit {
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    border-radius: 8px;
-    color: #fff;
+    gap: 12px;
+}
+
+.media-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
 }
 
 .media-btn-content {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
 }
 
 .media-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
 }
 
 /* Checkbox - Mobile Optimized */
@@ -454,6 +484,7 @@ body {
     cursor: pointer;
     font-size: 14px;
     color: rgba(255, 255, 255, 0.8);
+    position: relative;
 }
 
 .checkbox-container input[type="checkbox"] {
@@ -467,14 +498,15 @@ body {
     border-radius: 4px;
     position: relative;
     transition: all 0.2s;
+    flex-shrink: 0;
 }
 
-.checkbox-container input[type="checkbox"]:checked + .checkmark {
+.checkbox-container input[type="checkbox"]:checked ~ .checkmark {
     background: #1da1f2;
     border-color: #1da1f2;
 }
 
-.checkbox-container input[type="checkbox"]:checked + .checkmark::after {
+.checkbox-container input[type="checkbox"]:checked ~ .checkmark::after {
     content: '✓';
     position: absolute;
     top: 50%;
@@ -483,6 +515,11 @@ body {
     color: #fff;
     font-size: 12px;
     font-weight: bold;
+}
+
+.checkbox-container label {
+    cursor: pointer;
+    user-select: none;
 }
 
 /* Post Submit - Mobile Optimized */
@@ -500,26 +537,28 @@ body {
 }
 
 .btn-post {
-    background: #1da1f2;
-    color: #fff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     font-size: 14px;
 }
 
 .btn-post:hover {
-    background: #1a91da;
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
 .btn-post:disabled {
-    background: rgba(29, 161, 242, 0.5);
+    background: rgba(102, 126, 234, 0.5);
     cursor: not-allowed;
     transform: none;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
 /* Posts Feed - Mobile Optimized */
@@ -734,34 +773,36 @@ body {
 }
 
 .post-action-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: transparent;
-    border: none;
-    color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
     cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
-    transition: all 0.2s;
-    font-size: 14px;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    backdrop-filter: blur(10px);
 }
 
 .post-action-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
 }
 
 .post-action-btn.liked {
-    color: #e0245e;
+    background: rgba(255, 107, 107, 0.2);
+    border-color: rgba(255, 107, 107, 0.3);
+    color: #ff6b6b;
 }
 
 .post-action-btn.delete {
-    color: #e0245e;
+    color: #e31b23;
+    background: rgba(227, 27, 35, 0.1);
 }
 
 .post-action-btn.delete:hover {
-    background: rgba(224, 36, 94, 0.1);
+    background: rgba(227, 27, 35, 0.2);
+    color: #e31b23;
 }
 
 /* Buttons - Mobile Optimized */
@@ -1350,25 +1391,30 @@ textarea:focus {
 }
 
 .instagram-comment-submit {
-    background: #0095f6;
-    color: #fff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     border: none;
+    padding: 0.75rem 1rem;
     border-radius: 20px;
-    padding: 8px 16px;
-    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    font-size: 14px;
 }
 
 .instagram-comment-submit:hover {
-    background: #0081d6;
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
 .instagram-comment-submit:disabled {
-    background: #262626;
-    color: #8e8e93;
+    background: rgba(102, 126, 234, 0.5);
+    color: rgba(255, 255, 255, 0.6);
     cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
 /* Mobile optimizations for Instagram style */
@@ -1496,18 +1542,22 @@ textarea:focus {
 }
 
 .search-gif-btn {
-    padding: 10px 20px;
-    background: #2196F3;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
+    padding: 0.75rem 1.5rem;
     border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
-    transition: background 0.2s;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .search-gif-btn:hover {
-    background: #1976D2;
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
 .gif-results {
@@ -1591,18 +1641,22 @@ textarea:focus {
 }
 
 .change-pic-btn {
-    padding: 8px 16px;
-    background: #2196F3;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 20px;
     cursor: pointer;
-    font-size: 12px;
-    transition: background 0.2s;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .change-pic-btn:hover {
-    background: #1976D2;
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
 .profile-fields {
@@ -1740,4 +1794,658 @@ textarea:focus {
 .empty-state p {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.6);
+} 
+
+/* X-style Bottom Navigation Bar */
+.x-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    z-index: 1000;
+    height: 60px;
+}
+
+.x-nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #fff;
+    background: transparent;
+    border: none;
+}
+
+.x-nav-item svg {
+    width: 20px;
+    height: 20px;
+    color: #fff;
+}
+
+.x-nav-item svg path {
+    stroke: #fff;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.x-nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.x-nav-item:active {
+    transform: scale(0.95);
+}
+
+.x-plus-btn {
+    background: #1da1f2 !important;
+    border-radius: 50% !important;
+    width: 44px !important;
+    height: 44px !important;
+    box-shadow: 0 4px 12px rgba(29, 161, 242, 0.3);
+}
+
+.x-plus-btn:hover {
+    background: #1a91da !important;
+    transform: scale(1.1) !important;
+}
+
+.x-profile-pic {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer; /* Enable clicks on the image */
+}
+
+.x-profile-pic:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Account avatar in bottom nav */
+.x-profile-pic.account-avatar {
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.x-profile-pic.account-avatar svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Ensure main content doesn't overlap with bottom nav */
+.main-content {
+    padding-bottom: 80px;
+}
+
+/* Sidebar styles for mobile */
+.sidebar-menu {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.98);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 2000;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+}
+
+.sidebar-menu.open {
+    left: 0;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.close-sidebar-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.close-sidebar-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-content {
+    padding: 20px 0;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 16px;
+}
+
+.sidebar-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-item svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1500;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
+} 
+
+/* Twitter/X-style Profile Dashboard */
+.twitter-profile-modal {
+    background: rgba(0, 0, 0, 0.95);
+}
+
+.twitter-profile-content {
+    max-width: 100%;
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    border-radius: 0;
+    background: #000;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Profile Header */
+.twitter-profile-header {
+    position: relative;
+    background: #000;
+}
+
+.twitter-profile-cover {
+    position: relative;
+    height: 200px;
+    background: #1a1a1a;
+    overflow: hidden;
+}
+
+.twitter-cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.twitter-edit-cover-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.twitter-edit-cover-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.twitter-profile-avatar-section {
+    position: relative;
+    margin-top: -60px;
+    margin-left: 16px;
+    margin-bottom: 16px;
+}
+
+.twitter-profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #000;
+    object-fit: cover;
+    background: #1a1a1a;
+}
+
+.twitter-edit-avatar-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.twitter-edit-avatar-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.twitter-profile-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.twitter-edit-profile-btn {
+    background: transparent;
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.twitter-edit-profile-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #555;
+}
+
+.twitter-close-btn {
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: background 0.2s;
+}
+
+.twitter-close-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+/* Profile Info */
+.twitter-profile-info {
+    padding: 0 16px 16px;
+    background: #000;
+}
+
+.twitter-profile-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.twitter-profile-username {
+    font-size: 15px;
+    color: #71767b;
+    margin-bottom: 12px;
+}
+
+.twitter-profile-bio {
+    font-size: 15px;
+    color: #e7e9ea;
+    line-height: 1.4;
+    margin-bottom: 16px;
+}
+
+.twitter-profile-stats {
+    display: flex;
+    gap: 24px;
+}
+
+.twitter-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.twitter-stat:hover {
+    opacity: 0.8;
+}
+
+.twitter-stat-number {
+    font-weight: 700;
+    color: #fff;
+    font-size: 15px;
+}
+
+.twitter-stat-label {
+    color: #71767b;
+    font-size: 15px;
+}
+
+/* Profile Navigation */
+.twitter-profile-nav {
+    display: flex;
+    background: #000;
+    border-bottom: 1px solid #2f3336;
+    margin-top: 16px;
+}
+
+.twitter-nav-item {
+    flex: 1;
+    padding: 16px 0;
+    text-align: center;
+    color: #71767b;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 15px;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.twitter-nav-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: #e7e9ea;
+}
+
+.twitter-nav-item.active {
+    color: #fff;
+}
+
+.twitter-nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: #1d9bf0;
+    border-radius: 2px;
+}
+
+/* Profile Content */
+.twitter-profile-content {
+    background: #000;
+    min-height: 400px;
+}
+
+.twitter-posts-container,
+.twitter-replies-container,
+.twitter-media-container,
+.twitter-likes-container {
+    background: #000;
+}
+
+/* Twitter Post Styles */
+.twitter-post {
+    padding: 16px;
+    border-bottom: 1px solid #2f3336;
+    background: #000;
+    transition: background 0.2s;
+}
+
+.twitter-post:hover {
+    background: #080808;
+}
+
+.twitter-post-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.twitter-post-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.twitter-post-info {
+    flex: 1;
+}
+
+.twitter-post-author {
+    font-weight: 700;
+    color: #fff;
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.twitter-post-username {
+    color: #71767b;
+    font-size: 15px;
+}
+
+.twitter-post-time {
+    color: #71767b;
+    font-size: 15px;
+    margin-left: 8px;
+}
+
+.twitter-post-content {
+    color: #e7e9ea;
+    font-size: 15px;
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+
+.twitter-post-media {
+    margin-bottom: 12px;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.twitter-post-media img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+.twitter-post-actions {
+    display: flex;
+    justify-content: space-between;
+    max-width: 425px;
+}
+
+.twitter-post-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #71767b;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    font-size: 13px;
+}
+
+.twitter-post-action:hover {
+    background: rgba(29, 155, 240, 0.1);
+    color: #1d9bf0;
+}
+
+.twitter-post-action.comment:hover {
+    background: rgba(29, 155, 240, 0.1);
+    color: #1d9bf0;
+}
+
+.twitter-post-action.retweet:hover {
+    background: rgba(0, 186, 124, 0.1);
+    color: #00ba7c;
+}
+
+.twitter-post-action.like:hover {
+    background: rgba(249, 24, 128, 0.1);
+    color: #f91880;
+}
+
+.twitter-post-action.share:hover {
+    background: rgba(29, 155, 240, 0.1);
+    color: #1d9bf0;
+}
+
+.twitter-post-action svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #71767b;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+/* Twitter Edit Modal */
+.twitter-edit-modal {
+    max-width: 600px;
+    background: #000;
+    border: 1px solid #2f3336;
+}
+
+.twitter-edit-modal .modal-header {
+    border-bottom: 1px solid #2f3336;
+    background: #000;
+}
+
+.twitter-edit-modal .modal-header h2 {
+    color: #fff;
+}
+
+.twitter-edit-modal .close-btn {
+    color: #fff;
+}
+
+.twitter-edit-section {
+    padding: 20px 0;
+}
+
+.twitter-edit-section .input-group {
+    margin-bottom: 20px;
+}
+
+.twitter-edit-section .input-group label {
+    color: #fff;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.twitter-edit-section .input-group input,
+.twitter-edit-section .input-group textarea {
+    width: 100%;
+    padding: 12px;
+    background: #000;
+    border: 1px solid #2f3336;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 15px;
+}
+
+.twitter-edit-section .input-group input:focus,
+.twitter-edit-section .input-group textarea:focus {
+    outline: none;
+    border-color: #1d9bf0;
+}
+
+.twitter-edit-section .input-group input::placeholder,
+.twitter-edit-section .input-group textarea::placeholder {
+    color: #71767b;
+}
+
+.twitter-edit-section .modal-actions {
+    text-align: right;
+    margin-top: 24px;
+}
+
+.twitter-edit-section .btn-primary {
+    background: #1d9bf0;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.twitter-edit-section .btn-primary:hover {
+    background: #1a8cd8;
+}
+
+/* Hidden file inputs for uploads */
+#avatarUpload,
+#coverUpload {
+    display: none;
 } 

@@ -51,14 +51,7 @@
         <header class="header">
             <div class="header-content">
                 <div class="header-left">
-                    <!-- Hamburger menu (three lines only) on the left -->
-                    <div class="hamburger-menu" id="hamburgerMenu" onclick="console.log('Hamburger clicked'); toggleHamburgerMenu();">
-                        <span class="hamburger-icon">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M3 12h18M3 6h18M3 18h18"/>
-                          </svg>
-                        </span>
-                    </div>
+                    <!-- Empty space for balance -->
                 </div>
                 
                 <!-- Centered TIGPS logo -->
@@ -67,7 +60,7 @@
                 </div>
                 
                 <div class="header-right">
-                    <!-- Yellow Beta Button (moved from profile pic position) -->
+                    <!-- Yellow Beta Button -->
                     <button id="betaButton" style="background:#f7b500;color:#222;font-weight:700;border:none;padding:4px 12px;border-radius:12px;font-size:0.8rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;transition:background 0.2s;">BETA</button>
                     
                     <!-- Mail button -->
@@ -87,11 +80,11 @@
                 <button class="close-sidebar-btn" onclick="toggleHamburgerMenu()">×</button>
             </div>
             <div class="sidebar-content">
-                <div class="sidebar-item" onclick="openAccountDashboard(event)">
+                <div class="sidebar-item" onclick="window.location.href='profile-dashboard.html'">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                     </svg>
-                    Edit Account
+                    Profile
                 </div>
                 <div class="sidebar-item" onclick="openProfileModal()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -136,7 +129,11 @@
                 <div class="post-creator">
                     <div class="post-input-container">
                         <div class="post-header-section">
-                            <img src="stevejobs.jpeg" alt="Profile" class="post-avatar" id="postCreatorAvatar">
+                            <div class="post-avatar account-avatar" id="postCreatorAvatar">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
                             <div class="post-creator-info">
                                 <div class="post-creator-name" id="postCreatorName">Your Name</div>
                                 <div class="post-creator-display-name" id="postCreatorDisplayName">@username</div>
@@ -152,28 +149,26 @@
                         
                         <!-- Media and Action Buttons neatly grouped below input -->
                         <div class="post-actions reorganized-actions">
-                            <button class="media-btn" onclick="triggerImageUpload()" title="Add Media">
-                                <div class="media-btn-content">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-                                    </svg>
+                            <div class="post-options">
+                                <button class="media-btn" onclick="triggerImageUpload()" title="Add Media">
+                                    <div class="media-btn-content">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                        </svg>
+                                    </div>
+                                </button>
+                                <div class="checkbox-container">
+                                    <input type="checkbox" id="anonymousCheck" class="anonymous-checkbox">
+                                    <div class="checkmark"></div>
+                                    <label for="anonymousCheck">Anonymous</label>
                                 </div>
-                            </button>
-                            <button class="media-btn gif-btn" onclick="openGifModal()" title="Add GIF">
-                                <div class="media-btn-content">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                    </svg>
-                                </div>
-                            </button>
-                            <div class="checkbox-container">
-                                <input type="checkbox" id="anonymousCheck" class="anonymous-checkbox">
-                                <label for="anonymousCheck" class="checkmark">Anonymous</label>
                             </div>
-                            <span class="char-count" id="charCount">280</span>
-                            <button class="btn-post" id="postButton" onclick="createPost()">Post</button>
-
+                            <div class="post-submit">
+                                <span class="char-count" id="charCount">280</span>
+                                <button class="btn-post" id="postButton" onclick="createPost()">Post</button>
+                            </div>
                         </div>
+
                     </div>
                     
                     <div class="post-media-preview" id="postMediaPreview">
@@ -191,32 +186,35 @@
                 </div>
             </div>
         </main>
+
+        <!-- X-style Bottom Navigation Bar -->
+        <nav class="x-bottom-nav">
+            <div class="x-nav-item" onclick="toggleHamburgerMenu()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 12h18M3 6h18M3 18h18"/>
+                </svg>
+            </div>
+            <div class="x-nav-item" onclick="navigateToHome()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+            </div>
+            <div class="x-nav-item x-plus-btn" onclick="focusPostInput()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+            </div>
+            <div class="x-nav-item" onclick="window.location.href='profile-dashboard.html'">
+                <div class="x-profile-pic account-avatar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </div>
+            </div>
+        </nav>
     </div>
 
-    <!-- GIF Modal -->
-    <div id="gifModal" class="modal gif-modal" style="display:none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add GIF</h2>
-                <button class="close-btn" onclick="closeGifModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="gif-search-container">
-                    <div class="gif-search-input">
-                        <input type="text" id="gifSearchInput" placeholder="Search for GIFs..." maxlength="50">
-                        <button class="search-gif-btn" onclick="searchGifs()">Search</button>
-                    </div>
-                </div>
-                <div class="gif-results" id="gifResults">
-                    <!-- GIF results will be loaded here -->
-                </div>
-                <div class="selected-gif" id="selectedGif" style="display:none;">
-                    <img id="selectedGifImg" src="" alt="Selected GIF">
-                    <button class="remove-gif-btn" onclick="removeSelectedGif()">Remove</button>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Profile Modal -->
     <div id="profileModal" class="modal profile-modal" style="display:none;">
@@ -228,7 +226,7 @@
             <div class="modal-body">
                 <div class="profile-edit-section">
                     <div class="profile-pic-section">
-                        <img src="stevejobs.jpeg" alt="Profile" class="profile-pic-large" id="profilePicLarge">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgIDxwYXRoIGQ9Ik0xMiAxMmMyLjIxIDAgNC0xLjc5IDQtNHMtMS43OS00LTQtNC00IDEuNzktNCA0IDQtNCA0LTEuNzkgNC00IDQtNHoiIGZpbGw9IiNmN2I1MDAiLz4KICAgIDxwYXRoIGQ9Ik0xMiAxNGMtMi42NyAwLTgtMS4zNC04LTR2LTJoMTZ2MnYtMmMwLTIuNjYtNS4zMy00LTgtNHoiIGZpbGw9IiNmN2I1MDAiLz4KPC9zdmc+Cg==" alt="Profile" class="profile-pic-large" id="profilePicLarge">
                         <button class="change-pic-btn">Change Picture</button>
                     </div>
                     <div class="profile-fields">
@@ -355,6 +353,139 @@
         </div>
     </div>
 
+    <!-- Twitter/X-style Profile Dashboard Modal -->
+    <div id="profileDashboardModal" class="modal twitter-profile-modal" style="display:none;">
+        <div class="modal-content twitter-profile-content">
+            <!-- Profile Header -->
+            <div class="twitter-profile-header">
+                <div class="twitter-profile-cover">
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop" alt="Cover" class="twitter-cover-image" id="twitterCoverImage">
+                    <button class="twitter-edit-cover-btn" onclick="triggerCoverUpload()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="twitter-profile-avatar-section">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgIDxwYXRoIGQ9Ik0xMiAxMmMyLjIxIDAgNC0xLjc5IDQtNHMtMS43OS00LTQtNC00IDEuNzktNCA0IDQtNCA0LTEuNzkgNC00IDQtNHoiIGZpbGw9IiNmN2I1MDAiLz4KICAgIDxwYXRoIGQ9Ik0xMiAxNGMtMi42NyAwLTgtMS4zNC04LTR2LTJoMTZ2MnYtMmMwLTIuNjYtNS4zMy00LTgtNHoiIGZpbGw9IiNmN2I1MDAiLz4KPC9zdmc+Cg==" alt="Profile" class="twitter-profile-avatar" id="twitterProfileAvatar">
+                    <button class="twitter-edit-avatar-btn" onclick="triggerAvatarUpload()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="twitter-profile-actions">
+                    <button class="twitter-edit-profile-btn" onclick="openTwitterProfileEdit()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                        Edit profile
+                    </button>
+                    <button class="twitter-close-btn" onclick="closeTwitterProfile()">×</button>
+                </div>
+            </div>
+
+            <!-- Profile Info -->
+            <div class="twitter-profile-info">
+                <div class="twitter-profile-name" id="twitterProfileName">Alex Chen</div>
+                <div class="twitter-profile-username" id="twitterProfileUsername">@alexchen</div>
+                <div class="twitter-profile-bio" id="twitterProfileBio">Computer Science student at TIGPS. Love coding and coffee! ☕</div>
+                <div class="twitter-profile-stats">
+                    <div class="twitter-stat">
+                        <span class="twitter-stat-number" id="twitterFollowingCount">0</span>
+                        <span class="twitter-stat-label">Following</span>
+                    </div>
+                    <div class="twitter-stat">
+                        <span class="twitter-stat-number" id="twitterFollowersCount">0</span>
+                        <span class="twitter-stat-label">Followers</span>
+                    </div>
+                    <div class="twitter-stat">
+                        <span class="twitter-stat-number" id="twitterPostsCount">0</span>
+                        <span class="twitter-stat-label">Posts</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Navigation -->
+            <div class="twitter-profile-nav">
+                <div class="twitter-nav-item active" onclick="switchTwitterTab('posts')">
+                    <span>Posts</span>
+                </div>
+                <div class="twitter-nav-item" onclick="switchTwitterTab('replies')">
+                    <span>Replies</span>
+                </div>
+                <div class="twitter-nav-item" onclick="switchTwitterTab('media')">
+                    <span>Media</span>
+                </div>
+                <div class="twitter-nav-item" onclick="switchTwitterTab('likes')">
+                    <span>Likes</span>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="twitter-profile-content">
+                <div class="twitter-posts-container" id="twitterPostsContainer">
+                    <!-- Posts will be loaded here -->
+                </div>
+                <div class="twitter-replies-container" id="twitterRepliesContainer" style="display:none;">
+                    <div class="empty-state">
+                        <h3>No replies yet</h3>
+                        <p>When you reply to posts, they'll show up here.</p>
+                    </div>
+                </div>
+                <div class="twitter-media-container" id="twitterMediaContainer" style="display:none;">
+                    <div class="empty-state">
+                        <h3>No media yet</h3>
+                        <p>When you post media, it'll show up here.</p>
+                    </div>
+                </div>
+                <div class="twitter-likes-container" id="twitterLikesContainer" style="display:none;">
+                    <div class="empty-state">
+                        <h3>No likes yet</h3>
+                        <p>Posts you like will show up here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Twitter Profile Edit Modal -->
+    <div id="twitterProfileEditModal" class="modal" style="display:none;">
+        <div class="modal-content twitter-edit-modal">
+            <div class="modal-header">
+                <h2>Edit Profile</h2>
+                <button class="close-btn" onclick="closeTwitterProfileEdit()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="twitter-edit-section">
+                    <div class="input-group">
+                        <label for="twitterEditName">Display Name</label>
+                        <input type="text" id="twitterEditName" placeholder="Your display name" maxlength="30">
+                    </div>
+                    <div class="input-group">
+                        <label for="twitterEditUsername">Username</label>
+                        <input type="text" id="twitterEditUsername" placeholder="Your username" maxlength="20">
+                    </div>
+                    <div class="input-group">
+                        <label for="twitterEditBio">Bio</label>
+                        <textarea id="twitterEditBio" placeholder="Tell us about yourself..." maxlength="150" rows="3"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="twitterEditLocation">Location</label>
+                        <input type="text" id="twitterEditLocation" placeholder="Your location" maxlength="50">
+                    </div>
+                    <div class="input-group">
+                        <label for="twitterEditWebsite">Website</label>
+                        <input type="url" id="twitterEditWebsite" placeholder="https://example.com" maxlength="100">
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-primary" onclick="saveTwitterProfile()">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Account Dashboard Modal -->
     <div id="accountDashboardModal" class="modal" style="display:none;">
         <div class="modal-content profile-modal">
@@ -365,7 +496,7 @@
             <div class="modal-body">
                 <div class="profile-edit-section">
                     <div class="profile-pic-section">
-                        <img src="stevejobs.jpeg" alt="Profile" class="profile-pic-large" id="dashboardProfilePic">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgIDxwYXRoIGQ9Ik0xMiAxMmMyLjIxIDAgNC0xLjc5IDQtNHMtMS43OS00LTQtNC00IDEuNzktNCA0IDQtNCA0LTEuNzkgNC00IDQtNHoiIGZpbGw9IiNmN2I1MDAiLz4KICAgIDxwYXRoIGQ9Ik0xMiAxNGMtMi42NyAwLTgtMS4zNC04LTR2LTJoMTZ2MnYtMmMwLTIuNjYtNS4zMy00LTgtNHoiIGZpbGw9IiNmN2I1MDAiLz4KPC9zdmc+Cg==" alt="Profile" class="profile-pic-large" id="dashboardProfilePic">
                         <button class="change-pic-btn">Change Picture</button>
                     </div>
                     <div class="profile-fields">
@@ -417,5 +548,7 @@
 
     <!-- Mobile script with defer -->
     <script src="mobile.js" defer></script>
+    
+
 </body>
 </html> 

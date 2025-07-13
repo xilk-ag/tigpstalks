@@ -51,7 +51,7 @@ let currentUser = {
     id: 1,
     displayName: "Alex Chen",
     username: "alexchen",
-    avatar: "stevejobs.jpeg",
+    avatar: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 120 120"%3E%3Ccircle cx="60" cy="60" r="60" fill="%2325D366"/%3E%3Cpath d="M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z" fill="%23fff"/%3E%3C/svg%3E',
     bio: "Computer Science student at TIGPS. Love coding and coffee! ☕",
     location: "TIGPS Campus"
 };
@@ -2358,7 +2358,7 @@ function logout() {
     id: 1,
     displayName: "Alex Chen",
     username: "alexchen",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face",
+            avatar: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 120 120"%3E%3Ccircle cx="60" cy="60" r="60" fill="%2325D366"/%3E%3Cpath d="M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z" fill="%23fff"/%3E%3C/svg%3E',
     bio: "Computer Science student at TIGPS. Love coding and coffee! ☕",
     location: "TIGPS Campus"
   };
@@ -2377,7 +2377,7 @@ function getCurrentUserForPost(isAnonymous) {
         return {
             displayName: 'Anonymous',
             username: 'anonymous',
-            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=48&h=48&fit=crop&crop=face',
+            avatar: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 120 120"%3E%3Ccircle cx="60" cy="60" r="60" fill="%2325D366"/%3E%3Cpath d="M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z" fill="%23fff"/%3E%3C/svg%3E',
         };
     }
     return {
@@ -3345,4 +3345,327 @@ window.closeInstagramCommentModal = closeInstagramCommentModal;
 
 console.log('=== GLOBAL FUNCTIONS EXPORTED ===');
 console.log('✓ All functions are now available to HTML onclick handlers');
+
+// Twitter/X-style Profile Dashboard Functions
+function openTwitterProfile() {
+    console.log('openTwitterProfile called');
+    const modal = document.getElementById('profileDashboardModal');
+    console.log('Modal element:', modal);
+    if (modal) {
+        modal.style.display = 'flex';
+        loadTwitterProfileData();
+        loadTwitterPosts();
+    } else {
+        console.error('Profile dashboard modal not found!');
+    }
+}
+
+function closeTwitterProfile() {
+    const modal = document.getElementById('profileDashboardModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function loadTwitterProfileData() {
+    console.log('loadTwitterProfileData called');
+    console.log('currentUser:', currentUser);
+    
+    // Load user profile data
+    const nameElement = document.getElementById('twitterProfileName');
+    const usernameElement = document.getElementById('twitterProfileUsername');
+    const bioElement = document.getElementById('twitterProfileBio');
+    
+    console.log('Elements found:', { nameElement, usernameElement, bioElement });
+    
+    if (nameElement) nameElement.textContent = currentUser.displayName || 'User';
+    if (usernameElement) usernameElement.textContent = '@' + (currentUser.username || 'user');
+    if (bioElement) bioElement.textContent = currentUser.bio || 'No bio yet.';
+    
+    // Update avatar
+    const avatar = document.getElementById('twitterProfileAvatar');
+    if (avatar) {
+        avatar.src = currentUser.avatar || 'stevejobs.jpeg';
+    }
+    
+    // Update stats
+    updateTwitterStats();
+}
+
+function updateTwitterStats() {
+    // Count user's posts
+    const userPosts = posts.filter(post => post.username === currentUser.username);
+    document.getElementById('twitterPostsCount').textContent = userPosts.length;
+    
+    // For now, set following/followers to 0 (can be implemented later)
+    document.getElementById('twitterFollowingCount').textContent = '0';
+    document.getElementById('twitterFollowersCount').textContent = '0';
+}
+
+function loadTwitterPosts() {
+    const container = document.getElementById('twitterPostsContainer');
+    const userPosts = posts.filter(post => post.username === currentUser.username);
+    
+    if (userPosts.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No posts yet</h3>
+                <p>When you post, it'll show up here.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = userPosts.map(post => createTwitterPostElement(post)).join('');
+}
+
+function createTwitterPostElement(post) {
+    const timeAgo = getTimeAgo(post.timestamp);
+    const mediaHtml = post.media ? `
+        <div class="twitter-post-media">
+            <img src="${post.media}" alt="Post media">
+        </div>
+    ` : '';
+    
+    return `
+        <div class="twitter-post" data-post-id="${post.id}">
+            <div class="twitter-post-header">
+                <img src="${post.avatar || 'stevejobs.jpeg'}" alt="Profile" class="twitter-post-avatar">
+                <div class="twitter-post-info">
+                    <div class="twitter-post-author">${post.isAnonymous ? 'Anonymous' : post.author}</div>
+                    <div class="twitter-post-username">@${post.username}</div>
+                    <span class="twitter-post-time">${timeAgo}</span>
+                </div>
+            </div>
+            <div class="twitter-post-content">${escapeHtml(post.content)}</div>
+            ${mediaHtml}
+            <div class="twitter-post-actions">
+                <div class="twitter-post-action comment" onclick="instagramComment('${post.id}')">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.96-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"/>
+                    </svg>
+                    <span>${post.comments ? post.comments.length : 0}</span>
+                </div>
+                <div class="twitter-post-action retweet">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46L19 15.55V8c0-1.1-.896-2-2-2z"/>
+                    </svg>
+                    <span>0</span>
+                </div>
+                <div class="twitter-post-action like ${post.isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
+                    <svg viewBox="0 0 24 24" fill="${post.isLiked ? '#f91880' : 'currentColor'}">
+                        <path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"/>
+                    </svg>
+                    <span>${post.likes || 0}</span>
+                </div>
+                <div class="twitter-post-action share" onclick="instagramShare('${post.id}')">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function switchTwitterTab(tab) {
+    // Update navigation
+    const navItems = document.querySelectorAll('.twitter-nav-item');
+    navItems.forEach(item => item.classList.remove('active'));
+    
+    const activeNavItem = document.querySelector(`.twitter-nav-item[onclick*="${tab}"]`);
+    if (activeNavItem) {
+        activeNavItem.classList.add('active');
+    }
+    
+    // Hide all containers
+    const containers = [
+        'twitterPostsContainer',
+        'twitterRepliesContainer', 
+        'twitterMediaContainer',
+        'twitterLikesContainer'
+    ];
+    
+    containers.forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.style.display = 'none';
+        }
+    });
+    
+    // Show selected container
+    const selectedContainer = document.getElementById(`twitter${tab.charAt(0).toUpperCase() + tab.slice(1)}Container`);
+    if (selectedContainer) {
+        selectedContainer.style.display = 'block';
+    }
+    
+    // Load content based on tab
+    switch(tab) {
+        case 'posts':
+            loadTwitterPosts();
+            break;
+        case 'replies':
+            // Load replies (can be implemented later)
+            break;
+        case 'media':
+            loadTwitterMedia();
+            break;
+        case 'likes':
+            loadTwitterLikes();
+            break;
+    }
+}
+
+function loadTwitterMedia() {
+    const container = document.getElementById('twitterMediaContainer');
+    const userPosts = posts.filter(post => post.username === currentUser.username && (post.media || post.gif));
+    
+    if (userPosts.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No media yet</h3>
+                <p>When you post media, it'll show up here.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = userPosts.map(post => createTwitterPostElement(post)).join('');
+}
+
+function loadTwitterLikes() {
+    const container = document.getElementById('twitterLikesContainer');
+    const likedPosts = posts.filter(post => post.likedBy && post.likedBy.includes(currentUser.username));
+    
+    if (likedPosts.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No likes yet</h3>
+                <p>Posts you like will show up here.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = likedPosts.map(post => createTwitterPostElement(post)).join('');
+}
+
+// Profile Edit Functions
+function openTwitterProfileEdit() {
+    const modal = document.getElementById('twitterProfileEditModal');
+    if (modal) {
+        // Populate form with current data
+        document.getElementById('twitterEditName').value = currentUser.displayName || '';
+        document.getElementById('twitterEditUsername').value = currentUser.username || '';
+        document.getElementById('twitterEditBio').value = currentUser.bio || '';
+        document.getElementById('twitterEditLocation').value = currentUser.location || '';
+        document.getElementById('twitterEditWebsite').value = currentUser.website || '';
+        
+        modal.style.display = 'flex';
+    }
+}
+
+function closeTwitterProfileEdit() {
+    const modal = document.getElementById('twitterProfileEditModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+async function saveTwitterProfile() {
+    const name = document.getElementById('twitterEditName').value.trim();
+    const username = document.getElementById('twitterEditUsername').value.trim();
+    const bio = document.getElementById('twitterEditBio').value.trim();
+    const location = document.getElementById('twitterEditLocation').value.trim();
+    const website = document.getElementById('twitterEditWebsite').value.trim();
+    
+    if (!name || !username) {
+        showNotification('Name and username are required.', 'error');
+        return;
+    }
+    
+    // Update current user
+    currentUser.displayName = name;
+    currentUser.username = username;
+    currentUser.bio = bio;
+    currentUser.location = location;
+    currentUser.website = website;
+    
+    try {
+        // Save to Firestore
+        await saveProfileToFirestore(currentUser);
+        
+        // Update UI
+        loadTwitterProfileData();
+        closeTwitterProfileEdit();
+        showNotification('Profile updated successfully!', 'success');
+    } catch (error) {
+        console.error('Error saving profile:', error);
+        showNotification('Failed to update profile.', 'error');
+    }
+}
+
+// Upload Functions
+function triggerAvatarUpload() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = handleAvatarUpload;
+    input.click();
+}
+
+function triggerCoverUpload() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = handleCoverUpload;
+    input.click();
+}
+
+function handleAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('Image size must be less than 5MB.', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        currentUser.avatar = e.target.result;
+        document.getElementById('twitterProfileAvatar').src = e.target.result;
+        showNotification('Avatar updated!', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleCoverUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('Image size must be less than 5MB.', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('twitterCoverImage').src = e.target.result;
+        showNotification('Cover image updated!', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+// Make Twitter Profile functions globally available
+window.openTwitterProfile = openTwitterProfile;
+window.closeTwitterProfile = closeTwitterProfile;
+window.switchTwitterTab = switchTwitterTab;
+window.openTwitterProfileEdit = openTwitterProfileEdit;
+window.closeTwitterProfileEdit = closeTwitterProfileEdit;
+window.saveTwitterProfile = saveTwitterProfile;
+window.triggerAvatarUpload = triggerAvatarUpload;
+window.triggerCoverUpload = triggerCoverUpload;
+window.handleAvatarUpload = handleAvatarUpload;
+window.handleCoverUpload = handleCoverUpload;
 

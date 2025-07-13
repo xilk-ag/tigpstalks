@@ -331,6 +331,21 @@ body::before {
     opacity: 0.8;
 }
 
+/* Account avatar in header */
+.profile-pic.account-avatar {
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-pic.account-avatar svg {
+    width: 18px;
+    height: 18px;
+}
+
 /* Profile menu */
 .profile-menu {
     position: absolute;
@@ -412,6 +427,24 @@ body::before {
     height: 48px;
     border-radius: 50%;
     border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Account Avatar (WhatsApp-style) */
+.account-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.account-avatar svg {
+    width: 28px;
+    height: 28px;
 }
 
 .post-creator-info {
@@ -2651,3 +2684,799 @@ body::before {
         height: 22px;
     }
 } 
+
+/* Twitter/X-style Profile Dashboard */
+.twitter-profile-modal {
+    background: rgba(0, 0, 0, 0.95);
+}
+
+.twitter-profile-content {
+    max-width: 800px;
+    width: 100%;
+    height: 90vh;
+    margin: 0 auto;
+    border-radius: 16px;
+    background: #000;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Profile Header */
+.twitter-profile-header {
+    position: relative;
+    background: #000;
+}
+
+.twitter-profile-cover {
+    position: relative;
+    height: 200px;
+    background: #1a1a1a;
+    overflow: hidden;
+    border-radius: 16px 16px 0 0;
+}
+
+.twitter-cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.twitter-edit-cover-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.twitter-edit-cover-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.twitter-profile-avatar-section {
+    position: relative;
+    margin-top: -60px;
+    margin-left: 16px;
+    margin-bottom: 16px;
+}
+
+.twitter-profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #000;
+    object-fit: cover;
+    background: #1a1a1a;
+}
+
+.twitter-edit-avatar-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.twitter-edit-avatar-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.twitter-profile-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.twitter-edit-profile-btn {
+    background: transparent;
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.twitter-edit-profile-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #555;
+}
+
+.twitter-close-btn {
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: background 0.2s;
+}
+
+.twitter-close-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+/* Profile Info */
+.twitter-profile-info {
+    padding: 0 16px 16px;
+    background: #000;
+}
+
+.twitter-profile-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.twitter-profile-username {
+    font-size: 15px;
+    color: #71767b;
+    margin-bottom: 12px;
+}
+
+.twitter-profile-bio {
+    font-size: 15px;
+    color: #e7e9ea;
+    line-height: 1.4;
+    margin-bottom: 16px;
+}
+
+.twitter-profile-stats {
+    display: flex;
+    gap: 24px;
+}
+
+.twitter-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.twitter-stat:hover {
+    opacity: 0.8;
+}
+
+.twitter-stat-number {
+    font-weight: 700;
+    color: #fff;
+    font-size: 15px;
+}
+
+.twitter-stat-label {
+    color: #71767b;
+    font-size: 15px;
+}
+
+/* Profile Navigation */
+.twitter-profile-nav {
+    display: flex;
+    background: #000;
+    border-bottom: 1px solid #2f3336;
+    margin-top: 16px;
+}
+
+.twitter-nav-item {
+    flex: 1;
+    padding: 16px 0;
+    text-align: center;
+    color: #71767b;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 15px;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.twitter-nav-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: #e7e9ea;
+}
+
+.twitter-nav-item.active {
+    color: #fff;
+}
+
+.twitter-nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: #1d9bf0;
+    border-radius: 2px;
+}
+
+/* Profile Content */
+.twitter-profile-content {
+    background: #000;
+    min-height: 400px;
+}
+
+.twitter-posts-container,
+.twitter-replies-container,
+.twitter-media-container,
+.twitter-likes-container {
+    background: #000;
+}
+
+/* Twitter Post Styles */
+.twitter-post {
+    padding: 16px;
+    border-bottom: 1px solid #2f3336;
+    background: #000;
+    transition: background 0.2s;
+}
+
+.twitter-post:hover {
+    background: #080808;
+}
+
+.twitter-post-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.twitter-post-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.twitter-post-info {
+    flex: 1;
+}
+
+.twitter-post-author {
+    font-weight: 700;
+    color: #fff;
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.twitter-post-username {
+    color: #71767b;
+    font-size: 15px;
+}
+
+.twitter-post-time {
+    color: #71767b;
+    font-size: 15px;
+    margin-left: 8px;
+}
+
+.twitter-post-content {
+    color: #e7e9ea;
+    font-size: 15px;
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+
+.twitter-post-media {
+    margin-bottom: 12px;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.twitter-post-media img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+.twitter-post-actions {
+    display: flex;
+    justify-content: space-between;
+    max-width: 425px;
+}
+
+.twitter-post-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #71767b;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    font-size: 13px;
+}
+
+.twitter-post-action:hover {
+    background: rgba(29, 155, 240, 0.1);
+    color: #1d9bf0;
+}
+
+.twitter-post-action.comment:hover {
+    background: rgba(29, 155, 240, 0.1);
+    color: #1d9bf0;
+}
+
+.twitter-post-action.retweet:hover {
+    background: rgba(0, 186, 124, 0.1);
+    color: #00ba7c;
+}
+
+.twitter-post-action.like:hover {
+    background: rgba(249, 24, 128, 0.1);
+    color: #f91880;
+}
+
+.twitter-post-action.share:hover {
+    background: rgba(29, 155, 240, 0.1);
+    color: #1d9bf0;
+}
+
+.twitter-post-action svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #71767b;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+/* Twitter Edit Modal */
+.twitter-edit-modal {
+    max-width: 600px;
+    background: #000;
+    border: 1px solid #2f3336;
+}
+
+.twitter-edit-modal .modal-header {
+    border-bottom: 1px solid #2f3336;
+    background: #000;
+}
+
+.twitter-edit-modal .modal-header h2 {
+    color: #fff;
+}
+
+.twitter-edit-modal .close-btn {
+    color: #fff;
+}
+
+.twitter-edit-section {
+    padding: 20px 0;
+}
+
+.twitter-edit-section .input-group {
+    margin-bottom: 20px;
+}
+
+.twitter-edit-section .input-group label {
+    color: #fff;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.twitter-edit-section .input-group input,
+.twitter-edit-section .input-group textarea {
+    width: 100%;
+    padding: 12px;
+    background: #000;
+    border: 1px solid #2f3336;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 15px;
+}
+
+.twitter-edit-section .input-group input:focus,
+.twitter-edit-section .input-group textarea:focus {
+    outline: none;
+    border-color: #1d9bf0;
+}
+
+.twitter-edit-section .input-group input::placeholder,
+.twitter-edit-section .input-group textarea::placeholder {
+    color: #71767b;
+}
+
+.twitter-edit-section .modal-actions {
+    text-align: right;
+    margin-top: 24px;
+}
+
+.twitter-edit-section .btn-primary {
+    background: #1d9bf0;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.twitter-edit-section .btn-primary:hover {
+    background: #1a8cd8;
+}
+
+/* Hidden file inputs for uploads */
+#avatarUpload,
+#coverUpload {
+    display: none;
+}
+
+/* Profile Dashboard Styles */
+.back-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.edit-profile-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.edit-profile-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.profile-dashboard {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #000;
+    min-height: 100vh;
+}
+
+.profile-header {
+    position: relative;
+    background: #000;
+}
+
+.profile-cover {
+    position: relative;
+    height: 200px;
+    background: #1a1a1a;
+    overflow: hidden;
+}
+
+.cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.edit-cover-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.edit-cover-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.profile-avatar-section {
+    position: relative;
+    margin-top: -60px;
+    margin-left: 16px;
+    margin-bottom: 16px;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #000;
+    object-fit: cover;
+    background: #1a1a1a;
+}
+
+.edit-avatar-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.edit-avatar-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.profile-info {
+    padding: 0 16px 16px;
+    color: #fff;
+}
+
+.profile-name {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.profile-username {
+    color: #888;
+    font-size: 15px;
+    margin-bottom: 12px;
+}
+
+.profile-bio {
+    font-size: 15px;
+    line-height: 1.4;
+    margin-bottom: 12px;
+    white-space: pre-wrap;
+}
+
+.profile-location,
+.profile-website {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+.profile-website a {
+    color: #1da1f2;
+    text-decoration: none;
+}
+
+.profile-website a:hover {
+    text-decoration: underline;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 24px;
+    margin-top: 16px;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.stat:hover {
+    color: #1da1f2;
+}
+
+.stat-number {
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.stat-label {
+    color: #888;
+    font-size: 14px;
+}
+
+.profile-nav {
+    display: flex;
+    border-bottom: 1px solid #333;
+    margin: 0 16px;
+}
+
+.nav-item {
+    flex: 1;
+    text-align: center;
+    padding: 16px 0;
+    color: #888;
+    cursor: pointer;
+    font-weight: 500;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.nav-item:hover {
+    color: #fff;
+}
+
+.nav-item.active {
+    color: #fff;
+}
+
+.nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: #1da1f2;
+    border-radius: 2px;
+}
+
+.profile-content {
+    padding: 16px;
+}
+
+.posts-container,
+.replies-container,
+.media-container,
+.likes-container {
+    min-height: 200px;
+}
+
+.profile-edit-modal {
+    max-width: 500px;
+    width: 90%;
+}
+
+.edit-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.edit-section .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.edit-section .input-group label {
+    font-weight: 600;
+    color: #fff;
+    font-size: 14px;
+}
+
+.edit-section .input-group input,
+.edit-section .input-group textarea {
+    padding: 12px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: #111;
+    color: #fff;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.edit-section .input-group input:focus,
+.edit-section .input-group textarea:focus {
+    outline: none;
+    border-color: #1da1f2;
+}
+
+.edit-section .input-group input::placeholder,
+.edit-section .input-group textarea::placeholder {
+    color: #666;
+}
+
+.edit-section .modal-actions {
+    margin-top: 20px;
+}
+
+.edit-section .btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: #1da1f2;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.edit-section .btn-primary:hover {
+    background: #1a91da;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .profile-dashboard {
+        max-width: 100%;
+    }
+    
+    .profile-cover {
+        height: 150px;
+    }
+    
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .profile-avatar-section {
+        margin-top: -50px;
+    }
+    
+    .profile-stats {
+        gap: 16px;
+    }
+    
+    .nav-item {
+        padding: 12px 0;
+        font-size: 14px;
+    }
+}
