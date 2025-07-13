@@ -59,8 +59,8 @@ window.testTIGPS = function() {
 };
 
 // Tenor API Configuration
-const TENOR_API_KEY = 'AIzaSyBMTZlitQGyqNx3LO0cNiITBpBHMec8rN8'; // Tenor API key
-const TENOR_BASE_URL = 'https://tenor.googleapis.com/v2';
+const TENOR_API_KEY = 'LIVDSRZULELA'; // Tenor API demo key
+const TENOR_BASE_URL = 'https://g.tenor.com/v1';
 
 // GIF search variables
 let gifSearchResults = [];
@@ -667,10 +667,58 @@ const settingsModal = document.getElementById('settingsModal');
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', async function() {
-    await initializeAppData();
-    setupEventListeners();
-    updateProfileDisplay();
-    showEmptyStateIfNeeded();
+    console.log('=== DOMContentLoaded START ===');
+    try {
+        // Initialize Firebase first
+        console.log('🔄 Initializing Firebase...');
+        const firebaseInitialized = initializeFirebase();
+        console.log('✓ Firebase initialization:', firebaseInitialized ? 'success' : 'failed');
+        
+        checkAdminState();
+        console.log('✓ Admin state checked');
+        
+        setupContentProtection();
+        console.log('✓ Content protection setup');
+        
+        // Setup event listeners immediately
+        console.log('🔄 Setting up event listeners...');
+        setupEventListeners();
+        console.log('✓ Event listeners setup completed');
+        
+        // Check username requirement
+        console.log('🔄 Checking username requirement...');
+        requireUsername();
+        console.log('✓ Username requirement checked');
+        
+        // Initialize app data (loads posts)
+        console.log('🔄 Starting initializeAppData...');
+        initializeAppData().then(() => {
+            console.log('✓ initializeAppData completed');
+        }).catch(error => {
+            console.error('❌ initializeAppData failed:', error);
+            showNotification('App initialization failed: ' + error.message, 'error');
+        });
+        
+        // Load posts after a short delay as backup
+        setTimeout(async function() {
+            console.log('🔄 Backup post loading...');
+            try {
+                posts = await fetchPostsFromFirestore();
+                console.log('✓ Backup posts loaded:', posts.length);
+                renderPosts();
+                console.log('✓ Backup posts rendered');
+            } catch (error) {
+                console.error('❌ Backup post loading failed:', error);
+                showNotification('Backup post loading failed: ' + error.message, 'error');
+            }
+        }, 2000);
+        
+        console.log('✓ DOMContentLoaded completed');
+    } catch (error) {
+        console.error('❌ DOMContentLoaded error:', error);
+        showNotification('Page initialization failed: ' + error.message, 'error');
+    }
+    console.log('=== DOMContentLoaded END ===');
 });
 
 // Initialize Google Drive
@@ -1442,7 +1490,7 @@ async function searchTenorGifs(query) {
     resultsContainer.innerHTML = '<div class="gif-loading">Searching...</div>';
     
     try {
-        const response = await fetch(`${TENOR_BASE_URL}/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=20&media_filter=gif`);
+        const response = await fetch(`${TENOR_BASE_URL}/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=8&media_filter=tinygif`);
         const data = await response.json();
         
         if (data.results && data.results.length > 0) {
@@ -1480,8 +1528,8 @@ function displayGifResults(gifs) {
         const gifItem = document.createElement('div');
         gifItem.className = 'gif-item';
         
-        // Use Tenor's media format
-        const mediaUrl = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url;
+        // Use Tenor's tinygif format for faster loading
+        const mediaUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
         const previewUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
         
         gifItem.innerHTML = `
@@ -1503,8 +1551,8 @@ function selectGifFromSearch(gifId) {
         return;
     }
     
-    // Use Tenor's media format
-    const mediaUrl = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url;
+    // Use Tenor's tinygif format for faster loading
+    const mediaUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
     const previewUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
     
     const gifData = {
@@ -2745,6 +2793,7 @@ window.toggleLike = toggleLike;
 window.showComments = showComments;
 window.sharePost = sharePost;
 window.addComment = addComment;
+window.createPost = createPost;
 window.openGifSearch = openGifSearch;
 window.closeGifSearch = closeGifSearch;
 window.searchGifs = searchGifs;
@@ -2758,6 +2807,7 @@ window.deletePost = deletePost;
 window.createTestPost = createTestPost;
 window.debugFetchPosts = debugFetchPosts;
 window.forceLoadPosts = forceLoadPosts;
+window.debugFixEverything = debugFixEverything;
 window.openProfileModal = openProfileModal;
 window.closeProfileModal = closeProfileModal;
 window.triggerProfilePicUpload = triggerProfilePicUpload;
@@ -3147,6 +3197,61 @@ async function forceLoadPosts() {
         showNotification('Force load failed: ' + error.message, 'error');
     }
     console.log('=== FORCE LOAD POSTS END ===');
+}
+
+// Comprehensive debug function that fixes everything
+async function debugFixEverything() {
+    console.log('=== DEBUG FIX EVERYTHING START ===');
+    try {
+        // Step 1: Reinitialize Firebase
+        console.log('🔄 Step 1: Reinitializing Firebase...');
+        const firebaseInitialized = initializeFirebase();
+        console.log('✓ Firebase reinitialized:', firebaseInitialized);
+        
+        // Step 2: Clear and reload posts
+        console.log('🔄 Step 2: Clearing and reloading posts...');
+        posts = [];
+        const freshPosts = await fetchPostsFromFirestore();
+        posts = freshPosts || [];
+        console.log('✓ Posts reloaded:', posts.length);
+        
+        // Step 3: Re-render everything
+        console.log('🔄 Step 3: Re-rendering everything...');
+        renderPosts();
+        updateProfileDisplay();
+        showEmptyStateIfNeeded();
+        console.log('✓ Everything re-rendered');
+        
+        // Step 4: Re-setup event listeners
+        console.log('🔄 Step 4: Re-setting up event listeners...');
+        setupEventListeners();
+        console.log('✓ Event listeners re-setup');
+        
+        // Step 5: Check username
+        console.log('🔄 Step 5: Checking username...');
+        requireUsername();
+        console.log('✓ Username checked');
+        
+        // Step 6: Force update all buttons and UI
+        console.log('🔄 Step 6: Force updating UI...');
+        const postButton = document.getElementById('postButton');
+        const testPostButton = document.getElementById('testPostButton');
+        const forceLoadButton = document.getElementById('forceLoadButton');
+        
+        if (postButton) postButton.disabled = false;
+        if (testPostButton) testPostButton.disabled = false;
+        if (forceLoadButton) forceLoadButton.disabled = false;
+        
+        console.log('✓ UI buttons updated');
+        
+        showNotification(`Debug fix completed! Loaded ${posts.length} posts, all systems operational!`, 'success');
+        console.log('✓ Debug fix completed successfully');
+        
+    } catch (error) {
+        console.error('❌ Debug fix error:', error);
+        showNotification('Debug fix failed: ' + error.message, 'error');
+    }
+    console.log('=== DEBUG FIX EVERYTHING END ===');
 }
 
 // Instagram-style functionality

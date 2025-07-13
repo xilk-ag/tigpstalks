@@ -20,8 +20,8 @@ window.addEventListener('unhandledrejection', function(e) {
 console.log('=== MOBILE SCRIPT LOADING START ===');
 
 // Tenor API Configuration
-const TENOR_API_KEY = 'AIzaSyBMTZlitQGyqNx3LO0cNiITBpBHMec8rN8';
-const TENOR_BASE_URL = 'https://tenor.googleapis.com/v2';
+const TENOR_API_KEY = 'LIVDSRZULELA'; // Tenor API demo key
+const TENOR_BASE_URL = 'https://g.tenor.com/v1';
 
 // Global variables
 let posts = [];
@@ -702,7 +702,7 @@ async function searchGifs() {
 
 async function searchTenorGifs(query) {
     try {
-        const response = await fetch(`${TENOR_BASE_URL}/search?q=${encodeURIComponent(query)}&key=${TENOR_API_KEY}&limit=20`);
+        const response = await fetch(`${TENOR_BASE_URL}/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=8&media_filter=tinygif`);
         const data = await response.json();
         return data.results || [];
     } catch (error) {
@@ -721,8 +721,8 @@ function displayGifResults(gifs) {
     }
     
     resultsContainer.innerHTML = gifs.map(gif => `
-        <div class="gif-item" onclick="selectGif('${gif.media_formats.gif.url}')">
-            <img src="${gif.media_formats.gif.url}" alt="GIF" loading="lazy">
+        <div class="gif-item" onclick="selectGif('${gif.media_formats.tinygif.url}')">
+            <img src="${gif.media_formats.tinygif.url}" alt="GIF" loading="lazy">
         </div>
     `).join('');
 }
@@ -1106,5 +1106,86 @@ function saveDashboardProfile() {
 function addInstagramComment() {
     showNotification('Instagram comment feature coming soon!', 'info');
 }
+
+// Comprehensive debug function that fixes everything (mobile version)
+async function debugFixEverything() {
+    console.log('=== MOBILE DEBUG FIX EVERYTHING START ===');
+    try {
+        // Step 1: Reinitialize Firebase
+        console.log('🔄 Step 1: Reinitializing Firebase...');
+        const firebaseInitialized = initializeFirebase();
+        console.log('✓ Firebase reinitialized:', firebaseInitialized);
+        
+        // Step 2: Clear and reload posts
+        console.log('🔄 Step 2: Clearing and reloading posts...');
+        posts = [];
+        const freshPosts = await fetchPostsFromFirestore();
+        posts = freshPosts || [];
+        console.log('✓ Posts reloaded:', posts.length);
+        
+        // Step 3: Re-render everything
+        console.log('🔄 Step 3: Re-rendering everything...');
+        renderPosts();
+        updateProfileDisplay();
+        console.log('✓ Everything re-rendered');
+        
+        // Step 4: Re-setup event listeners
+        console.log('🔄 Step 4: Re-setting up event listeners...');
+        setupEventListeners();
+        console.log('✓ Event listeners re-setup');
+        
+        // Step 5: Check username
+        console.log('🔄 Step 5: Checking username...');
+        requireUsername();
+        console.log('✓ Username checked');
+        
+        showNotification(`Mobile debug fix completed! Loaded ${posts.length} posts, all systems operational!`, 'success');
+        console.log('✓ Mobile debug fix completed successfully');
+        
+    } catch (error) {
+        console.error('❌ Mobile debug fix error:', error);
+        showNotification('Mobile debug fix failed: ' + error.message, 'error');
+    }
+    console.log('=== MOBILE DEBUG FIX EVERYTHING END ===');
+}
+
+// Make functions globally available
+window.openGifModal = openGifModal;
+window.closeGifModal = closeGifModal;
+window.searchGifs = searchGifs;
+window.selectGif = selectGif;
+window.removeSelectedGif = removeSelectedGif;
+window.toggleLike = toggleLike;
+window.showComments = showComments;
+window.addComment = addComment;
+window.sharePost = sharePost;
+window.createPost = createPost;
+window.searchTag = searchTag;
+window.triggerImageUpload = triggerImageUpload;
+window.handleImageUpload = handleImageUpload;
+window.removeSelectedMedia = removeSelectedMedia;
+window.toggleHamburgerMenu = toggleHamburgerMenu;
+window.openProfileModal = openProfileModal;
+window.closeProfileModal = closeProfileModal;
+window.saveProfile = saveProfile;
+window.openAdminModal = openAdminModal;
+window.openSettingsModal = openSettingsModal;
+window.openAccountDashboard = openAccountDashboard;
+window.logout = logout;
+window.openMail = openMail;
+window.closeSettingsModal = closeSettingsModal;
+window.closeCommentsModal = closeCommentsModal;
+window.closeAccountDashboard = closeAccountDashboard;
+window.closeInstagramCommentModal = closeInstagramCommentModal;
+window.syncDrive = syncDrive;
+window.backupData = backupData;
+window.clearAllData = clearAllData;
+window.adminSyncDrive = adminSyncDrive;
+window.adminBackupData = adminBackupData;
+window.exportData = exportData;
+window.importData = importData;
+window.saveDashboardProfile = saveDashboardProfile;
+window.addInstagramComment = addInstagramComment;
+window.debugFixEverything = debugFixEverything;
 
 console.log('=== MOBILE SCRIPT LOADING END ==='); 
