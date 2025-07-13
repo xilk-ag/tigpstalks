@@ -1122,47 +1122,7 @@ function addInstagramComment() {
     showNotification('Instagram comment feature coming soon!', 'info');
 }
 
-// Comprehensive debug function that fixes everything (mobile version)
-async function debugFixEverything() {
-    console.log('=== MOBILE DEBUG FIX EVERYTHING START ===');
-    try {
-        // Step 1: Reinitialize Firebase
-        console.log('🔄 Step 1: Reinitializing Firebase...');
-        const firebaseInitialized = initializeFirebase();
-        console.log('✓ Firebase reinitialized:', firebaseInitialized);
-        
-        // Step 2: Clear and reload posts
-        console.log('🔄 Step 2: Clearing and reloading posts...');
-        posts = [];
-        const freshPosts = await fetchPostsFromFirestore();
-        posts = freshPosts || [];
-        console.log('✓ Posts reloaded:', posts.length);
-        
-        // Step 3: Re-render everything
-        console.log('🔄 Step 3: Re-rendering everything...');
-        renderPosts();
-        updateProfileDisplay();
-        console.log('✓ Everything re-rendered');
-        
-        // Step 4: Re-setup event listeners
-        console.log('🔄 Step 4: Re-setting up event listeners...');
-        setupEventListeners();
-        console.log('✓ Event listeners re-setup');
-        
-        // Step 5: Check username
-        console.log('🔄 Step 5: Checking username...');
-        requireUsername();
-        console.log('✓ Username checked');
-        
-        showNotification(`Mobile debug fix completed! Loaded ${posts.length} posts, all systems operational!`, 'success');
-        console.log('✓ Mobile debug fix completed successfully');
-        
-    } catch (error) {
-        console.error('❌ Mobile debug fix error:', error);
-        showNotification('Mobile debug fix failed: ' + error.message, 'error');
-    }
-    console.log('=== MOBILE DEBUG FIX EVERYTHING END ===');
-}
+
 
 // Make functions globally available
 window.openGifModal = openGifModal;

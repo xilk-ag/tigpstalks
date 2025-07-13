@@ -12,16 +12,7 @@
 </head>
 <body>
     
-    <!-- Emergency Debug Section -->
-    <div style="position:fixed; top:10px; right:10px; z-index:10000; background:#000; color:#fff; padding:10px; border-radius:5px; font-size:12px;">
-        <div>Emergency Debug:</div>
-        <button onclick="alert('Basic JS works!')" style="background:#ff6b6b; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Test JS</button>
-        <button onclick="console.log('Console test')" style="background:#4ecdc4; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Console</button>
-        <button onclick="document.body.style.background='red'" style="background:#45b7d1; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Red BG</button>
-        <button onclick="location.reload()" style="background:#96ceb4; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Reload</button>
-        <button onclick="testTIGPS()" style="background:#ffa726; color:#fff; border:none; padding:5px; margin:2px; border-radius:3px;">Test System</button>
-        <button onclick="debugFixEverything()" style="background:#00ff00; color:#000; border:none; padding:5px; margin:2px; border-radius:3px; font-weight:bold;">🔧 FIX ALL</button>
-    </div>
+
 
     <!-- Username Modal -->
     <div id="usernameModal" class="modal" style="display:none;">
@@ -57,14 +48,7 @@
         <div class="glitter"></div>
     </div>
 
-    <!-- Fallback Content (shows if JS fails) -->
-    <div id="fallbackContent" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.9); color:white; padding:30px; border-radius:15px; text-align:center; z-index:9999;">
-        <h2>🚨 TIGPS TALKS - Emergency Mode</h2>
-        <p>If you see this, JavaScript may not be loading properly.</p>
-        <button onclick="location.reload()" style="background:#667eea; color:white; border:none; padding:10px 20px; border-radius:8px; margin:10px; cursor:pointer;">🔄 Reload Page</button>
-        <button onclick="document.getElementById('fallbackContent').style.display='none'; document.querySelector('.app').style.display='block';" style="background:#4CAF50; color:white; border:none; padding:10px 20px; border-radius:8px; margin:10px; cursor:pointer;">✅ Continue Anyway</button>
-        <p style="font-size:12px; margin-top:20px;">Check browser console for errors (F12)</p>
-    </div>
+
 
     <div class="app">
         <!-- Header -->
@@ -252,7 +236,7 @@
                                 <button class="btn-post" onclick="createPost()" id="postButton">Post</button>
 
     
-                                <button class="btn-secondary" onclick="alert('Button clicked!')" style="margin-left:10px;background:#ff0000;">Test Click</button>
+
                             </div>
                         </div>
                     </div>
@@ -545,27 +529,7 @@ window.TIGPS_GOOGLE_CLIENT_ID = '363283261404-0bopi877ikv148a43vo6rhcnit3r85ei.a
         });
     </script>
     
-    <!-- Emergency fallback script -->
-    <script>
-        // Show fallback content if main app doesn't load within 5 seconds
-        setTimeout(function() {
-            const app = document.querySelector('.app');
-            const fallback = document.getElementById('fallbackContent');
-            if (app && app.style.display === 'none' || !document.getElementById('postsFeed')) {
-                if (fallback) fallback.style.display = 'block';
-                console.log('Emergency fallback activated - main app not loaded');
-            }
-        }, 5000);
-        
-        // Mark app as loaded when script.js finishes
-        window.addEventListener('load', function() {
-            const app = document.querySelector('.app');
-            if (app) {
-                app.style.display = 'block';
-                console.log('✓ App container revealed after script load');
-            }
-        });
-    </script>
+
     <script>
         // Simple test to verify script loading
         console.log('HTML script loaded');

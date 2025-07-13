@@ -35,53 +35,7 @@ console.log('=== SCRIPT LOADING START ===');
 // Global initialization flag to prevent multiple executions
 let appInitialized = false;
 
-// Global test function for debugging
-window.testTIGPS = function() {
-    console.log('=== TIGPS SYSTEM TEST ===');
-    
-    // Test 1: Check if basic functions exist
-    console.log('Test 1: Function availability');
-    console.log('createPost:', typeof createPost);
-    console.log('createTestPost:', typeof createTestPost);
-    console.log('debugFetchPosts:', typeof debugFetchPosts);
-    console.log('forceLoadPosts:', typeof forceLoadPosts);
-    console.log('showNotification:', typeof showNotification);
-    
-    // Test 2: Check if DOM elements exist
-    console.log('Test 2: DOM elements');
-    console.log('postButton:', document.getElementById('postButton'));
-    console.log('testPostButton:', document.getElementById('testPostButton'));
-    console.log('debugPostsButton:', document.getElementById('debugPostsButton'));
-    console.log('forceLoadButton:', document.getElementById('forceLoadButton'));
-    console.log('postInput:', document.getElementById('postInput'));
-    console.log('postsFeed:', document.getElementById('postsFeed'));
-    
-    // Test 3: Check Firebase status
-    console.log('Test 3: Firebase status');
-    console.log('window.firebase:', typeof window.firebase);
-    console.log('db:', db);
-    
-    // Test 4: Check localStorage
-    console.log('Test 4: localStorage');
-    console.log('tigpsPosts:', localStorage.getItem('tigpsPosts'));
-    console.log('tigpsUsername:', localStorage.getItem('tigpsUsername'));
-    
-    // Test 5: Check global variables
-    console.log('Test 5: Global variables');
-    console.log('posts:', posts);
-    console.log('currentUser:', currentUser);
-    
-    // Test 6: Try to create a test notification
-    console.log('Test 6: Notification system');
-    try {
-        showNotification('Test notification - system is working!', 'success');
-        console.log('✓ Notification system works');
-    } catch (error) {
-        console.error('❌ Notification system failed:', error);
-    }
-    
-    console.log('=== TIGPS SYSTEM TEST COMPLETE ===');
-};
+
 
 // Tenor API Configuration
 const TENOR_API_KEY = 'LIVDSRZULELA'; // Tenor API demo key
@@ -3148,169 +3102,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ... existing code ...
 
-// Test post function for debugging
-async function createTestPost() {
-    console.log('=== CREATE TEST POST START ===');
-    try {
-        console.log('🔄 Getting stored username...');
-        const username = getStoredUsername();
-        console.log('✓ Username:', username);
-        
-        if (!username) {
-            console.log('❌ No username found, showing modal');
-            showNotification('Please enter your username first!', 'error');
-            showUsernameModal();
-            return;
-        }
-        
-        console.log('🔄 Creating test post object...');
-        const testPost = {
-            content: "This is a test post from " + username + " at " + new Date().toLocaleTimeString(),
-            author: username,
-            username: username,
-            avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face",
-            timestamp: new Date().toISOString(),
-            likes: 0,
-            comments: [],
-            isAnonymous: false,
-            isLiked: false,
-            media: null,
-            gif: null,
-            tags: ["test", "debug"],
-            likedBy: []
-        };
-        
-        console.log('✓ Test post object created:', testPost);
-        
-        console.log('🔄 Saving to Firestore...');
-        await savePostToFirestore(testPost);
-        console.log('✓ Test post saved to Firestore');
-        
-        console.log('🔄 Updating local posts array...');
-        posts.unshift(testPost);
-        console.log('✓ Local posts array updated, length:', posts.length);
-        
-        console.log('🔄 Rendering posts...');
-        renderPosts();
-        console.log('✓ Posts rendered');
-        
-        showNotification('Test post created successfully!', 'success');
-        console.log('✓ Test post creation completed');
-    } catch (error) {
-        console.error('❌ Test post creation error:', error);
-        showNotification('Failed to create test post: ' + error.message, 'error');
-    }
-    console.log('=== CREATE TEST POST END ===');
-}
 
-// Debug function to fetch and display posts
-async function debugFetchPosts() {
-    console.log('=== DEBUG FETCH POSTS START ===');
-    try {
-        console.log('🔄 Fetching posts from Firestore...');
-        const fetchedPosts = await fetchPostsFromFirestore();
-        console.log('✓ Posts fetched:', fetchedPosts);
-        
-        console.log('🔄 Updating posts array...');
-        posts = fetchedPosts || [];
-        console.log('✓ Posts array updated, length:', posts.length);
-        
-        console.log('🔄 Rendering posts...');
-        renderPosts();
-        console.log('✓ Posts rendered');
-        
-        showNotification(`Debug: Fetched ${posts.length} posts`, 'success');
-    } catch (error) {
-        console.error('❌ Debug fetch error:', error);
-        showNotification('Debug fetch failed: ' + error.message, 'error');
-    }
-    console.log('=== DEBUG FETCH POSTS END ===');
-}
-
-// Removed duplicate DOMContentLoaded listener
-
-// Simple force load posts function
-async function forceLoadPosts() {
-    console.log('=== FORCE LOAD POSTS START ===');
-    try {
-        console.log('🔄 Clearing existing posts...');
-        posts = [];
-        console.log('✓ Posts cleared');
-        
-        console.log('🔄 Fetching fresh posts...');
-        const fetchedPosts = await fetchPostsFromFirestore();
-        console.log('✓ Fresh posts fetched:', fetchedPosts);
-        
-        console.log('🔄 Updating posts array...');
-        posts = fetchedPosts || [];
-        console.log('✓ Posts array updated, length:', posts.length);
-        
-        console.log('🔄 Rendering posts...');
-        renderPosts();
-        console.log('✓ Posts rendered');
-        
-        showNotification(`Force loaded ${posts.length} posts!`, 'success');
-    } catch (error) {
-        console.error('❌ Force load error:', error);
-        showNotification('Force load failed: ' + error.message, 'error');
-    }
-    console.log('=== FORCE LOAD POSTS END ===');
-}
-
-// Comprehensive debug function that fixes everything
-async function debugFixEverything() {
-    console.log('=== DEBUG FIX EVERYTHING START ===');
-    try {
-        // Step 1: Reinitialize Firebase
-        console.log('🔄 Step 1: Reinitializing Firebase...');
-        const firebaseInitialized = initializeFirebase();
-        console.log('✓ Firebase reinitialized:', firebaseInitialized);
-        
-        // Step 2: Clear and reload posts
-        console.log('🔄 Step 2: Clearing and reloading posts...');
-        posts = [];
-        const freshPosts = await fetchPostsFromFirestore();
-        posts = freshPosts || [];
-        console.log('✓ Posts reloaded:', posts.length);
-        
-        // Step 3: Re-render everything
-        console.log('🔄 Step 3: Re-rendering everything...');
-        renderPosts();
-        updateProfileDisplay();
-        showEmptyStateIfNeeded();
-        console.log('✓ Everything re-rendered');
-        
-        // Step 4: Re-setup event listeners
-        console.log('🔄 Step 4: Re-setting up event listeners...');
-        setupEventListeners();
-        console.log('✓ Event listeners re-setup');
-        
-        // Step 5: Check username
-        console.log('🔄 Step 5: Checking username...');
-        requireUsername();
-        console.log('✓ Username checked');
-        
-        // Step 6: Force update all buttons and UI
-        console.log('🔄 Step 6: Force updating UI...');
-        const postButton = document.getElementById('postButton');
-        const testPostButton = document.getElementById('testPostButton');
-        const forceLoadButton = document.getElementById('forceLoadButton');
-        
-        if (postButton) postButton.disabled = false;
-        if (testPostButton) testPostButton.disabled = false;
-        if (forceLoadButton) forceLoadButton.disabled = false;
-        
-        console.log('✓ UI buttons updated');
-        
-        showNotification(`Debug fix completed! Loaded ${posts.length} posts, all systems operational!`, 'success');
-        console.log('✓ Debug fix completed successfully');
-        
-    } catch (error) {
-        console.error('❌ Debug fix error:', error);
-        showNotification('Debug fix failed: ' + error.message, 'error');
-    }
-    console.log('=== DEBUG FIX EVERYTHING END ===');
-}
 
 // Instagram-style functionality
 let currentInstagramPostId = null;
@@ -3493,12 +3285,7 @@ async function updatePostInFirestore(post) {
 
 // ===== GLOBAL FUNCTION EXPORTS =====
 // Make functions available to onclick handlers in HTML
-window.testTIGPS = testTIGPS;
-window.debugFixEverything = debugFixEverything;
 window.createPost = createPost;
-window.createTestPost = createTestPost;
-window.debugFetchPosts = debugFetchPosts;
-window.forceLoadPosts = forceLoadPosts;
 window.openMail = openMail;
 window.toggleHamburgerMenu = toggleHamburgerMenu;
 window.toggleProfileMenu = toggleProfileMenu;
