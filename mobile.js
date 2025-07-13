@@ -21,7 +21,7 @@ console.log('=== MOBILE SCRIPT LOADING START ===');
 
 // Tenor API Configuration
 const TENOR_API_KEY = 'LIVDSRZULELA'; // Tenor API demo key
-const TENOR_BASE_URL = 'https://g.tenor.com/v1';
+const TENOR_BASE_URL = 'https://tenor.googleapis.com/v2'; // Updated to new Google API
 
 // Global variables
 let posts = [];
@@ -704,7 +704,14 @@ async function searchTenorGifs(query) {
     try {
         const response = await fetch(`${TENOR_BASE_URL}/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=8&media_filter=tinygif`);
         const data = await response.json();
-        return data.results || [];
+        // Handle new Google API response structure
+        if (data.results) {
+            return data.results || [];
+        } else if (data.data) {
+            // New Google API structure
+            return data.data || [];
+        }
+        return [];
     } catch (error) {
         console.error('Error fetching GIFs:', error);
         return [];
@@ -715,16 +722,24 @@ function displayGifResults(gifs) {
     const resultsContainer = document.getElementById('gifResults');
     if (!resultsContainer) return;
     
-    if (gifs.length === 0) {
+    if (!Array.isArray(gifs) || gifs.length === 0) {
         resultsContainer.innerHTML = '<p>No GIFs found. Try a different search term.</p>';
         return;
     }
     
-    resultsContainer.innerHTML = gifs.map(gif => `
-        <div class="gif-item" onclick="selectGif('${gif.media_formats.tinygif.url}')">
-            <img src="${gif.media_formats.tinygif.url}" alt="GIF" loading="lazy">
-        </div>
-    `).join('');
+    resultsContainer.innerHTML = gifs.map(gif => {
+        // Validate GIF object structure
+        if (!gif || !gif.media_formats || !gif.media_formats.tinygif || !gif.media_formats.tinygif.url) {
+            console.warn('Invalid GIF object structure:', gif);
+            return '';
+        }
+        
+        return `
+            <div class="gif-item" onclick="selectGif('${gif.media_formats.tinygif.url}')">
+                <img src="${gif.media_formats.tinygif.url}" alt="GIF" loading="lazy">
+            </div>
+        `;
+    }).filter(html => html !== '').join('');
 }
 
 function selectGif(gifUrl) {

@@ -51,10 +51,10 @@ img, video {
 
 /* Disable right-click context menu */
 body {
-    -webkit-context-menu: none;
-    -moz-context-menu: none;
-    -ms-context-menu: none;
-    context-menu: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 /* --- DARK THEME BASE --- */
@@ -144,6 +144,7 @@ body::before {
     position: relative;
     z-index: 1;
     min-height: 100vh;
+    display: none; /* Hidden by default, shown when JS loads */
 }
 
 /* Header */
@@ -1658,24 +1659,6 @@ body::before {
     height: 20px;
 } 
 
-/* Hamburger menu on the left */
-.hamburger-menu {
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 8px;
-  transition: background 0.15s;
-  position: relative;
-  z-index: 103;
-}
-
-.hamburger-menu:hover {
-  background: rgba(162, 89, 255, 0.1);
-}
-
-.hamburger-menu.active {
-  background: rgba(162, 89, 255, 0.2);
-}
-
 /* Hamburger menu icon */
 .hamburger-icon {
   cursor: pointer;
@@ -2004,13 +1987,7 @@ body::before {
     display: none !important;
 }
 
-/* Hamburger menu always visible */
-.hamburger-menu {
-    display: flex !important;
-    align-items: center;
-    cursor: pointer;
-    z-index: 1002;
-}
+
 
 /* Sidebar slide-in effect */
 .sidebar-menu {

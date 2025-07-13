@@ -1,14 +1,39 @@
 // Emergency error handler - catch all errors
 window.addEventListener('error', function(e) {
     console.error('EMERGENCY ERROR CAUGHT:', e.error);
+    // Show fallback content on critical errors
+    const fallback = document.getElementById('fallbackContent');
+    if (fallback) {
+        fallback.style.display = 'block';
+        fallback.innerHTML = `
+            <h2>🚨 JavaScript Error Detected</h2>
+            <p>Error: ${e.error ? e.error.message : 'Unknown error'}</p>
+            <button onclick="location.reload()" style="background:#667eea; color:white; border:none; padding:10px 20px; border-radius:8px; margin:10px; cursor:pointer;">🔄 Reload Page</button>
+            <button onclick="debugFixEverything()" style="background:#00ff00; color:black; border:none; padding:10px 20px; border-radius:8px; margin:10px; cursor:pointer; font-weight:bold;">🔧 DEBUG FIX</button>
+        `;
+    }
 });
 
 // Emergency unhandled promise rejection handler
 window.addEventListener('unhandledrejection', function(e) {
     console.error('EMERGENCY PROMISE ERROR:', e.reason);
+    // Show fallback content on critical errors
+    const fallback = document.getElementById('fallbackContent');
+    if (fallback) {
+        fallback.style.display = 'block';
+        fallback.innerHTML = `
+            <h2>🚨 Promise Error Detected</h2>
+            <p>Error: ${e.reason ? e.reason.message : 'Unknown promise error'}</p>
+            <button onclick="location.reload()" style="background:#667eea; color:white; border:none; padding:10px 20px; border-radius:8px; margin:10px; cursor:pointer;">🔄 Reload Page</button>
+            <button onclick="debugFixEverything()" style="background:#00ff00; color:black; border:none; padding:10px 20px; border-radius:8px; margin:10px; cursor:pointer; font-weight:bold;">🔧 DEBUG FIX</button>
+        `;
+    }
 });
 
 console.log('=== SCRIPT LOADING START ===');
+
+// Global initialization flag to prevent multiple executions
+let appInitialized = false;
 
 // Global test function for debugging
 window.testTIGPS = function() {
@@ -60,7 +85,7 @@ window.testTIGPS = function() {
 
 // Tenor API Configuration
 const TENOR_API_KEY = 'LIVDSRZULELA'; // Tenor API demo key
-const TENOR_BASE_URL = 'https://g.tenor.com/v1';
+const TENOR_BASE_URL = 'https://tenor.googleapis.com/v2'; // Updated to new Google API
 
 // GIF search variables
 let gifSearchResults = [];
@@ -191,9 +216,9 @@ function setupContentProtection() {
         return false;
     });
 
-    // Prevent selection
+    // Prevent selection (less restrictive)
     document.addEventListener('selectstart', function(e) {
-        if (!e.target.matches('.post-input, .comment-input, .modal-post-input, input[type="text"], input[type="password"], textarea')) {
+        if (!e.target.closest('.post-input, .comment-input, .modal-post-input, input[type="text"], input[type="password"], textarea, .post-content, .comment-text')) {
             e.preventDefault();
             return false;
         }
@@ -366,16 +391,30 @@ function initializeFirebase() {
         window.firebase.initializeApp(firebaseConfig);
       }
       db = window.firebase.firestore();
-      console.log('Firebase initialized successfully');
+      console.log('✓ Firebase initialized successfully');
       return true;
     } else {
       console.warn('Firebase not available in this environment');
       return false;
     }
   } catch (error) {
-    console.error('Error initializing Firebase:', error);
+    console.error('❌ Firebase initialization failed:', error);
     return false;
   }
+}
+
+// Safe Firestore operations
+function safeFirestoreOperation(operation) {
+    if (!db) {
+        console.error('Firestore is not initialized!');
+        return null;
+    }
+    try {
+        return operation();
+    } catch (error) {
+        console.error('Firestore operation failed:', error);
+        return null;
+    }
 }
 
 // Firestore CRUD for posts
@@ -388,10 +427,15 @@ async function fetchPostsFromFirestore() {
     }
     
     console.log('Starting fetchPostsFromFirestore...');
-    const postsCol = db.collection("posts");
+    const postsCol = safeFirestoreOperation(() => db.collection("posts"));
+    if (!postsCol) return [];
+    
     console.log('Posts collection reference:', postsCol);
     
-    const postSnapshot = await postsCol.orderBy("timestamp", "desc").get();
+    const postSnapshot = await safeFirestoreOperation(() => 
+      postsCol.orderBy("timestamp", "desc").get()
+    );
+    if (!postSnapshot) return [];
     console.log('Post snapshot:', postSnapshot);
     console.log('Snapshot empty:', postSnapshot.empty);
     console.log('Snapshot size:', postSnapshot.size);
@@ -437,7 +481,10 @@ async function savePostToFirestore(post) {
       localStorage.setItem('tigpsPosts', JSON.stringify(posts));
       return;
     }
-    await db.collection("posts").add(post);
+    const result = await safeFirestoreOperation(() => db.collection("posts").add(post));
+    if (!result) {
+      throw new Error('Failed to save post to Firestore');
+    }
   } catch (error) {
     console.error('Error saving post to Firestore, using localStorage fallback:', error);
     const storedPosts = localStorage.getItem('tigpsPosts');
@@ -449,26 +496,63 @@ async function savePostToFirestore(post) {
 }
 // Firestore CRUD for profiles
 async function fetchProfileFromFirestore(username) {
-  const profileRef = db.collection("profiles").doc(username);
-  const profileSnap = await profileRef.get();
-  return profileSnap.exists ? profileSnap.data() : null;
+  try {
+    if (!db) return null;
+    const profileRef = safeFirestoreOperation(() => db.collection("profiles").doc(username));
+    if (!profileRef) return null;
+    const profileSnap = await safeFirestoreOperation(() => profileRef.get());
+    return profileSnap && profileSnap.exists ? profileSnap.data() : null;
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    return null;
+  }
 }
+
 async function saveProfileToFirestore(profile) {
-  await db.collection("profiles").doc(profile.username).set(profile);
+  try {
+    if (!db) return;
+    const result = await safeFirestoreOperation(() => 
+      db.collection("profiles").doc(profile.username).set(profile)
+    );
+    if (!result) {
+      throw new Error('Failed to save profile to Firestore');
+    }
+  } catch (error) {
+    console.error('Error saving profile:', error);
+    throw error;
+  }
 }
 // Firestore CRUD for comments
 async function fetchCommentsFromFirestore(postId) {
   try {
-    const commentsCol = window.firebase.firestore().collection("posts").doc(postId).collection("comments");
-    const commentSnapshot = await commentsCol.orderBy("timestamp", "asc").get();
-    return commentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (!db) return [];
+    const commentsCol = safeFirestoreOperation(() => 
+      db.collection("posts").doc(postId).collection("comments")
+    );
+    if (!commentsCol) return [];
+    const commentSnapshot = await safeFirestoreOperation(() => 
+      commentsCol.orderBy("timestamp", "asc").get()
+    );
+    return commentSnapshot ? commentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) : [];
   } catch (error) {
     console.error('Error fetching comments:', error);
     return [];
   }
 }
+
 async function saveCommentToFirestore(postId, comment) {
-  await window.firebase.firestore().collection("posts").doc(postId).collection("comments").add(comment);
+  try {
+    if (!db) return;
+    const result = await safeFirestoreOperation(() => 
+      db.collection("posts").doc(postId).collection("comments").add(comment)
+    );
+    if (!result) {
+      throw new Error('Failed to save comment to Firestore');
+    }
+  } catch (error) {
+    console.error('Error saving comment:', error);
+    throw error;
+  }
 }
 
 // Initialize app with Firestore
@@ -502,14 +586,20 @@ async function initializeAppData() {
     renderPosts();
     
     // Load user profile if logged in
-    const user = localStorage.getItem('tigpsUser');
-    if (user) {
-      const { username } = JSON.parse(user);
-      const profile = await fetchProfileFromFirestore(username);
-      if (profile) {
-        currentUser = { ...currentUser, ...profile };
-        updateProfileDisplay();
+    try {
+      const user = localStorage.getItem('tigpsUser');
+      if (user) {
+        const userData = JSON.parse(user);
+        const { username } = userData;
+        const profile = await fetchProfileFromFirestore(username);
+        if (profile) {
+          currentUser = { ...currentUser, ...profile };
+          updateProfileDisplay();
+        }
       }
+    } catch (error) {
+      console.error('Error parsing user data from localStorage:', error);
+      localStorage.removeItem('tigpsUser');
     }
     console.log('App initialization complete');
   } catch (e) {
@@ -594,7 +684,13 @@ showComments = async function(postId) {
   try {
     const comments = await fetchCommentsFromFirestore(postId);
     renderComments(comments);
-    commentsModal.style.display = 'block';
+    const commentsModal = document.getElementById('commentsModal');
+    if (commentsModal) {
+      commentsModal.style.display = 'block';
+    } else {
+      console.error('Comments modal not found');
+      showNotification('Comments modal not available.', 'error');
+    }
   } catch (e) {
     showNotification('Failed to load comments.', 'error');
   }
@@ -665,10 +761,23 @@ const postMediaPreview = document.getElementById('postMediaPreview');
 const modalPostMediaPreview = document.getElementById('modalPostMediaPreview');
 const settingsModal = document.getElementById('settingsModal');
 
-// Initialize the app
+// Single DOMContentLoaded listener to prevent conflicts
 document.addEventListener('DOMContentLoaded', async function() {
+    if (appInitialized) {
+        console.log('App already initialized, skipping...');
+        return;
+    }
+    appInitialized = true;
+    
     console.log('=== DOMContentLoaded START ===');
     try {
+        // Show app immediately
+        const app = document.querySelector('.app');
+        if (app) {
+            app.style.display = 'block';
+            console.log('✓ App element shown');
+        }
+        
         // Initialize Firebase first
         console.log('🔄 Initializing Firebase...');
         const firebaseInitialized = initializeFirebase();
@@ -996,6 +1105,26 @@ function setupEventListeners() {
                 usernameSubmitBtn.click();
             }
         });
+    }
+    
+    // GIF input event listener
+    const gifInput = document.getElementById('gifSearchInput');
+    if (gifInput) {
+        console.log('✓ Found GIF input, adding event listener');
+        gifInput.addEventListener('input', function(e) {
+            if (gifSearchTimeout) clearTimeout(gifSearchTimeout);
+            const query = e.target.value.trim();
+            if (query.length < 2) {
+                const gifResults = document.getElementById('gifResults');
+                if (gifResults) {
+                    gifResults.innerHTML = '<div class="gif-loading">Search for GIFs to get started!</div>';
+                }
+                return;
+            }
+            gifSearchTimeout = setTimeout(() => searchTenorGifs(query), 400);
+        });
+    } else {
+        console.log('⚠️ GIF input not found (may not be on this page)');
     }
     
     console.log('✓ Event listeners setup completed');
@@ -1469,20 +1598,7 @@ window.toggleLike = toggleLike;
 window.showComments = showComments;
 window.addComment = addComment;
 
-document.addEventListener('DOMContentLoaded', function() {
-    const gifInput = document.getElementById('gifSearchInput');
-    if (gifInput) {
-        gifInput.addEventListener('input', function(e) {
-            if (gifSearchTimeout) clearTimeout(gifSearchTimeout);
-            const query = e.target.value.trim();
-            if (query.length < 2) {
-                document.getElementById('gifResults').innerHTML = '<div class="gif-loading">Search for GIFs to get started!</div>';
-                return;
-            }
-            gifSearchTimeout = setTimeout(() => searchTenorGifs(query), 400);
-        });
-    }
-});
+// GIF input event listener (moved to setupEventListeners)
 
 // Tenor GIF Search Functions
 async function searchTenorGifs(query) {
@@ -1490,7 +1606,7 @@ async function searchTenorGifs(query) {
     resultsContainer.innerHTML = '<div class="gif-loading">Searching...</div>';
     
     try {
-        const response = await fetch(`${TENOR_BASE_URL}/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=8&media_filter=tinygif`);
+        const response = await fetch(`${TENOR_BASE_URL}/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=8&media_filter=gif`);
         const data = await response.json();
         
         if (data.results && data.results.length > 0) {
@@ -3149,27 +3265,7 @@ async function debugFetchPosts() {
     console.log('=== DEBUG FETCH POSTS END ===');
 }
 
-// Ensure posts are loaded on page load
-document.addEventListener('DOMContentLoaded', function() {
-    checkAdminState();
-    setupContentProtection();
-    
-    // Initialize app data (loads posts)
-    initializeAppData();
-    
-    // Load posts after a short delay as backup
-    setTimeout(async function() {
-        console.log('Loading posts on page load...');
-        try {
-            posts = await fetchPostsFromFirestore();
-            console.log('Posts loaded:', posts.length);
-            renderPosts();
-        } catch (error) {
-            console.error('Error loading posts:', error);
-            showNotification('Failed to load posts: ' + error.message, 'error');
-        }
-    }, 1000);
-});
+// Removed duplicate DOMContentLoaded listener
 
 // Simple force load posts function
 async function forceLoadPosts() {
@@ -3432,4 +3528,72 @@ async function updatePostInFirestore(post) {
         console.error('Error updating post in Firestore:', error);
     }
 }
+
+// ===== GLOBAL FUNCTION EXPORTS =====
+// Make functions available to onclick handlers in HTML
+window.testTIGPS = testTIGPS;
+window.debugFixEverything = debugFixEverything;
+window.createPost = createPost;
+window.createTestPost = createTestPost;
+window.debugFetchPosts = debugFetchPosts;
+window.forceLoadPosts = forceLoadPosts;
+window.openMail = openMail;
+window.toggleHamburgerMenu = toggleHamburgerMenu;
+window.toggleProfileMenu = toggleProfileMenu;
+window.openAccountDashboard = openAccountDashboard;
+window.openProfileModal = openProfileModal;
+window.openSettingsModal = openSettingsModal;
+window.openAdminModal = openAdminModal;
+window.openPostModal = openPostModal;
+window.closePostModal = closePostModal;
+window.closeCommentsModal = closeCommentsModal;
+window.closeSettingsModal = closeSettingsModal;
+window.closeAccountDashboard = closeAccountDashboard;
+window.closeProfileModal = closeProfileModal;
+window.closeAdminModal = closeAdminModal;
+window.saveProfile = saveProfile;
+window.saveDashboardProfile = saveDashboardProfile;
+window.loginAdmin = loginAdmin;
+window.logoutAdmin = logoutAdmin;
+window.logout = logout;
+window.addComment = addComment;
+window.toggleLike = toggleLike;
+window.sharePost = sharePost;
+window.searchTag = searchTag;
+window.openGifSearchModal = openGifSearchModal;
+window.closeGifSearchModal = closeGifSearchModal;
+window.closeGifSearch = closeGifSearch;
+window.openGifSearch = openGifSearch;
+window.searchGifs = searchGifs;
+window.selectGifFromSearch = selectGifFromSearch;
+window.triggerImageUpload = triggerImageUpload;
+window.handleImageUpload = handleImageUpload;
+window.triggerModalImageUpload = triggerModalImageUpload;
+window.handleModalImageUpload = handleModalImageUpload;
+window.openModalGifSearch = openModalGifSearch;
+window.handleProfilePicUpload = handleProfilePicUpload;
+window.removeMedia = removeMedia;
+window.removeSelectedGif = removeSelectedGif;
+window.removeModalSelectedGif = removeModalSelectedGif;
+window.togglePostMenu = togglePostMenu;
+window.showComments = showComments;
+window.deletePost = deletePost;
+window.deleteProfilePost = deleteProfilePost;
+window.cleanupDuplicatePosts = cleanupDuplicatePosts;
+window.exportData = exportData;
+window.importData = importData;
+window.handleImportFile = handleImportFile;
+window.signInToGoogleDrive = signInToGoogleDrive;
+window.signOutFromGoogleDrive = signOutFromGoogleDrive;
+window.syncData = syncData;
+window.triggerDashboardProfilePicUpload = triggerDashboardProfilePicUpload;
+window.handleDashboardProfilePicUpload = handleDashboardProfilePicUpload;
+window.instagramLike = instagramLike;
+window.instagramComment = instagramComment;
+window.instagramShare = instagramShare;
+window.addInstagramComment = addInstagramComment;
+window.closeInstagramCommentModal = closeInstagramCommentModal;
+
+console.log('=== GLOBAL FUNCTIONS EXPORTED ===');
+console.log('✓ All functions are now available to HTML onclick handlers');
 

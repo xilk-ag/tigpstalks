@@ -19,7 +19,14 @@ if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
 }
 
 // SQLite setup
-const db = new sqlite3.Database('database.sqlite');
+const db = new sqlite3.Database('database.sqlite', (err) => {
+    if (err) {
+        console.error('Error opening database:', err.message);
+        process.exit(1);
+    }
+    console.log('Connected to SQLite database');
+});
+
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS profiles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,7 +35,9 @@ db.serialize(() => {
         avatar TEXT,
         bio TEXT,
         location TEXT
-    )`);
+    )`, (err) => {
+        if (err) console.error('Error creating profiles table:', err.message);
+    });
     db.run(`CREATE TABLE IF NOT EXISTS posts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         content TEXT,
@@ -38,7 +47,9 @@ db.serialize(() => {
         timestamp TEXT,
         isAnonymous INTEGER,
         media TEXT
-    )`);
+    )`, (err) => {
+        if (err) console.error('Error creating posts table:', err.message);
+    });
     db.run(`CREATE TABLE IF NOT EXISTS comments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         postId INTEGER,
@@ -47,7 +58,9 @@ db.serialize(() => {
         avatar TEXT,
         content TEXT,
         timestamp TEXT
-    )`);
+    )`, (err) => {
+        if (err) console.error('Error creating comments table:', err.message);
+    });
 });
 
 // Multer setup for media uploads
@@ -59,7 +72,28 @@ const storage = multer.diskStorage({
         cb(null, Date.now() + '-' + file.originalname);
     }
 });
-const upload = multer({ storage });
+
+// File filter for uploads
+const fileFilter = (req, file, cb) => {
+    // Allow only image and video files
+    const allowedTypes = /jpeg|jpg|png|gif|webp|mp4|mov|avi|webm/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+        return cb(null, true);
+    } else {
+        cb(new Error('Only image and video files are allowed'));
+    }
+};
+
+const upload = multer({ 
+    storage,
+    fileFilter,
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB limit
+    }
+});
 
 // Security middleware
 app.use((req, res, next) => {
@@ -103,7 +137,7 @@ app.get('/protected-images/:filename', (req, res) => {
     const imagePath = path.join(__dirname, 'images', filename);
     
     // Check if file exists
-    if (!require('fs').existsSync(imagePath)) {
+    if (!fs.existsSync(imagePath)) {
         return res.status(404).send('Image not found');
     }
     
@@ -138,6 +172,17 @@ app.get('/api/profiles/:username', (req, res) => {
 });
 app.post('/api/profiles', (req, res) => {
     const { username, displayName, avatar, bio, location } = req.body;
+    
+    // Validate required fields
+    if (!username || !displayName) {
+        return res.status(400).json({ error: 'Username and displayName are required' });
+    }
+    
+    // Validate field lengths
+    if (username.length > 50 || displayName.length > 100) {
+        return res.status(400).json({ error: 'Username or displayName too long' });
+    }
+    
     db.run('INSERT OR REPLACE INTO profiles (username, displayName, avatar, bio, location) VALUES (?, ?, ?, ?, ?)',
         [username, displayName, avatar, bio, location],
         function(err) {
@@ -155,6 +200,17 @@ app.get('/api/posts', (req, res) => {
 });
 app.post('/api/posts', (req, res) => {
     const { content, author, username, avatar, isAnonymous, media } = req.body;
+    
+    // Validate required fields
+    if (!content || !author || !username) {
+        return res.status(400).json({ error: 'Content, author, and username are required' });
+    }
+    
+    // Validate content length
+    if (content.length > 1000) {
+        return res.status(400).json({ error: 'Content too long (max 1000 characters)' });
+    }
+    
     const timestamp = new Date().toISOString();
     db.run('INSERT INTO posts (content, author, username, avatar, timestamp, isAnonymous, media) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [content, author, username, avatar, timestamp, isAnonymous ? 1 : 0, media],
@@ -173,6 +229,17 @@ app.get('/api/comments/:postId', (req, res) => {
 });
 app.post('/api/comments', (req, res) => {
     const { postId, author, username, avatar, content } = req.body;
+    
+    // Validate required fields
+    if (!postId || !author || !username || !content) {
+        return res.status(400).json({ error: 'PostId, author, username, and content are required' });
+    }
+    
+    // Validate content length
+    if (content.length > 500) {
+        return res.status(400).json({ error: 'Comment too long (max 500 characters)' });
+    }
+    
     const timestamp = new Date().toISOString();
     db.run('INSERT INTO comments (postId, author, username, avatar, content, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
         [postId, author, username, avatar, content, timestamp],
@@ -186,6 +253,11 @@ app.post('/api/comments', (req, res) => {
 app.post('/api/upload', upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     res.json({ url: `/uploads/${req.file.filename}` });
+});
+
+// 404 handler for API routes
+app.use('/api/*', (req, res) => {
+    res.status(404).json({ error: 'API endpoint not found' });
 });
 
 // Catch-all route to serve index.html
