@@ -64,8 +64,8 @@ const ADMIN_USERNAME = "alphatigps";
 // User Profile Data
 let currentUser = {
     id: 1,
-    displayName: "Alex Chen",
-    username: "alexchen",
+    displayName: "user.tig",
+    username: "user.tig",
     avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%2325D366'/%3E%3Cpath d='M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z' fill='%23fff'/%3E%3C/svg%3E",
     bio: "Computer Science student at TIGPS. Love coding and coffee! ☕",
     location: "TIGPS Campus"
@@ -579,7 +579,7 @@ function getTimeAgo(date) {
 
 // Post interactions
 async function toggleLike(postId) {
-    const post = posts.find(p => p.id === postId);
+    const post = posts.find(p => p.id === postId || p.id === postId.toString());
     if (post) {
         const currentUsername = currentUser.username;
         
@@ -644,33 +644,45 @@ function searchTag(tag) {
 }
 
 // Media handling
+// Robust triggerImageUpload for mobile
 function triggerImageUpload() {
-    const input = document.getElementById('imageUpload');
-    if (input) {
-        input.click();
-    } else {
-        // Fallback: create input if not found
-        const newInput = document.createElement('input');
-        newInput.type = 'file';
-        newInput.accept = 'image/*';
-        newInput.onchange = handleImageUpload;
-        newInput.click();
+    let input = document.getElementById('imageUpload');
+    if (!input) {
+        input = document.createElement('input');
+        input.type = 'file';
+        input.id = 'imageUpload';
+        input.accept = 'image/*,video/*';
+        input.style.display = 'none';
+        input.onchange = handleImageUpload;
+        document.body.appendChild(input);
     }
+    input.value = '';
+    input.click();
 }
 
+// Robust handleImageUpload for mobile
 function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-    
-    if (file.size > 5 * 1024 * 1024) {
-        showNotification('Image size must be less than 5MB.', 'error');
+    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+        showNotification('Please select a valid image or video file.', 'error');
         return;
     }
-    
     const reader = new FileReader();
     reader.onload = function(e) {
         selectedMedia = e.target.result;
-        updateMediaPreview(document.getElementById('mediaPreview'), selectedMedia);
+        let preview = document.getElementById('mediaPreview');
+        if (!preview) {
+            console.error('No preview element found for image upload!');
+            showNotification('Error: No preview area found for image.', 'error');
+            return;
+        }
+        if (file.type.startsWith('image/')) {
+            preview.innerHTML = `<img src='${selectedMedia}' alt='Preview' style='max-width:100%;max-height:200px;border-radius:8px;margin-top:8px;'>`;
+        } else {
+            preview.innerHTML = `<video src='${selectedMedia}' controls style='max-width:100%;max-height:200px;border-radius:8px;margin-top:8px;'></video>`;
+        }
+        preview.classList.add('has-media');
     };
     reader.readAsDataURL(file);
 }
@@ -1803,3 +1815,42 @@ window.triggerAvatarUpload = triggerAvatarUpload;
 window.triggerCoverUpload = triggerCoverUpload;
 window.handleAvatarUpload = handleAvatarUpload;
 window.handleCoverUpload = handleCoverUpload; 
+
+// --- Profile Feature Coming Soon Popup (Mobile) ---
+function showProfileComingSoon() {
+    alert('Profile feature coming soon.');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Sidebar profile item
+    const sidebarProfile = document.querySelector('.sidebar-item[onclick*="profile-dashboard.html"]');
+    if (sidebarProfile) {
+        sidebarProfile.onclick = function(e) {
+            e.stopPropagation();
+            showProfileComingSoon();
+            return false;
+        };
+    }
+    // Bottom nav profile icon
+    const navItems = document.querySelectorAll('.x-bottom-nav .x-nav-item');
+    navItems.forEach(item => {
+        // Look for SVG or avatar inside
+        if (item.innerHTML.includes('profile-dashboard.html')) {
+            item.onclick = function(e) {
+                e.stopPropagation();
+                showProfileComingSoon();
+                return false;
+            };
+        }
+    });
+});
+
+// Fix anonymous checkbox toggle (mobile)
+document.addEventListener('DOMContentLoaded', function() {
+    const anonCheck = document.getElementById('anonymousCheck');
+    if (anonCheck) {
+        anonCheck.onclick = function(e) {
+            anonCheck.checked = !anonCheck.checked;
+        };
+    }
+});

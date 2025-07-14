@@ -1648,50 +1648,40 @@ function selectGifFromSearch(gifId) {
 
 // Update image upload logic to only accept images
 function triggerImageUpload() {
-    document.getElementById('imageUpload').click();
+    let input = document.getElementById('imageUpload');
+    if (!input) {
+        input = document.createElement('input');
+        input.type = 'file';
+        input.id = 'imageUpload';
+        input.accept = 'image/*';
+        input.style.display = 'none';
+        input.onchange = handleImageUpload;
+        document.body.appendChild(input);
+    }
+    input.value = '';
+    input.click();
 }
 
 function handleImageUpload(event) {
     const file = event.target.files[0];
-    console.log('File selected:', file);
-    
-    if (!file) {
-        showNotification('No file selected.', 'error');
-        return;
-    }
-    
+    if (!file) return;
     if (!file.type.startsWith('image/')) {
         showNotification('Please select a valid image file.', 'error');
         return;
     }
-    
-    // No file size limit - compression will handle any size
-    console.log('File size:', file.size, 'bytes');
-    
     const reader = new FileReader();
     reader.onload = function(e) {
-        try {
-            // Compress the image before storing - no size limits, compression handles everything
-            compressImage(e.target.result).then(compressedData => {
-                selectedMedia = compressedData;
-                console.log('Image compressed and uploaded for main post');
-                updateMediaPreview(postMediaPreview, selectedMedia);
-                showNotification('Image attached successfully!', 'success');
-            }).catch(error => {
-                console.error('Error compressing image:', error);
-                showNotification('Error processing image: ' + error.message, 'error');
-            });
-        } catch (error) {
-            console.error('Error processing image:', error);
-            showNotification('Error processing image.', 'error');
+        selectedMedia = e.target.result;
+        // Try both preview elements for main and modal
+        let preview = document.getElementById('postMediaPreview') || document.getElementById('mediaPreview');
+        if (!preview) {
+            console.error('No preview element found for image upload!');
+            showNotification('Error: No preview area found for image.', 'error');
+            return;
         }
+        preview.innerHTML = `<img src='${selectedMedia}' alt='Preview' style='max-width:100%;max-height:200px;border-radius:8px;margin-top:8px;'>`;
+        preview.classList.add('has-media');
     };
-    
-    reader.onerror = function() {
-        console.error('Error reading file:', reader.error);
-        showNotification('Error reading image file.', 'error');
-    };
-    
     reader.readAsDataURL(file);
 }
 
@@ -1702,45 +1692,23 @@ function triggerModalImageUpload() {
 
 function handleModalImageUpload(event) {
     const file = event.target.files[0];
-    console.log('Modal file selected:', file);
-    
-    if (!file) {
-        showNotification('No file selected.', 'error');
-        return;
-    }
-    
+    if (!file) return;
     if (!file.type.startsWith('image/')) {
         showNotification('Please select a valid image file.', 'error');
         return;
     }
-    
-    // No file size limit - compression will handle any size
-    console.log('Modal file size:', file.size, 'bytes');
-    
     const reader = new FileReader();
     reader.onload = function(e) {
-        try {
-            // Compress the image before storing - no size limits, compression handles everything
-            compressImage(e.target.result).then(compressedData => {
-                modalSelectedMedia = compressedData;
-                console.log('Image compressed and uploaded for modal post');
-                updateMediaPreview(modalPostMediaPreview, modalSelectedMedia);
-                showNotification('Image attached successfully!', 'success');
-            }).catch(error => {
-                console.error('Error compressing image:', error);
-                showNotification('Error processing image: ' + error.message, 'error');
-            });
-        } catch (error) {
-            console.error('Error processing image:', error);
-            showNotification('Error processing image.', 'error');
+        modalSelectedMedia = e.target.result;
+        let preview = document.getElementById('modalPostMediaPreview') || document.getElementById('mediaPreview');
+        if (!preview) {
+            console.error('No modal preview element found for image upload!');
+            showNotification('Error: No preview area found for image.', 'error');
+            return;
         }
+        preview.innerHTML = `<img src='${modalSelectedMedia}' alt='Preview' style='max-width:100%;max-height:200px;border-radius:8px;margin-top:8px;'>`;
+        preview.classList.add('has-media');
     };
-    
-    reader.onerror = function() {
-        console.error('Error reading file:', reader.error);
-        showNotification('Error reading image file.', 'error');
-    };
-    
     reader.readAsDataURL(file);
 }
 
@@ -2833,12 +2801,9 @@ window.openGifSearch = openGifSearch;
 window.closeGifSearch = closeGifSearch;
 window.searchGifs = searchGifs;
 window.selectGifFromSearch = selectGifFromSearch;
-window.removeSelectedGif = removeSelectedGif;
-window.removeModalSelectedGif = removeModalSelectedGif;
-window.openModalGifSearch = openModalGifSearch;
-window.openGifModal = openGifModal;
-window.togglePostMenu = togglePostMenu;
-window.deletePost = deletePost;
+window.toggleLike = toggleLike;
+window.showComments = showComments;
+window.addComment = addComment;
 
 window.openProfileModal = openProfileModal;
 window.closeProfileModal = closeProfileModal;
@@ -3668,4 +3633,54 @@ window.triggerAvatarUpload = triggerAvatarUpload;
 window.triggerCoverUpload = triggerCoverUpload;
 window.handleAvatarUpload = handleAvatarUpload;
 window.handleCoverUpload = handleCoverUpload;
+
+// --- Profile Feature Coming Soon Popup ---
+function showProfileComingSoon() {
+    alert('Profile feature coming soon.');
+}
+
+// Intercept profile icon/menu clicks (header)
+document.addEventListener('DOMContentLoaded', function() {
+    // Header profile icon (PC)
+    const headerProfilePic = document.getElementById('headerProfilePic');
+    if (headerProfilePic) {
+        headerProfilePic.parentElement.onclick = function(e) {
+            e.stopPropagation();
+            showProfileComingSoon();
+            return false;
+        };
+    }
+    // Profile menu item (PC)
+    const profileMenu = document.getElementById('profileMenu');
+    if (profileMenu) {
+        const items = profileMenu.querySelectorAll('.profile-menu-item');
+        items.forEach(item => {
+            if (item.textContent.trim().startsWith('Profile')) {
+                item.onclick = function(e) {
+                    e.stopPropagation();
+                    showProfileComingSoon();
+                    return false;
+                };
+            }
+        });
+    }
+    // Mobile sidebar profile item
+    const mobileSidebarProfile = document.querySelector('.sidebar-item[onclick*="profile-dashboard.html"]');
+    if (mobileSidebarProfile) {
+        mobileSidebarProfile.onclick = function(e) {
+            e.stopPropagation();
+            showProfileComingSoon();
+            return false;
+        };
+    }
+    // Mobile bottom nav profile icon
+    const mobileBottomNavProfile = document.querySelector('.x-profile-pic.account-avatar');
+    if (mobileBottomNavProfile) {
+        mobileBottomNavProfile.onclick = function(e) {
+            e.stopPropagation();
+            showProfileComingSoon();
+            return false;
+        };
+    }
+});
 
