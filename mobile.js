@@ -504,7 +504,6 @@ function createPostElement(post, index) {
     const gifHtml = post.gif ? `<img src="${post.gif}" alt="Post GIF" class="post-gif">` : '';
     const tagsHtml = post.tags && post.tags.length > 0 ? 
         post.tags.map(tag => `<span class="tag" onclick="searchTag('${tag}')">#${tag}</span>`).join(' ') : '';
-    
     return `
         <div class="post" data-post-id="${post.id}">
             <div class="post-header">
@@ -523,9 +522,10 @@ function createPostElement(post, index) {
             </div>
             <div class="instagram-actions">
                 <button class="instagram-action-btn ${post.isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')" title="Like">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="${post.isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 21C12 21 4 13.36 4 8.5C4 5.42 6.42 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.58 3 24 5.42 24 8.5C24 13.36 16 21 16 21H12Z"/>
-                    </svg>
+                    ${post.isLiked
+                        ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="#f91880" xmlns="http://www.w3.org/2000/svg"><path d="M12.1 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12.1 21.35z"/></svg>`
+                        : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f91880" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M12.1 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12.1 21.35z"/></svg>`
+                    }
                     <span class="action-count">${post.likes}</span>
                 </button>
                 <button class="instagram-action-btn" onclick="instagramComment('${post.id}')" title="Comment">
@@ -686,7 +686,10 @@ function handleImageUpload(event) {
             return;
         }
         if (file.type.startsWith('image/')) {
-            preview.innerHTML = `<img src='${selectedMedia}' alt='Preview' style='max-width:100%;max-height:200px;border-radius:8px;margin-top:8px;'>`;
+            preview.innerHTML = `
+                <img src='${selectedMedia}' alt='Small preview' style='width:64px;height:64px;object-fit:cover;border-radius:8px;margin-right:10px;float:left;'>
+                <img src='${selectedMedia}' alt='Preview' style='max-width:100%;max-height:200px;border-radius:8px;margin-top:8px;'>
+            `;
         } else {
             preview.innerHTML = `<video src='${selectedMedia}' controls style='max-width:100%;max-height:200px;border-radius:8px;margin-top:8px;'></video>`;
         }
@@ -1555,10 +1558,9 @@ function updateTwitterStats() {
     // Count user's posts
     const userPosts = posts.filter(post => post.username === currentUser.username);
     document.getElementById('twitterPostsCount').textContent = userPosts.length;
-    
-    // For now, set following/followers to 0 (can be implemented later)
-    document.getElementById('twitterFollowingCount').textContent = '0';
-    document.getElementById('twitterFollowersCount').textContent = '0';
+    // Calculate total likes for user's posts
+    const totalLikes = userPosts.reduce((sum, post) => sum + (post.likes || 0), 0);
+    document.getElementById('twitterLikesCount').textContent = totalLikes;
 }
 
 function loadTwitterPosts() {
@@ -1713,15 +1715,29 @@ function loadTwitterLikes() {
 function openTwitterProfileEdit() {
     const modal = document.getElementById('twitterProfileEditModal');
     if (modal) {
-        // Populate form with current data
         document.getElementById('twitterEditName').value = currentUser.displayName || '';
         document.getElementById('twitterEditUsername').value = currentUser.username || '';
         document.getElementById('twitterEditBio').value = currentUser.bio || '';
         document.getElementById('twitterEditLocation').value = currentUser.location || '';
-        document.getElementById('twitterEditWebsite').value = currentUser.website || '';
-        
+        // Set avatar preview
+        document.getElementById('editProfileAvatar').src = currentUser.avatar || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\' fill=\'%23f7b500\'/%3E%3C/svg%3E';
         modal.style.display = 'flex';
     }
+}
+
+function handleEditProfileAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('Image size must be less than 5MB.', 'error');
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('editProfileAvatar').src = e.target.result;
+        currentUser.avatar = e.target.result;
+    };
+    reader.readAsDataURL(file);
 }
 
 function closeTwitterProfileEdit() {
@@ -1736,20 +1752,17 @@ async function saveTwitterProfile() {
     const username = document.getElementById('twitterEditUsername').value.trim();
     const bio = document.getElementById('twitterEditBio').value.trim();
     const location = document.getElementById('twitterEditLocation').value.trim();
-    const website = document.getElementById('twitterEditWebsite').value.trim();
-    
+    // No website field
     if (!name || !username) {
         showNotification('Name and username are required.', 'error');
         return;
     }
-    
     // Update current user
     currentUser.displayName = name;
     currentUser.username = username;
     currentUser.bio = bio;
     currentUser.location = location;
-    currentUser.website = website;
-    
+    // Avatar is already set by handleEditProfileAvatarUpload
     try {
         // Save to Firestore if available
         if (typeof saveProfileToFirestore === 'function') {
@@ -1758,9 +1771,10 @@ async function saveTwitterProfile() {
             // Fallback: save to localStorage
             localStorage.setItem('tigpsUserProfile', JSON.stringify(currentUser));
         }
-        
         // Update UI
         loadTwitterProfileData();
+        // Update avatar in dashboard
+        document.getElementById('twitterProfileAvatar').src = currentUser.avatar || '';
         closeTwitterProfileEdit();
         showNotification('Profile updated successfully!', 'success');
     } catch (error) {
@@ -1840,36 +1854,36 @@ function showProfileComingSoon() {
 
 document.addEventListener('DOMContentLoaded', function() {
     // Sidebar profile item
-    const sidebarProfile = document.querySelector('.sidebar-item[onclick*="profile-dashboard.html"]');
+    const sidebarProfile = document.querySelector('.sidebar-item[onclick*="openTwitterProfile"]');
     if (sidebarProfile) {
         sidebarProfile.onclick = function(e) {
             e.stopPropagation();
-            showProfileComingSoon();
+            openTwitterProfile();
             return false;
         };
     }
-    // Bottom nav profile icon
-    const navItems = document.querySelectorAll('.x-bottom-nav .x-nav-item');
-    navItems.forEach(item => {
-        // Look for SVG or avatar inside
-        if (item.innerHTML.includes('profile-dashboard.html')) {
-            item.onclick = function(e) {
-                e.stopPropagation();
-                showProfileComingSoon();
-                return false;
-            };
-        }
-    });
+    // REMOVE the following block to allow default navigation:
+    // const navProfileBtn = document.querySelector('.x-bottom-nav .x-profile-pic.account-avatar')?.closest('.x-nav-item');
+    // if (navProfileBtn) {
+    //     navProfileBtn.onclick = function(e) {
+    //         e.stopPropagation();
+    //         openTwitterProfile();
+    //         return false;
+    //     };
+    // }
 });
 
 // Fix anonymous checkbox toggle (mobile)
 document.addEventListener('DOMContentLoaded', function() {
     const anonCheck = document.getElementById('anonymousCheck');
     if (anonCheck) {
-        anonCheck.onclick = function(e) {
-            anonCheck.checked = !anonCheck.checked;
-        };
+        anonCheck.addEventListener('change', function() {
+            anonCheck.checked = !!anonCheck.checked;
+        });
     }
+    // Ensure openTwitterProfileEdit and saveTwitterProfile are globally available
+    window.openTwitterProfileEdit = openTwitterProfileEdit;
+    window.saveTwitterProfile = saveTwitterProfile;
 });
 
 // --- [A] Double Post Prevention ---
@@ -2049,3 +2063,80 @@ function migrateLocalStorageSchema() {
   }
 }
 window.addEventListener('DOMContentLoaded', migrateLocalStorageSchema);
+
+// --- Robust openTwitterProfileEdit ---
+window.openTwitterProfileEdit = function() {
+    try {
+        const modal = document.getElementById('twitterProfileEditModal');
+        if (!modal) {
+            console.error('twitterProfileEditModal not found');
+            showNotification('Edit modal not found.', 'error');
+            return;
+        }
+        document.getElementById('twitterEditName').value = currentUser.displayName || '';
+        document.getElementById('twitterEditUsername').value = currentUser.username || '';
+        document.getElementById('twitterEditBio').value = currentUser.bio || '';
+        document.getElementById('twitterEditLocation').value = currentUser.location || '';
+        document.getElementById('editProfileAvatar').src = currentUser.avatar || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\' fill=\'%23f7b500\'/%3E%3C/svg%3E';
+        modal.style.display = 'flex';
+    } catch (e) {
+        console.error('Error opening edit profile modal:', e);
+        showNotification('Error opening edit profile modal.', 'error');
+    }
+};
+
+// --- Robust anonymous checkbox handling ---
+function getAnonymousCheckValue() {
+    var anonCheck = document.getElementById('anonymousCheck');
+    if (!anonCheck) {
+        console.error('anonymousCheck not found');
+        return false;
+    }
+    return !!anonCheck.checked;
+}
+
+// Patch createPost to use robust anonymous check
+const originalCreatePost = createPost;
+window.createPost = function() {
+    // ... existing code ...
+    if (postCooldownActive) {
+        showNotification('Please wait 15 seconds before posting again.', 'warning');
+        return;
+    }
+    const postInput = document.getElementById('postInput');
+    const content = postInput.value.trim();
+    if (!content) {
+        showNotification('Please enter some content to post.', 'error');
+        return;
+    }
+    if (!requireUsername()) {
+        return;
+    }
+    const isAnonymous = getAnonymousCheckValue();
+    const user = getCurrentUserForPost(isAnonymous);
+    const post = {
+        content: content,
+        author: user.displayName,
+        username: user.username,
+        avatar: user.avatar,
+        isAnonymous: isAnonymous,
+        timestamp: new Date().toISOString(),
+        likes: 0,
+        comments: [],
+        isLiked: false
+    };
+    posts.unshift(post);
+    renderPosts();
+    postInput.value = '';
+    postInput.style.height = 'auto';
+    document.getElementById('anonymousCheck').checked = false;
+    showNotification('Post created successfully!', 'success');
+};
+
+// --- Global error handler for debugging ---
+window.addEventListener('error', function(e) {
+    console.error('GLOBAL ERROR:', e.error || e.message || e);
+});
+window.addEventListener('unhandledrejection', function(e) {
+    console.error('GLOBAL PROMISE ERROR:', e.reason || e);
+});

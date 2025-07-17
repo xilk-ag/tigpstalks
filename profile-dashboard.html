@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Profile Dashboard - TIGPS TALKS</title>
+    <link rel="stylesheet" href="mobile-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <button class="twitter-back-btn" onclick="goBack()" style="background:none;border:none;color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                </div>
+                <div class="header-center">
+                    <img src="tigps.png" alt="TIGPS" class="tigps-logo">
+                </div>
+                <div class="header-right"></div>
+            </div>
+        </header>
+
+        <!-- Profile Dashboard -->
+        <main class="main-content">
+            <div class="twitter-profile-header">
+                <div class="twitter-profile-cover">
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop" alt="Cover" class="twitter-cover-image" id="twitterCoverImage">
+                </div>
+                <div class="twitter-profile-avatar-section">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgIDxwYXRoIGQ9Ik0xMiAxMmMyLjIxIDAgNC0xLjc5IDQtNHMtMS43OS00LTQtNC00IDEuNzktNCA0IDQtNCA0LTEuNzkgNC00IDQtNHoiIGZpbGw9IiNmN2I1MDAiLz4KICAgIDxwYXRoIGQ9Ik0xMiAxNGMtMi42NyAwLTgtMS4zNC04LTR2LTJoMTZ2MnYtMmMwLTIuNjYtNS4zMy00LTgtNHoiIGZpbGw9IiNmN2I1MDAiLz4KPC9zdmc+Cg==" alt="Profile" class="twitter-profile-avatar" id="twitterProfileAvatar">
+                </div>
+                <div class="twitter-profile-actions">
+                    <button class="twitter-edit-profile-btn" onclick="openTwitterProfileEdit()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                        Edit profile
+                    </button>
+                </div>
+            </div>
+            <div class="twitter-profile-info">
+                <div class="twitter-profile-name" id="twitterProfileName">Alex Chen</div>
+                <div class="twitter-profile-username" id="twitterProfileUsername">@alexchen</div>
+                <div class="twitter-profile-bio" id="twitterProfileBio">Computer Science student at TIGPS. Love coding and coffee! ☕</div>
+                <div class="twitter-profile-stats">
+                    <div class="twitter-stat">
+                        <span class="twitter-stat-number" id="twitterLikesCount">0</span>
+                        <span class="twitter-stat-label">Likes</span>
+                    </div>
+                    <div class="twitter-stat">
+                        <span class="twitter-stat-number" id="twitterPostsCount">0</span>
+                        <span class="twitter-stat-label">Posts</span>
+                    </div>
+                </div>
+            </div>
+            <div class="twitter-profile-content">
+                <div class="twitter-posts-container" id="twitterPostsContainer">
+                    <!-- Posts will be loaded here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Edit Profile Modal -->
+        <div id="twitterProfileEditModal" class="modal" style="display:none;">
+            <div class="modal-content twitter-edit-modal">
+                <div class="modal-header">
+                    <h2>Edit Profile</h2>
+                    <button class="close-btn" onclick="closeTwitterProfileEdit()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="twitter-edit-section">
+                        <div class="input-group" style="text-align:center;">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgIDxwYXRoIGQ9Ik0xMiAxMmMyLjIxIDAgNC0xLjc5IDQtNHMtMS43OS00LTQtNC00IDEuNzktNCA0IDQtNCA0LTEuNzkgNC00IDQtNHoiIGZpbGw9IiNmN2I1MDAiLz4KICAgIDxwYXRoIGQ9Ik0xMiAxNGMtMi42NyAwLTgtMS4zNC04LTR2LTJoMTZ2MnYtMmMwLTIuNjYtNS4zMy00LTgtNHoiIGZpbGw9IiNmN2I1MDAiLz4KPC9zdmc+Cg==" alt="Profile" id="editProfileAvatar" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:10px;">
+                            <br>
+                            <input type="file" id="editProfileAvatarInput" accept="image/*" style="display:none;" onchange="handleEditProfileAvatarUpload(event)">
+                            <button class="btn-secondary" type="button" onclick="document.getElementById('editProfileAvatarInput').click()">Change Picture</button>
+                        </div>
+                        <div class="input-group">
+                            <label for="twitterEditName">Display Name</label>
+                            <input type="text" id="twitterEditName" placeholder="Your display name" maxlength="30">
+                        </div>
+                        <div class="input-group">
+                            <label for="twitterEditUsername">Username</label>
+                            <input type="text" id="twitterEditUsername" placeholder="Your username" maxlength="20">
+                        </div>
+                        <div class="input-group">
+                            <label for="twitterEditBio">Bio</label>
+                            <textarea id="twitterEditBio" placeholder="Tell us about yourself..." maxlength="150" rows="3"></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label for="twitterEditLocation">Location</label>
+                            <input type="text" id="twitterEditLocation" placeholder="Your location" maxlength="50">
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn-primary" onclick="saveTwitterProfile()">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- X-style Bottom Navigation Bar -->
+        <nav class="x-bottom-nav">
+            <div class="x-nav-item" onclick="window.location.href='mobile.html'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 12h18M3 6h18M3 18h18"/>
+                </svg>
+            </div>
+            <div class="x-nav-item" onclick="window.location.href='mobile.html'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+            </div>
+            <div class="x-nav-item x-plus-btn" onclick="window.location.href='mobile.html#post'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+            </div>
+            <div class="x-nav-item" onclick="window.location.href='profile-dashboard.html'">
+                <div class="x-profile-pic account-avatar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <script src="mobile.js"></script>
+    <script>
+        function goBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'mobile.html';
+            }
+        }
+        // On page load, load profile data and posts
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof loadTwitterProfileData === 'function') loadTwitterProfileData();
+            if (typeof loadTwitterPosts === 'function') loadTwitterPosts();
+        });
+    </script>
+</body>
+</html> 
