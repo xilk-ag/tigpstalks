@@ -87,6 +87,7 @@ function checkAdminState() {
 
 // Call this function when the page loads
 document.addEventListener('DOMContentLoaded', function() {
+    document.body.classList.add('loaded');
     console.log('=== DOMContentLoaded START ===');
     try {
         // Initialize Firebase first

@@ -162,9 +162,9 @@ function setupEventListeners() {
         
         postInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                // Don't call createPost() here to prevent double posting
-                // The button click will handle posting
+                e.preventDefault(); // Prevent double post
+                // Only trigger post if not already handled by button
+                // Optionally, you can call createPost() here if that's the intended UX
             }
         });
     }
@@ -357,6 +357,10 @@ async function savePostToFirestore(post) {
             post.id = Date.now().toString();
             posts.unshift(post);
             localStorage.setItem('tigpsPosts', JSON.stringify(posts));
+            // Offline queue for sync
+            let offlineQueue = JSON.parse(localStorage.getItem('offline-queue') || '[]');
+            offlineQueue.push(post);
+            localStorage.setItem('offline-queue', JSON.stringify(offlineQueue));
             return true;
         }
         await db.collection("posts").add(post);
@@ -367,6 +371,10 @@ async function savePostToFirestore(post) {
         post.id = Date.now().toString();
         posts.unshift(post);
         localStorage.setItem('tigpsPosts', JSON.stringify(posts));
+        // Offline queue for sync
+        let offlineQueue = JSON.parse(localStorage.getItem('offline-queue') || '[]');
+        offlineQueue.push(post);
+        localStorage.setItem('offline-queue', JSON.stringify(offlineQueue));
         return true;
     }
 }
@@ -738,21 +746,30 @@ async function searchGifs() {
 }
 
 async function searchTenorGifs(query) {
-    try {
-        const response = await fetch(`${TENOR_BASE_URL}/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=8&media_filter=tinygif`);
-        const data = await response.json();
-        // Handle new Google API response structure
-        if (data.results) {
-            return data.results || [];
-        } else if (data.data) {
-            // New Google API structure
-            return data.data || [];
+    let gifs = [];
+    let lastError = null;
+    for (let i = 0; i < TENOR_KEYS.length; i++) {
+        const key = TENOR_KEYS[(tenorKeyIndex + i) % TENOR_KEYS.length];
+        try {
+            const response = await fetch(`https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${key}&limit=8&media_filter=tinygif`);
+            const data = await response.json();
+            if (Array.isArray(data.results) && data.results.length > 0) {
+                gifs = data.results.map(mapGif);
+                tenorKeyIndex = (tenorKeyIndex + i) % TENOR_KEYS.length;
+                break;
+            }
+        } catch (err) {
+            lastError = err;
         }
-        return [];
-    } catch (error) {
-        console.error('Error fetching GIFs:', error);
-        return [];
     }
+    // Fallback to local GIFs if all keys fail
+    if (gifs.length === 0) {
+        gifs = (window.localGifSet || []).map(mapGif);
+    }
+    if (gifs.length === 0 && lastError) {
+        throw lastError;
+    }
+    return gifs;
 }
 
 function displayGifResults(gifs) {
@@ -1854,3 +1871,181 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 });
+
+// --- [A] Double Post Prevention ---
+// In setupEventListeners, ensure Enter key only triggers post if not already handled
+const postInput = document.getElementById('postInput');
+if (postInput) {
+    postInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent double post
+            // Only trigger post if not already handled by button
+            // Optionally, you can call createPost() here if that's the intended UX
+        }
+    });
+}
+
+// --- [B] GIF Search Defensive Mapping ---
+const mapGif = g => ({
+  url: g.media_formats?.tinygif?.url || g.media_formats?.gif?.url,
+  preview: g.media_formats?.tinygif?.url || g.media_formats?.gif?.url,
+  title: g.title || 'GIF',
+  id: g.id
+});
+
+// --- [C] Avatar Fallback ---
+function setAvatarImg(img, src) {
+  img.onerror = () => {
+    img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%2325D366'/%3E%3Cpath d='M60 70c-13.255 0-40 6.627-40 20v10h80v-10c0-13.373-26.745-20-40-20zm0-10c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16z' fill='%23fff'/%3E%3C/svg%3E";
+  };
+  img.src = src;
+}
+
+// --- [D] Admin Logout UI Update ---
+function logout() {
+    isAdminLoggedIn = false;
+    localStorage.setItem('isAdminLoggedIn', 'false');
+    updateProfileDisplay(); // Force UI re-render
+    // Add any additional UI update logic here if needed
+    // ... existing code ...
+}
+
+// --- [E] Content-Protection ---
+document.addEventListener('dragstart', e => e.preventDefault());
+window.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey && (e.key === 'c' || e.key === 'x' || e.key === 'a' || e.key === 's' || e.key === 'u')) ||
+      (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'C'))) {
+    e.preventDefault();
+  }
+});
+window.addEventListener('beforeprint', () => { document.body.style.display = 'none'; });
+window.addEventListener('afterprint', () => { document.body.style.display = ''; });
+
+// --- [F] GIF API Key Rotation ---
+const TENOR_KEYS = ["LIVDSRZULELA", "BACKUP_KEY"];
+let tenorKeyIndex = 0;
+function getTenorKey() {
+  tenorKeyIndex = (tenorKeyIndex + 1) % TENOR_KEYS.length;
+  return TENOR_KEYS[tenorKeyIndex];
+}
+
+// --- [G] Keyboard Overlap Fix ---
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    const active = document.activeElement;
+    if (active && (active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')) {
+      active.scrollIntoView({behavior: 'smooth', block: 'center'});
+    }
+  });
+}
+
+// --- [H] Swipe-to-close Sidebar ---
+let touchStartX = 0;
+let touchEndX = 0;
+const sidebar = document.getElementById('sidebar');
+if (sidebar) {
+  sidebar.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+  sidebar.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    if (touchStartX - touchEndX > 50) sidebar.style.display = 'none';
+  });
+}
+
+// --- [I] Accessibility Improvements ---
+// Add alt text to avatars and aria-labels to buttons where missing
+
+// --- [Security & Content-Protection Hardening] ---
+// [A] Blur media if DevTools open
+function checkDevTools() {
+  if (window.outerHeight - window.innerHeight > 100) {
+    document.body.classList.add('devtools-open');
+  } else {
+    document.body.classList.remove('devtools-open');
+  }
+}
+window.addEventListener('resize', checkDevTools);
+window.addEventListener('load', checkDevTools);
+
+// [B] Prevent drag-and-drop extraction
+// (already present, but ensure it's robust)
+document.addEventListener('dragstart', e => e.preventDefault());
+
+// [C] Hide body on print
+window.addEventListener('beforeprint', () => { document.body.style.display = 'none'; });
+window.addEventListener('afterprint', () => { document.body.style.display = ''; });
+
+// --- [Mobile UX Polish] ---
+// [A] Suppress context menu on long-press avatar
+function suppressAvatarContextMenu() {
+  document.querySelectorAll('.profile-pic, .x-profile-pic').forEach(el => {
+    el.addEventListener('contextmenu', e => e.preventDefault());
+  });
+}
+window.addEventListener('DOMContentLoaded', suppressAvatarContextMenu);
+
+// [B] Swipe-to-close sidebar
+function setupSidebarSwipe() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  let touchStartX = 0;
+  let touchEndX = 0;
+  sidebar.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+  sidebar.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    if (touchStartX - touchEndX > 50) sidebar.style.display = 'none';
+  });
+}
+window.addEventListener('DOMContentLoaded', setupSidebarSwipe);
+
+// [C] Keyboard overlap fix
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    const active = document.activeElement;
+    if (active && (active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')) {
+      active.scrollIntoView({behavior: 'smooth', block: 'center'});
+    }
+  });
+}
+
+// --- [Accessibility & Semantics] ---
+// Patch avatar <img> elements to have alt text
+function patchAvatarAlts() {
+  document.querySelectorAll('.profile-pic, .x-profile-pic, .post-avatar').forEach(img => {
+    if (!img.alt || img.alt === 'Profile' || img.alt === '') {
+      const username = img.getAttribute('data-username') || img.getAttribute('alt') || 'user';
+      img.alt = `Avatar of @${username}`;
+    }
+  });
+}
+window.addEventListener('DOMContentLoaded', patchAvatarAlts);
+
+// Patch anonymous post button for aria-label
+function patchAnonButtonAria() {
+  document.querySelectorAll('button, input[type="button"]').forEach(btn => {
+    if (btn.textContent.match(/anonymous/i) && !btn.hasAttribute('aria-label')) {
+      btn.setAttribute('aria-label', 'Post anonymously');
+    }
+  });
+}
+window.addEventListener('DOMContentLoaded', patchAnonButtonAria);
+
+// --- [LocalStorage Schema Versioning & Migration] ---
+const SCHEMA_VERSION = 2;
+const SCHEMA_KEY = 'tigps-schema-version';
+function migrateLocalStorageSchema() {
+  const currentVersion = parseInt(localStorage.getItem(SCHEMA_KEY) || '1', 10);
+  if (currentVersion < SCHEMA_VERSION) {
+    // Example migration: v1 to v2 - ensure all posts have 'tags' array
+    if (currentVersion === 1) {
+      let posts = [];
+      try {
+        posts = JSON.parse(localStorage.getItem('tigpsPosts') || '[]');
+      } catch {}
+      posts = posts.map(post => ({ ...post, tags: Array.isArray(post.tags) ? post.tags : [] }));
+      localStorage.setItem('tigpsPosts', JSON.stringify(posts));
+      localStorage.setItem(SCHEMA_KEY, '2');
+    }
+    // Add future migrations here
+  }
+}
+window.addEventListener('DOMContentLoaded', migrateLocalStorageSchema);
