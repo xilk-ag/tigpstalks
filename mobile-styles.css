@@ -52,70 +52,258 @@ body {
     context-menu: none;
 }
 
-/* --- PC-Style Cosmic Background for Mobile --- */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: transparent;
+/* --- DARK THEME BASE --- */
+body {
+    background: #000 !important;
+    color: #fff !important;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    min-height: 100vh;
+    overflow-x: hidden;
+    letter-spacing: 0.01em;
+    touch-action: manipulation;
 }
+
 .stars {
-  position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  pointer-events: none;
-  z-index: 0;
-  background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="white" opacity="0.8"/><circle cx="80" cy="40" r="0.5" fill="white" opacity="0.6"/><circle cx="40" cy="80" r="1.5" fill="white" opacity="0.9"/><circle cx="90" cy="10" r="0.8" fill="white" opacity="0.7"/><circle cx="10" cy="90" r="1.2" fill="white" opacity="0.8"/></svg>') repeat;
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 0;
 }
+
 .stars-container {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  z-index: -2;
-  overflow: hidden;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -2;
+    overflow: hidden;
 }
+
+.stars, .twinkling, .glitter {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+}
+
+.stars {
+    background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="white" opacity="0.8"/><circle cx="80" cy="40" r="0.5" fill="white" opacity="0.6"/><circle cx="40" cy="80" r="1.5" fill="white" opacity="0.9"/><circle cx="90" cy="10" r="0.8" fill="white" opacity="0.7"/><circle cx="10" cy="90" r="1.2" fill="white" opacity="0.8"/></svg>') repeat;
+}
+
 .twinkling {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none;
-  background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="white" opacity="0.3"/><circle cx="30" cy="70" r="1" fill="white" opacity="0.4"/><circle cx="70" cy="30" r="1.5" fill="white" opacity="0.3"/></svg>') repeat;
+    background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="white" opacity="0.3"/><circle cx="30" cy="70" r="1" fill="white" opacity="0.4"/><circle cx="70" cy="30" r="1.5" fill="white" opacity="0.3"/></svg>') repeat;
 }
+
 .glitter {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none;
-  background: repeating-radial-gradient(circle at 10% 10%, #fff8 0 1px, transparent 1px 100px),
-              repeating-radial-gradient(circle at 80% 80%, #fff5 0 1.5px, transparent 1.5px 100px);
-  mix-blend-mode: lighten;
-  opacity: 0.5;
+    background: repeating-radial-gradient(circle at 10% 10%, #fff8 0 1px, transparent 1px 100px),
+                repeating-radial-gradient(circle at 80% 80%, #fff5 0 1.5px, transparent 1.5px 100px);
+    mix-blend-mode: lighten;
+    opacity: 0.5;
 }
 
-/* --- PC-Style Post Card for Mobile --- */
-.post {
-  background: rgba(0,0,0,0.1) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 2px 16px #a259ff22;
-  border: 2px solid rgba(24, 24, 26, 0.3) !important;
-  margin-bottom: 1.5rem;
-  padding: 1.5rem 1.5rem 1rem 1.5rem;
-  transition: border 0.2s, box-shadow 0.2s;
-  animation: slideInUp 0.6s ease-out;
-  backdrop-filter: blur(10px);
-}
-.post:hover {
-  border-color: #a259ff !important;
-  box-shadow: 0 4px 32px #a259ff99;
+/* App container */
+.app {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
 }
 
-/* --- PC-Style Post Creator for Mobile --- */
+/* Header - Mobile Optimized */
+.header {
+    background: rgba(0, 0, 0, 0.95) !important;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    padding: 0 !important;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: relative;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    justify-content: flex-end;
+}
+
+/* Hamburger Menu - Mobile Optimized */
+.hamburger-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.hamburger-menu:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.hamburger-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.hamburger-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.hamburger-icon path {
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+/* Logo - Mobile Optimized */
+.header-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 2;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+}
+
+.tigps-logo {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+    max-width: 120px;
+}
+
+/* Buttons - Mobile Optimized */
+.btn-mail {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 16px;
+}
+
+.btn-mail:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.05);
+}
+
+/* User Menu - Mobile Optimized */
+.user-menu {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.user-menu:hover {
+    opacity: 0.8;
+}
+
+.profile-pic {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-pic:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.profile-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 8px 0;
+    min-width: 200px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s;
+    z-index: 1000;
+}
+
+.profile-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.profile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+
+.profile-menu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Main Content - Mobile Optimized */
+.main-content {
+    padding: 16px 0;
+    min-height: calc(100vh - 56px);
+}
+
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+/* Post Creator - Mobile Optimized (PC-style frosted glass) */
 .post-creator {
-  background: rgba(36, 40, 60, 0.15);
-  border: 1.5px solid rgba(0, 255, 247, 0.3);
-  box-shadow: 0 4px 32px rgba(0, 255, 247, 0.2), 0 0 8px rgba(162, 89, 255, 0.2);
-  border-radius: 20px;
-  padding: 1.5rem;
-  transition: box-shadow 0.3s, border 0.3s, transform 0.2s;
-  backdrop-filter: blur(10px);
-  margin-bottom: 18px;
-  margin-top: 8px;
+    background: rgba(36, 40, 60, 0.15);
+    border: 1.5px solid rgba(0, 255, 247, 0.3);
+    box-shadow: 0 4px 32px rgba(0, 255, 247, 0.2), 0 0 8px rgba(162, 89, 255, 0.2);
+    border-radius: 20px;
+    padding: 1.5rem;
+    transition: box-shadow 0.3s, border 0.3s, transform 0.2s;
+    backdrop-filter: blur(10px);
+    margin-bottom: 18px;
+    margin-top: 8px;
 }
 
 .post-input-container {
@@ -380,14 +568,13 @@ body::before {
     gap: 16px;
 }
 
-/* --- Mobile Post: Transparent Frosted Glass (PC-style) --- */
 .post {
-  background: rgba(36, 40, 60, 0.15) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 16px;
-  backdrop-filter: blur(12px);
-  animation: slideInUp 0.3s ease-out;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 16px;
+    backdrop-filter: blur(12px);
+    animation: slideInUp 0.3s ease-out;
 }
 
 .post:hover {
@@ -2306,131 +2493,4 @@ body, .main-content, .sidebar, .header, .footer {
 /* --- [Security: Blur media if DevTools open] --- */
 .devtools-open img, .devtools-open video {
   filter: blur(0.3px) !important;
-} 
-
-/* --- PC-Style Header for Mobile (FINAL OVERRIDE) --- */
-.header {
-  background: rgba(0, 0, 0, 0.95) !important;
-  backdrop-filter: blur(12px) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
-  padding: 0 !important;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 100 !important;
-}
-.header-content {
-  max-width: 1200px !important;
-  margin: 0 auto !important;
-  padding: 0 16px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  height: 60px !important;
-  position: relative !important;
-} 
-
-/* --- PC-Style Header Buttons and Larger Logo for Mobile --- */
-.tigps-logo {
-  width: 151.88px !important;
-  height: 151.88px !important;
-  object-fit: contain;
-  border-radius: 0;
-}
-@media (max-width: 600px) {
-  .tigps-logo {
-    width: 121.5px !important;
-    height: 121.5px !important;
-  }
-}
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.btn-mail {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: #fff !important;
-  border: none !important;
-  border-radius: 50% !important;
-  width: 40px !important;
-  height: 40px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 16px !important;
-  box-shadow: none !important;
-  outline: none !important;
-  cursor: pointer !important;
-  transition: all 0.3s ease !important;
-  margin-right: 8px !important;
-  backdrop-filter: blur(10px) !important;
-}
-#betaButton {
-  background: #f7b500 !important;
-  color: #222 !important;
-  font-weight: 700 !important;
-  border: none !important;
-  padding: 4px 12px !important;
-  border-radius: 12px !important;
-  font-size: 0.8rem !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
-  cursor: pointer !important;
-  transition: background 0.2s !important;
-  display: flex !important;
-  align-items: center !important;
-  height: 40px !important;
-}
-@media (max-width: 600px) {
-  .tigps-logo {
-    width: 81px !important;
-    height: 81px !important;
-  }
-  .header-content {
-    padding: 0 8px !important;
-  }
-  .header-right {
-    gap: 8px;
-  }
-  .btn-mail, #betaButton {
-    height: 36px !important;
-    width: 36px !important;
-    font-size: 15px !important;
-  }
-} 
-
-/* --- Even Larger Logo for Mobile --- */
-.tigps-logo {
-  width: 151.88px !important;
-  height: 151.88px !important;
-  object-fit: contain;
-  border-radius: 0;
-}
-@media (max-width: 600px) {
-  .tigps-logo {
-    width: 121.5px !important;
-    height: 121.5px !important;
-  }
-}
-
-/* --- Ultra-Transparent, Blurred Post Card for Cosmic Background --- */
-.post {
-  background: rgba(0,0,0,0.1) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 2px 16px #a259ff22;
-  border: 2px solid rgba(24, 24, 26, 0.15) !important;
-  margin-bottom: 1.5rem;
-  padding: 1.5rem 1.5rem 1rem 1.5rem;
-  transition: border 0.2s, box-shadow 0.2s;
-  animation: slideInUp 0.6s ease-out;
-  backdrop-filter: blur(18px) !important;
-  -webkit-backdrop-filter: blur(18px) !important;
-} 
-
-/* --- Heart (Like) Button Alignment Fix --- */
-.post-action-btn.liked .action-icon,
-.post-action-btn.liked svg {
-  vertical-align: middle;
-  transform: translateY(2.5px);
-  display: inline-block;
 } 

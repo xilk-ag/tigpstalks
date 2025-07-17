@@ -177,7 +177,7 @@ function setupEventListeners() {
             const username = document.getElementById('usernameInput').value.trim();
             
             if (displayName && username) {
-                setStoredUsername(username);
+                setStoredUsername(username, displayName);
                 currentUser.displayName = displayName;
                 currentUser.username = username;
                 hideUsernameModal();
@@ -255,19 +255,24 @@ function updateCharCount(textarea, countElement) {
 }
 
 // Username management
-function getStoredUsername() {
-    return localStorage.getItem('tigpsUsername');
-}
-
-function setStoredUsername(username) {
+function setStoredUsername(username, displayName) {
     localStorage.setItem('tigpsUsername', username);
+    if (displayName) localStorage.setItem('tigpsDisplayName', displayName);
 }
 
-function showUsernameModal() {
+function getStoredDisplayName() {
+    return localStorage.getItem('tigpsDisplayName');
+}
+
+function showUsernameModal(force) {
     const modal = document.getElementById('usernameModal');
     if (modal) {
         modal.style.display = 'flex';
         document.getElementById('displayNameInput').focus();
+        if (force) {
+            document.getElementById('displayNameInput').value = '';
+            document.getElementById('usernameInput').value = '';
+        }
     }
 }
 
@@ -280,14 +285,13 @@ function hideUsernameModal() {
 
 function requireUsername() {
     const storedUsername = getStoredUsername();
-    if (!storedUsername) {
-        showUsernameModal();
+    const storedDisplayName = getStoredDisplayName();
+    if (!storedUsername || !storedDisplayName) {
+        showUsernameModal(true);
         return false;
     }
-    
-    // Update current user with stored data
     currentUser.username = storedUsername;
-    currentUser.displayName = localStorage.getItem('tigpsDisplayName') || storedUsername;
+    currentUser.displayName = storedDisplayName;
     updateProfileDisplay();
     return true;
 }
@@ -874,8 +878,7 @@ async function saveProfile() {
         currentUser.bio = profileBio ? profileBio.value.trim() : '';
         
         // Save to localStorage
-        setStoredUsername(currentUser.username);
-        localStorage.setItem('tigpsDisplayName', currentUser.displayName);
+        setStoredUsername(currentUser.username, currentUser.displayName);
         localStorage.setItem('tigpsBio', currentUser.bio);
         
         updateProfileDisplay();
